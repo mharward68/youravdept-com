@@ -606,6 +606,9 @@
   .lm-success svg{ width:40px; height:40px; color:var(--teal-deep); margin:0 auto 14px; }
   .lm-success h3{ font-size:1.12rem; color:var(--ink); margin:0 0 8px; }
   .lm-success p{ font-size:.92rem; color:var(--ink-dim); margin:0; line-height:1.65; }
+  .lm-success p + p{ margin-top:10px; }
+  .lm-success p.lm-dl{ margin:18px 0 16px; }
+  .lm-success p.lm-dl .btn{ display:inline-flex; gap:9px; align-items:center; }
   .lm-success p + p{ margin-top:12px; }
   .lm-error{
     display:none; margin-top:12px; font-size:.84rem; color:#c23163; text-align:center;
@@ -838,9 +841,10 @@
 
             <div class="lm-success" id="leadSuccess" role="status" aria-live="polite">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
-              <h3>Check your inbox.</h3>
-              <p>The guide is on its way to you now. If it hasn't landed in a few minutes, look in promotions or spam.</p>
-              <p>Questions about a labor line you're staring at right now? Just reply to that email.</p>
+              <h3>Here's your guide.</h3>
+              <p>Tap below to open it right now. A copy is on its way to your inbox as well.</p>
+              <p class="lm-dl"><a href="pdf/the-levers-of-labor.pdf" class="btn btn-primary" download><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px;margin:0;color:inherit;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg> Download The Levers of Labor</a></p>
+              <p>Questions about a labor line you're staring at right now? Email <a href="mailto:michaelh@youravdept.com" style="color:var(--teal-deep); font-weight:700;">michaelh@yourAVdept.com</a>.</p>
             </div>
 
           </div>
@@ -1015,8 +1019,9 @@
 
           <div class="lm-success" id="leadSuccess2" role="status" aria-live="polite">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
-            <h3>Check your inbox.</h3>
-            <p>The guide is on its way to you now. If it hasn't landed in a few minutes, look in promotions or spam.</p>
+            <h3>Here's your guide.</h3>
+            <p>Tap below to open it right now. A copy is on its way to your inbox as well.</p>
+            <p class="lm-dl"><a href="pdf/the-levers-of-labor.pdf" class="btn btn-primary" download><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px;margin:0;color:inherit;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg> Download The Levers of Labor</a></p>
           </div>
         </div>
       </div>
