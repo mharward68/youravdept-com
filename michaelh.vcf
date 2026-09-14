@@ -1,0 +1,12 @@
+BEGIN:VCARD
+VERSION:3.0
+N:Harward;Michael;;;
+FN:Michael Harward
+ORG:Your AV Department
+TITLE:Founder
+TEL;TYPE=WORK,VOICE:+15024183488
+EMAIL;TYPE=WORK,INTERNET:michaelh@yourAVdept.com
+URL:https://www.yourAVdept.com/michaelh.html
+URL;TYPE=LinkedIn:https://www.linkedin.com/in/michael-harward/
+NOTE:Independent AV production sourcing for national associations and corporate groups - at no cost to you.
+END:VCARD
