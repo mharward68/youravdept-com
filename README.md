@@ -17,6 +17,7 @@ self-contained HTML file with its CSS, JS, and images inlined.
 | `meeting-planner-wellness-playlists.html` | Wellness playlists | yes |
 | `onyva-welcome.html` | Onyva download landing page for frequent travelers | yes |
 | `onyva-landing.html` | Redirect stub to `onyva-welcome.html` (301 in `_redirects`) | no |
+| `onyva-conference-pilot.html` | Onyva Conference Pilot Program | yes |
 | `onyva.html` | Onyva Quick Start Guide, travelers | noindex |
 | `onyva-download.html` | Onyva as a digital gift | noindex |
 | `michaelh.html` + `michaelh.vcf` | Michael Harward digital card | noindex |
@@ -29,7 +30,7 @@ buttons will 404.
 
 The noindex pages carry no nav or footer links. They are reached by the site
 map easter egg: click the footer copyright line 5 times within 2 seconds.
-All eleven pages that carry the site map modal list the same 12 entries, in
+All ten pages that carry the site map modal list the same 13 entries, in
 alphabetical order (punctuation ignored). Every page on the site belongs in it. The two
 pages under `library/` use `../` prefixes for the root-level links.
 
