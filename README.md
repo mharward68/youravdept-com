@@ -15,7 +15,8 @@ self-contained HTML file with its CSS, JS, and images inlined.
 | `library/pdf/the-levers-of-labor.pdf` | Guide PDF | no (see `_headers`) |
 | `event-playlists.html` | Event playlists | yes |
 | `meeting-planner-wellness-playlists.html` | Wellness playlists | yes |
-| `onyva-landing.html` | Onyva download landing page for frequent travelers | yes |
+| `onyva-welcome.html` | Onyva download landing page for frequent travelers | yes |
+| `onyva-landing.html` | Redirect stub to `onyva-welcome.html` (301 in `_redirects`) | no |
 | `onyva.html` | Onyva Quick Start Guide, travelers | noindex |
 | `onyva-download.html` | Onyva as a digital gift | noindex |
 | `michaelh.html` + `michaelh.vcf` | Michael Harward digital card | noindex |
@@ -28,7 +29,8 @@ buttons will 404.
 
 The noindex pages carry no nav or footer links. They are reached by the site
 map easter egg: click the footer copyright line 5 times within 2 seconds.
-All ten pages that carry the site map modal list the same 12 entries. The two
+All eleven pages that carry the site map modal list the same 12 entries, in
+alphabetical order (punctuation ignored). Every page on the site belongs in it. The two
 pages under `library/` use `../` prefixes for the root-level links.
 
 ## Conventions
@@ -38,7 +40,7 @@ pages under `library/` use `../` prefixes for the root-level links.
 - Every AV call to action links to `https://calendar.app.google/Do7aNUGLhraagUKV6`.
   Page JS intercepts any `a.btn[href*="calendar.app.google"]` click and opens the
   Strategic Review modal; the href is the no-JS fallback.
-- Onyva calls to action on `onyva-landing.html` link to `https://your-av-dept.onyva.life`.
+- Onyva calls to action on `onyva-welcome.html` link to `https://your-av-dept.onyva.life`.
 - Editing one page's `:root` or site map means editing all of them. There is no
   shared stylesheet.
 

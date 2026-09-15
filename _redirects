@@ -3,9 +3,13 @@
 /onyva-swag        /onyva-download.html   301
 /onyva-swag.html   /onyva-download.html   301
 
+# onyva-landing renamed to onyva-welcome; forced (!) so the 301 wins over the stub file
+/onyva-landing        /onyva-welcome.html   301!
+/onyva-landing.html   /onyva-welcome.html   301!
+
 # pretty URLs for the unlisted pages
 /michaelh          /michaelh.html         200
 /trishah           /trishah.html          200
 /onyva             /onyva.html            200
 /onyva-download    /onyva-download.html   200
-/onyva-landing     /onyva-landing.html    200
+/onyva-welcome     /onyva-welcome.html    200
