@@ -13,6 +13,13 @@
  *      <input type="hidden" name="guide" value="Exact GUIDES Key">
  *    Nothing else. This function handles every form on the site.
  *
+ * FORMS WITHOUT A GUIDE (revised 2026-09-15 7:30 PM ET)
+ *   Netlify calls this function for every form, not just lead magnets. It used
+ *   to fall back to The Levers of Labor when a form had no "guide" field, so
+ *   the Onyva Conference Pilot request form was mailing the guide. Now a form
+ *   with no "guide" field is skipped, and an unknown guide is logged and
+ *   skipped rather than replaced with a default.
+ *
  * SETUP (once)
  *   Netlify > Site configuration > Environment variables:
  *     RESEND_API_KEY = the re_... key with Sending access
@@ -46,8 +53,6 @@ const GUIDES = {
   // }
 };
 
-const DEFAULT_GUIDE = 'The Levers of Labor';
-
 export default async (req) => {
   // Always 200. Netlify should never treat a send problem as a delivery
   // problem, and a lead is already captured in Forms regardless.
@@ -73,18 +78,23 @@ export default async (req) => {
 
   console.log(`submission ${subId} form=${payload.form_name} guide="${key}" to=${email}`);
 
+  // Only lead magnet forms send a guide. Any form without a hidden "guide"
+  // field (the Onyva Conference Pilot request form, a contact form) is
+  // captured in Netlify Forms and gets no email from this function.
+  if (!key) {
+    console.log(`submission ${subId}: form=${payload.form_name} has no guide field, no email sent`);
+    return ok({ ok: true, skipped: 'not a lead magnet form' });
+  }
+
+  const guide = GUIDES[key];
+  if (!guide) {
+    console.error(`submission ${subId}: guide "${key}" is not in GUIDES, no email sent`);
+    return ok({ ok: false, error: 'unknown guide' });
+  }
+
   if (!email || !email.includes('@')) {
     console.error(`submission ${subId}: no usable email address`);
     return ok({ ok: false, error: 'no email' });
-  }
-
-  const guide = GUIDES[key] || GUIDES[DEFAULT_GUIDE];
-  if (!guide) {
-    console.error(`submission ${subId}: unknown guide "${key}" and no default`);
-    return ok({ ok: false, error: 'unknown guide' });
-  }
-  if (!GUIDES[key]) {
-    console.warn(`submission ${subId}: guide "${key}" not in GUIDES, sent default`);
   }
 
   const apiKey = process.env.RESEND_API_KEY;
