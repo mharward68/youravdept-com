@@ -12,6 +12,7 @@ self-contained HTML file with its CSS, JS, and images inlined.
 | `our-story.html` | The Old Commoditized Way vs. Your AV Department | yes |
 | `library/index.html` | The Library | yes |
 | `library/the-levers-of-labor.html` | The Levers of Labor, free guide | yes |
+| `library/av365.html` | AV365, free guide (form `av365`, guide `AV365`) | yes |
 | `library/pdf/the-levers-of-labor.pdf` | Guide PDF | no (see `_headers`) |
 | `event-playlists.html` | Event playlists | yes |
 | `meeting-planner-wellness-playlists.html` | Wellness playlists | yes |
@@ -30,8 +31,8 @@ buttons will 404.
 
 The noindex pages carry no nav or footer links. They are reached by the site
 map easter egg: click the footer copyright line 5 times within 2 seconds.
-All ten pages that carry the site map modal list the same 13 entries, in
-alphabetical order (punctuation ignored). Every page on the site belongs in it. The two
+All eleven pages that carry the site map modal list the same 14 entries, in
+alphabetical order (punctuation ignored). Every page on the site belongs in it. The three
 pages under `library/` use `../` prefixes for the root-level links.
 
 ## Conventions

@@ -39,17 +39,26 @@ const REPLY_TO    = 'michaelh@youravdept.com';
 const BCC_ME      = 'michaelh@youravdept.com';   // '' to turn off
 const SITE        = 'https://youravdept.com';
 const LIBRARY_URL = `${SITE}/library/`;
+const DEFAULT_CLOSER = 'If something on your production budget does not add up, reply to this email and send it over. I am happy to give you a read on it.';
 
 const GUIDES = {
   'The Levers of Labor': {
     file:    'https://drive.google.com/file/d/1Wk5kSfM2D7oYTn1nXIaLIzx8syKxCQhO/view?usp=sharing',
     subject: 'Your copy of The Levers of Labor',
-    blurb:   'Six pages on what actually builds the labor line on your production budget and the five questions worth asking.'
+    blurb:   'Six pages on what actually builds the labor line on your production budget and the five questions worth asking.',
+    closer:  'If you are staring at a labor line right now and something on it does not add up, reply to this email and send it over. I am happy to give you a read on it.'
+  },
+  'AV365': {
+    file:    'https://drive.google.com/file/d/1c9Om-Wn5qgnog-zRl0a-3C4PQxMy2LeN/view?usp=sharing',
+    subject: 'Your copy of AV365',
+    blurb:   'Six pages on what a good AV partner should be doing at every stage of your event, and the five questions to ask before you sign a venue contract.',
+    closer:  'If you are weighing a venue or a schedule right now, reply to this email and send it over. I am happy to give you a technical read on it before you commit.'
   }
   // ,'Next Guide Name': {
   //   file:    `${SITE}/library/pdf/next-guide.pdf`,
   //   subject: 'Your copy of Next Guide Name',
-  //   blurb:   'One sentence on what the reader gets.'
+  //   blurb:   'One sentence on what the reader gets.',
+  //   closer:  'Optional last paragraph; falls back to DEFAULT_CLOSER.'
   // }
 };
 
@@ -146,7 +155,7 @@ function plainBody(greeting, guide) {
     '',
     guide.file,
     '',
-    'If you are staring at a labor line right now and something on it does not add up, reply to this email and send it over. I am happy to give you a read on it.',
+    guide.closer || DEFAULT_CLOSER,
     '',
     'Michael Harward',
     'Your AV Department',
@@ -167,7 +176,7 @@ function htmlBody(greeting, guide) {
     Button not working? <a href="${guide.file}" style="color:#2AA4A2;">Open the guide here</a>.
   </p>
 
-  <p style="margin:0 0 16px;">If you are staring at a labor line right now and something on it does not add up, reply to this email and send it over. I am happy to give you a read on it.</p>
+  <p style="margin:0 0 16px;">${guide.closer || DEFAULT_CLOSER}</p>
 
   <p style="margin:24px 0 0;padding-top:18px;border-top:1px solid #E3E9EE;">
     <b style="color:#152B4A;">Michael Harward</b><br>

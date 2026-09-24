@@ -1,0 +1,165 @@
+From 7d9e052ee5f2fb84b7e86a8906b27be23e43f7dd Mon Sep 17 00:00:00 2001
+From: Michael Harward <mharward68@gmail.com>
+Date: Tue, 15 Sep 2026 23:11:08 +0000
+Subject: [PATCH] Add Onyva Conference Pilot Program to the site map
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01KLzSwGPYiSLSZaV2Xd9izx
+---
+ README.md                               | 3 ++-
+ event-playlists.html                    | 1 +
+ index.html                              | 1 +
+ library/index.html                      | 1 +
+ library/the-levers-of-labor.html        | 1 +
+ meeting-planner-wellness-playlists.html | 1 +
+ onyva-download.html                     | 1 +
+ onyva-welcome.html                      | 1 +
+ onyva.html                              | 1 +
+ our-story.html                          | 1 +
+ why-is-av-so-expensive.html             | 1 +
+ 11 files changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/README.md b/README.md
+index ea61033..7de9a32 100644
+--- a/README.md
++++ b/README.md
+@@ -17,6 +17,7 @@ self-contained HTML file with its CSS, JS, and images inlined.
+ | `meeting-planner-wellness-playlists.html` | Wellness playlists | yes |
+ | `onyva-welcome.html` | Onyva download landing page for frequent travelers | yes |
+ | `onyva-landing.html` | Redirect stub to `onyva-welcome.html` (301 in `_redirects`) | no |
++| `onyva-conference-pilot.html` | Onyva Conference Pilot Program | yes |
+ | `onyva.html` | Onyva Quick Start Guide, travelers | noindex |
+ | `onyva-download.html` | Onyva as a digital gift | noindex |
+ | `michaelh.html` + `michaelh.vcf` | Michael Harward digital card | noindex |
+@@ -29,7 +30,7 @@ buttons will 404.
+ 
+ The noindex pages carry no nav or footer links. They are reached by the site
+ map easter egg: click the footer copyright line 5 times within 2 seconds.
+-All eleven pages that carry the site map modal list the same 12 entries, in
++All ten pages that carry the site map modal list the same 13 entries, in
+ alphabetical order (punctuation ignored). Every page on the site belongs in it. The two
+ pages under `library/` use `../` prefixes for the root-level links.
+ 
+diff --git a/event-playlists.html b/event-playlists.html
+index b5d6fa5..16a9dab 100644
+--- a/event-playlists.html
++++ b/event-playlists.html
+@@ -817,6 +817,7 @@
+       <li><a href="meeting-planner-wellness-playlists.html">Meeting Planner Wellness Playlists</a></li>
+       <li><a href="michaelh.html">Michael Harward &mdash; Digital Card</a></li>
+       <li><a href="onyva-download.html">Onyva &mdash; A Digital Gift</a></li>
++      <li><a href="onyva-conference-pilot.html">Onyva Conference Pilot Program</a></li>
+       <li><a href="onyva-welcome.html">Onyva &mdash; For Travelers</a></li>
+       <li><a href="onyva.html">Onyva Quick Start Guide</a></li>
+       <li><a href="our-story.html">Our Story</a></li>
+diff --git a/index.html b/index.html
+index dd8c9f7..14807c6 100644
+--- a/index.html
++++ b/index.html
+@@ -824,6 +824,7 @@
+       <li><a href="meeting-planner-wellness-playlists.html">Meeting Planner Wellness Playlists</a></li>
+       <li><a href="michaelh.html">Michael Harward &mdash; Digital Card</a></li>
+       <li><a href="onyva-download.html">Onyva &mdash; A Digital Gift</a></li>
++      <li><a href="onyva-conference-pilot.html">Onyva Conference Pilot Program</a></li>
+       <li><a href="onyva-welcome.html">Onyva &mdash; For Travelers</a></li>
+       <li><a href="onyva.html">Onyva Quick Start Guide</a></li>
+       <li><a href="our-story.html">Our Story</a></li>
+diff --git a/library/index.html b/library/index.html
+index bfa5cb1..3fc9d43 100644
+--- a/library/index.html
++++ b/library/index.html
+@@ -880,6 +880,7 @@
+       <li><a href="../meeting-planner-wellness-playlists.html">Meeting Planner Wellness Playlists</a></li>
+       <li><a href="../michaelh.html">Michael Harward &mdash; Digital Card</a></li>
+       <li><a href="../onyva-download.html">Onyva &mdash; A Digital Gift</a></li>
++      <li><a href="../onyva-conference-pilot.html">Onyva Conference Pilot Program</a></li>
+       <li><a href="../onyva-welcome.html">Onyva &mdash; For Travelers</a></li>
+       <li><a href="../onyva.html">Onyva Quick Start Guide</a></li>
+       <li><a href="../our-story.html">Our Story</a></li>
+diff --git a/library/the-levers-of-labor.html b/library/the-levers-of-labor.html
+index 7644730..58d198d 100644
+--- a/library/the-levers-of-labor.html
++++ b/library/the-levers-of-labor.html
+@@ -1085,6 +1085,7 @@
+       <li><a href="../meeting-planner-wellness-playlists.html">Meeting Planner Wellness Playlists</a></li>
+       <li><a href="../michaelh.html">Michael Harward &mdash; Digital Card</a></li>
+       <li><a href="../onyva-download.html">Onyva &mdash; A Digital Gift</a></li>
++      <li><a href="../onyva-conference-pilot.html">Onyva Conference Pilot Program</a></li>
+       <li><a href="../onyva-welcome.html">Onyva &mdash; For Travelers</a></li>
+       <li><a href="../onyva.html">Onyva Quick Start Guide</a></li>
+       <li><a href="../our-story.html">Our Story</a></li>
+diff --git a/meeting-planner-wellness-playlists.html b/meeting-planner-wellness-playlists.html
+index 7f9c592..4c5bb9a 100644
+--- a/meeting-planner-wellness-playlists.html
++++ b/meeting-planner-wellness-playlists.html
+@@ -817,6 +817,7 @@
+       <li><a href="meeting-planner-wellness-playlists.html">Meeting Planner Wellness Playlists</a></li>
+       <li><a href="michaelh.html">Michael Harward &mdash; Digital Card</a></li>
+       <li><a href="onyva-download.html">Onyva &mdash; A Digital Gift</a></li>
++      <li><a href="onyva-conference-pilot.html">Onyva Conference Pilot Program</a></li>
+       <li><a href="onyva-welcome.html">Onyva &mdash; For Travelers</a></li>
+       <li><a href="onyva.html">Onyva Quick Start Guide</a></li>
+       <li><a href="our-story.html">Our Story</a></li>
+diff --git a/onyva-download.html b/onyva-download.html
+index 03e4b2b..5bf075a 100644
+--- a/onyva-download.html
++++ b/onyva-download.html
+@@ -683,6 +683,7 @@
+       <li><a href="meeting-planner-wellness-playlists.html">Meeting Planner Wellness Playlists</a></li>
+       <li><a href="michaelh.html">Michael Harward &mdash; Digital Card</a></li>
+       <li><a href="onyva-download.html">Onyva &mdash; A Digital Gift</a></li>
++      <li><a href="onyva-conference-pilot.html">Onyva Conference Pilot Program</a></li>
+       <li><a href="onyva-welcome.html">Onyva &mdash; For Travelers</a></li>
+       <li><a href="onyva.html">Onyva Quick Start Guide</a></li>
+       <li><a href="our-story.html">Our Story</a></li>
+diff --git a/onyva-welcome.html b/onyva-welcome.html
+index 7bae925..8ceb8ce 100644
+--- a/onyva-welcome.html
++++ b/onyva-welcome.html
+@@ -748,6 +748,7 @@
+       <li><a href="meeting-planner-wellness-playlists.html">Meeting Planner Wellness Playlists</a></li>
+       <li><a href="michaelh.html">Michael Harward &mdash; Digital Card</a></li>
+       <li><a href="onyva-download.html">Onyva &mdash; A Digital Gift</a></li>
++      <li><a href="onyva-conference-pilot.html">Onyva Conference Pilot Program</a></li>
+       <li><a href="onyva-welcome.html">Onyva &mdash; For Travelers</a></li>
+       <li><a href="onyva.html">Onyva Quick Start Guide</a></li>
+       <li><a href="our-story.html">Our Story</a></li>
+diff --git a/onyva.html b/onyva.html
+index 4c0db25..36fc86a 100644
+--- a/onyva.html
++++ b/onyva.html
+@@ -727,6 +727,7 @@
+       <li><a href="meeting-planner-wellness-playlists.html">Meeting Planner Wellness Playlists</a></li>
+       <li><a href="michaelh.html">Michael Harward &mdash; Digital Card</a></li>
+       <li><a href="onyva-download.html">Onyva &mdash; A Digital Gift</a></li>
++      <li><a href="onyva-conference-pilot.html">Onyva Conference Pilot Program</a></li>
+       <li><a href="onyva-welcome.html">Onyva &mdash; For Travelers</a></li>
+       <li><a href="onyva.html">Onyva Quick Start Guide</a></li>
+       <li><a href="our-story.html">Our Story</a></li>
+diff --git a/our-story.html b/our-story.html
+index b0bff14..5daa6f3 100644
+--- a/our-story.html
++++ b/our-story.html
+@@ -664,6 +664,7 @@
+       <li><a href="meeting-planner-wellness-playlists.html">Meeting Planner Wellness Playlists</a></li>
+       <li><a href="michaelh.html">Michael Harward &mdash; Digital Card</a></li>
+       <li><a href="onyva-download.html">Onyva &mdash; A Digital Gift</a></li>
++      <li><a href="onyva-conference-pilot.html">Onyva Conference Pilot Program</a></li>
+       <li><a href="onyva-welcome.html">Onyva &mdash; For Travelers</a></li>
+       <li><a href="onyva.html">Onyva Quick Start Guide</a></li>
+       <li><a href="our-story.html">Our Story</a></li>
+diff --git a/why-is-av-so-expensive.html b/why-is-av-so-expensive.html
+index bb8af5e..cbe4042 100644
+--- a/why-is-av-so-expensive.html
++++ b/why-is-av-so-expensive.html
+@@ -812,6 +812,7 @@
+       <li><a href="meeting-planner-wellness-playlists.html">Meeting Planner Wellness Playlists</a></li>
+       <li><a href="michaelh.html">Michael Harward &mdash; Digital Card</a></li>
+       <li><a href="onyva-download.html">Onyva &mdash; A Digital Gift</a></li>
++      <li><a href="onyva-conference-pilot.html">Onyva Conference Pilot Program</a></li>
+       <li><a href="onyva-welcome.html">Onyva &mdash; For Travelers</a></li>
+       <li><a href="onyva.html">Onyva Quick Start Guide</a></li>
+       <li><a href="our-story.html">Our Story</a></li>
+-- 
+2.43.0
+
