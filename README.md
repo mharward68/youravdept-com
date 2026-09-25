@@ -13,6 +13,8 @@ self-contained HTML file with its CSS, JS, and images inlined.
 | `library/index.html` | The Library | yes |
 | `library/the-levers-of-labor.html` | The Levers of Labor, free guide | yes |
 | `library/av365.html` | AV365, free guide (form `av365`, guide `AV365`) | yes |
+| `field-notes/index.html` | Field Notes, ungated tips listing with tag filter (`?tag=travel`) | yes |
+| `field-notes/road-warrior-sanity-kit.html` | Field Note: The Road Warrior's Sanity Kit | yes |
 | `library/pdf/the-levers-of-labor.pdf` | Guide PDF | no (see `_headers`) |
 | `event-playlists.html` | Event playlists | yes |
 | `meeting-planner-wellness-playlists.html` | Wellness playlists | yes |
@@ -31,9 +33,9 @@ buttons will 404.
 
 The noindex pages carry no nav or footer links. They are reached by the site
 map easter egg: click the footer copyright line 5 times within 2 seconds.
-All eleven pages that carry the site map modal list the same 14 entries, in
-alphabetical order (punctuation ignored). Every page on the site belongs in it. The three
-pages under `library/` use `../` prefixes for the root-level links.
+All thirteen pages that carry the site map modal list the same 16 entries, in
+alphabetical order (punctuation ignored). Every page on the site belongs in it. The pages
+under `library/` and `field-notes/` use `../` prefixes for the root-level links.
 
 ## Conventions
 
@@ -50,3 +52,14 @@ pages under `library/` use `../` prefixes for the root-level links.
 
 - `_headers` keeps `library/pdf/*` out of search indexes and sets a 1 day cache.
 - `_redirects` preserves the old `onyva-swag` URL and adds extensionless paths.
+
+## Field Notes
+
+Ungated, branded tips. Not linked from the header or footer yet; reached by URL
+(`/field-notes/`) and the site map. Each note has exactly one CTA, a navy block
+reading "If you ___, why don't you book a call and see if we can ___ your AV
+process. It's free...the call and the services!" with a "How is it free?" link to
+`index.html#why-free`. Tags live on each listing card (`data-tags`, slugged) and
+the filter chips are generated from them, so a new tag needs no JS change. To add
+a note, copy `road-warrior-sanity-kit.html`, add its card to `field-notes/index.html`,
+and add it to every site map.

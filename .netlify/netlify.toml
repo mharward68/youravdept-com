@@ -1,0 +1,141 @@
+functionsDirectory = "C:\\01_AppDevelopment\\12.Your-AV-Dept_Website\\netlify\\functions"
+functionsDirectoryOrigin = "default"
+plugins = []
+
+[build]
+publish = "C:\\01_AppDevelopment\\12.Your-AV-Dept_Website"
+publishOrigin = "ui"
+functions = "C:\\01_AppDevelopment\\12.Your-AV-Dept_Website\\netlify\\functions"
+
+[build.environment]
+
+[build.processing]
+
+[build.processing.css]
+
+[build.processing.html]
+
+[build.processing.images]
+
+[build.processing.js]
+
+[build.services]
+
+[functions]
+
+[functions."*"]
+
+[[headers]]
+for = "/library/pdf/*"
+
+[headers.values]
+X-Robots-Tag = "noindex, noarchive"
+Cache-Control = "public, max-age=86400"
+
+[[redirects]]
+from = "/onyva-swag"
+to = "/onyva-download.html"
+status = 301.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/onyva-swag.html"
+to = "/onyva-download.html"
+status = 301.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/onyva-landing"
+to = "/onyva-welcome.html"
+status = 301.0
+force = true
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/onyva-landing.html"
+to = "/onyva-welcome.html"
+status = 301.0
+force = true
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/michaelh"
+to = "/michaelh.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/trishah"
+to = "/trishah.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/onyva"
+to = "/onyva.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/onyva-download"
+to = "/onyva-download.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/onyva-welcome"
+to = "/onyva-welcome.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
