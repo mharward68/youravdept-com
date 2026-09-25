@@ -50,6 +50,23 @@ under `library/` and `field-notes/` use `../` prefixes for the root-level links.
 - Editing one page's `:root` or site map means editing all of them. There is no
   shared stylesheet.
 
+## Hero chrome logo and flare lights (reversible)
+
+The homepage hero logo is an inline SVG. The emblem has a chrome finish (mirror-style
+horizon band, beveled edge highlights, a glint that sweeps across every 7
+seconds); the wordmark and URL stay flat. Two flare lights that ride one lap of the emblem's ribbons,
+through the play frame, half a lap apart. Logo colors never change. It is SVG
+animation plus a tiny script that pauses it when the hero is off screen. All of
+it sits in `index.html` between `YAVD-LOGO-LIGHTS:START` and
+`YAVD-LOGO-LIGHTS:END` markers (one block each in the CSS, the hero HTML, and
+before `</body>`). Visitors with reduced motion see the chrome logo without the
+lights or glint.
+
+Michael may want to reverse this. To remove it, either `git revert` the commit
+"Hero chrome logo and flare lights", or delete the three marked blocks and
+restore the hero line noted in the HTML START comment:
+`<img class="hero-logo reveal is-visible" src=... alt="Your AV Department logo">`.
+
 ## Updating a guide
 
 The guide PDFs are hosted on this site, not Google Drive. To publish a new
