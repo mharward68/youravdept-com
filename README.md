@@ -16,7 +16,8 @@ self-contained HTML file with its CSS, JS, and images inlined.
 | `field-notes/index.html` | Field Notes, ungated tips listing with tag filter (`?tag=travel`) | yes |
 | `field-notes/road-warrior-sanity-kit.html` | Field Note: The Road Warrior's Sanity Kit | yes |
 | `field-notes/you-can-make-an-app-for-that.html` | Field Note: You Can Make an App for That | yes |
-| `library/pdf/the-levers-of-labor.pdf` | Guide PDF | no (see `_headers`) |
+| `library/pdf/the-levers-of-labor.pdf` | The Levers of Labor PDF (download button and welcome email link here) | no (see `_headers`) |
+| `library/pdf/av365.pdf` | AV365 PDF (download button and welcome email link here) | no (see `_headers`) |
 | `event-playlists.html` | Event playlists | yes |
 | `meeting-planner-wellness-playlists.html` | Wellness playlists | yes |
 | `onyva-welcome.html` | Onyva download landing page for frequent travelers | yes |
@@ -48,6 +49,12 @@ under `library/` and `field-notes/` use `../` prefixes for the root-level links.
 - Onyva calls to action on `onyva-welcome.html` link to `https://your-av-dept.onyva.life`.
 - Editing one page's `:root` or site map means editing all of them. There is no
   shared stylesheet.
+
+## Updating a guide
+
+The guide PDFs are hosted on this site, not Google Drive. To publish a new
+version, replace the file in `library/pdf/` under the same name, commit, and
+deploy. The download buttons and the welcome emails pick it up automatically.
 
 ## Netlify config
 
