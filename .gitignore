@@ -3,3 +3,6 @@ Thumbs.db
 desktop.ini
 *.zip
 node_modules/
+
+Claude outputs/
+docs/
