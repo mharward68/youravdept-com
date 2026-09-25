@@ -56,8 +56,9 @@ under `library/` and `field-notes/` use `../` prefixes for the root-level links.
 
 ## Field Notes
 
-Ungated, branded tips. Not linked from the header or footer yet; reached by URL
-(`/field-notes/`) and the site map. Each note has exactly one CTA, a navy block
+Ungated, branded tips. Linked from the header nav and mobile menu on every page
+that has a header (not the footer), and from the site map. The header switches
+to the menu button below 1200px wide so the six nav links never wrap. Each note has exactly one CTA, a navy block
 reading "If you ___, why don't you book a call and see if we can ___ your AV
 process. It's free...the call and the services!" with a "How is it free?" link to
 `index.html#why-free`. Tags live on each listing card (`data-tags`, slugged) and

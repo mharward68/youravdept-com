@@ -80,7 +80,7 @@
 
   nav.primary-nav{ display:none; }
   nav.primary-nav ul{ display:flex; gap:28px; align-items:center; }
-  nav.primary-nav a{ font-size:.87rem; color:var(--ink-dim); font-weight:600; position:relative; padding:6px 0; transition:color .25s; }
+  nav.primary-nav a{ white-space:nowrap; font-size:.87rem; color:var(--ink-dim); font-weight:600; position:relative; padding:6px 0; transition:color .25s; }
   nav.primary-nav a::after{
     content:""; position:absolute; left:0; right:100%; bottom:0; height:2px; background:var(--wash-grad);
     transition:right .3s var(--ease); border-radius:2px;
@@ -137,6 +137,7 @@
   .mobile-drawer a:nth-child(3){ transition-delay:.15s; }
   .mobile-drawer a:nth-child(4){ transition-delay:.20s; }
   .mobile-drawer a:nth-child(5){ transition-delay:.25s; }
+  .mobile-drawer a:nth-child(6){ transition-delay:.30s; }
   .mobile-drawer .btn{ margin-top:18px; font-size:.86rem; color:#ffffff; padding:13px 30px; max-width:calc(100% - 32px); }
 
   /* ---------- Hero ---------- */
@@ -568,6 +569,16 @@
     cursor:pointer; display:flex; align-items:center; justify-content:center;
   }
   .budget-modal-close:hover{ background:var(--line); }
+
+  /* Header: six nav links need the full width, so use the menu button below 1200px */
+  @media (min-width:880px) and (max-width:1199px){
+    nav.primary-nav, .header-cta{ display:none; }
+    .hamburger{ display:flex; }
+  }
+  @media (min-width:1200px){
+    nav.primary-nav ul{ gap:20px; }
+    nav.primary-nav a{ font-size:.84rem; }
+  }
 </style>
 </head>
 <body>
@@ -584,6 +595,7 @@
         <li><a href="index.html#what-we-do" data-nav>What We Do</a></li>
         <li><a href="index.html#how-it-works" data-nav>How It Works</a></li>
         <li><a href="index.html#who-we-help" data-nav>Who We Help</a></li>
+        <li><a href="field-notes/index.html">Field Notes</a></li>
         <li><a href="index.html#contact" data-nav>Contact</a></li>
       </ul>
     </nav>
@@ -597,6 +609,7 @@
   <a href="index.html#what-we-do" data-nav>What We Do</a>
   <a href="index.html#how-it-works" data-nav>How It Works</a>
   <a href="index.html#who-we-help" data-nav>Who We Help</a>
+  <a href="field-notes/index.html">Field Notes</a>
   <a href="index.html#contact" data-nav>Contact</a>
   <a href="https://calendar.app.google/Do7aNUGLhraagUKV6" target="_blank" rel="noopener" class="btn btn-primary">Get Your Free Strategic Review</a>
 </div>
