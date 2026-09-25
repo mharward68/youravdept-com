@@ -15,6 +15,7 @@ self-contained HTML file with its CSS, JS, and images inlined.
 | `library/av365.html` | AV365, free guide (form `av365`, guide `AV365`) | yes |
 | `field-notes/index.html` | Field Notes, ungated tips listing with tag filter (`?tag=travel`) | yes |
 | `field-notes/road-warrior-sanity-kit.html` | Field Note: The Road Warrior's Sanity Kit | yes |
+| `field-notes/you-can-make-an-app-for-that.html` | Field Note: You Can Make an App for That | yes |
 | `library/pdf/the-levers-of-labor.pdf` | Guide PDF | no (see `_headers`) |
 | `event-playlists.html` | Event playlists | yes |
 | `meeting-planner-wellness-playlists.html` | Wellness playlists | yes |
@@ -33,7 +34,7 @@ buttons will 404.
 
 The noindex pages carry no nav or footer links. They are reached by the site
 map easter egg: click the footer copyright line 5 times within 2 seconds.
-All thirteen pages that carry the site map modal list the same 16 entries, in
+All thirteen pages that carry the site map modal list the same 17 entries, in
 alphabetical order (punctuation ignored). Every page on the site belongs in it. The pages
 under `library/` and `field-notes/` use `../` prefixes for the root-level links.
 
@@ -63,3 +64,12 @@ process. It's free...the call and the services!" with a "How is it free?" link t
 the filter chips are generated from them, so a new tag needs no JS change. To add
 a note, copy `road-warrior-sanity-kit.html`, add its card to `field-notes/index.html`,
 and add it to every site map.
+
+## Deploying
+
+Run `.\deploy.ps1` from this folder instead of `netlify deploy` directly. The
+Netlify CLI ignores `.gitignore` and uploads everything in the folder, so the
+script copies the site to a temp folder without `Claude outputs`, `claude`,
+`docs`, and working files (`.docx`, `.patch`, `.gs`, this README), then deploys
+that copy. The same folders are listed in `.gitignore` so they never reach GitHub.
+Keep private files (business plans, drafts) outside this folder entirely.

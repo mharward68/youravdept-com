@@ -1,8 +1,13 @@
+# OS junk
 .DS_Store
 Thumbs.db
 desktop.ini
 *.zip
 node_modules/
 
+# Never push private or working files
 Claude outputs/
+claude/
 docs/
+*.docx
+*.patch
