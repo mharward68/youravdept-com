@@ -10,6 +10,7 @@ self-contained HTML file with its CSS, JS, and images inlined.
 | `index.html` | Home | yes |
 | `why-is-av-so-expensive.html` | Long-form article | yes |
 | `our-story.html` | The Old Commoditized Way vs. Your AV Department | yes |
+| `how-we-get-paid.html` | How Your AV Department Gets Paid. No nav link; reached by "Read more..." in The Model section on Home | yes |
 | `library/index.html` | The Library | yes |
 | `library/the-levers-of-labor.html` | The Levers of Labor, free guide | yes |
 | `library/av365.html` | AV365, free guide (form `av365`, guide `AV365`) | yes |
@@ -35,7 +36,7 @@ buttons will 404.
 
 The noindex pages carry no nav or footer links. They are reached by the site
 map easter egg: click the footer copyright line 5 times within 2 seconds.
-All thirteen pages that carry the site map modal list the same 17 entries, in
+All fourteen pages that carry the site map modal list the same 18 entries, in
 alphabetical order (punctuation ignored). Every page on the site belongs in it. The pages
 under `library/` and `field-notes/` use `../` prefixes for the root-level links.
 
