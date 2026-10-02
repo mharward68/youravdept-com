@@ -530,6 +530,19 @@
     nav.primary-nav ul{ gap:20px; }
     nav.primary-nav a{ font-size:.84rem; }
   }
+  /* ---------- RFP documents CTA ---------- */
+  .rfp-cta{
+    max-width:640px; margin:0 auto; padding:30px 26px; border-radius:18px; text-align:center;
+    background:var(--wash-grad-soft); border:1px solid rgba(42,164,162,.4);
+    box-shadow:0 30px 60px -30px rgba(21,43,74,.28);
+  }
+  .rfp-cta h2{ font-size:clamp(1.2rem,3.4vw,1.5rem); color:var(--navy-deep); line-height:1.3; margin:0 0 20px; }
+  .rfp-cta .check-list{ display:inline-flex; flex-direction:column; text-align:left; margin:0 auto; }
+  .rfp-cta .check-list{ list-style:none; padding:0; gap:11px; }
+  .rfp-cta .check-list li{ display:flex; gap:11px; align-items:flex-start; color:var(--ink); font-weight:700; font-size:1rem; line-height:1.5; }
+  .rfp-cta .check-list li svg{ flex-shrink:0; width:18px; height:18px; margin-top:3px; color:var(--teal-deep); }
+  .rfp-cta-or{ margin:22px 0 20px; font-size:1.05rem; color:var(--ink-dim); }
+  .rfp-cta-or strong{ color:var(--teal-deep); font-weight:800; }
 </style>
 </head>
 <body>
@@ -669,6 +682,21 @@
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span><b style="color:var(--ink);">We identify the items you may not need.</b> When a proposal comes back with more than the show requires, we see it quickly and call it out.</span></li>
         </ul>
         <p class="reveal" style="margin-top:22px;"><strong style="color:var(--ink); font-weight:800;">That is why the model works for all parties.</strong> The production company wins a show for less than it costs to find one. You get a fair price from a competitive field. We get paid only when a show is awarded.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="rfp-documents" style="padding-top:0;">
+    <div class="container">
+      <div class="rfp-cta reveal">
+        <h2>If you want to streamline your RFP and improve results, include these 3 documents:</h2>
+        <ul class="check-list">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span>Production guidelines</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span>Any exclusivity clauses</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span>CAD drawings, floor plans, and capacity charts</span></li>
+        </ul>
+        <p class="rfp-cta-or">Or have Your AV Department get them for you...<strong>FREE!</strong></p>
+        <a href="show-info.html" class="btn btn-primary">Get My RFP Documents, Free</a>
       </div>
     </div>
   </section>
