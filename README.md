@@ -12,7 +12,7 @@ self-contained HTML file with its CSS, JS, and images inlined.
 | `our-story.html` | The Old Commoditized Way vs. Your AV Department | yes |
 | `how-we-get-paid.html` | How Your AV Department Gets Paid. No nav link; reached by "Read more..." in The Model section on Home | yes |
 | `venue-docs-offer.html` | Copy of `how-we-get-paid.html` whose buttons read "Get My RFP Documents, Free" and go to `show-info.html`. No nav link. Keep its copy in step with `how-we-get-paid.html` | noindex |
-| `show-info.html` | Show details form for the free venue documents offer (Netlify form `show-info`, no `guide` field so no auto email) | noindex |
+| `show-info.html` | Show details form for the free venue documents offer (Netlify form `venue-docs-free-offer`, no `guide` field so no auto email) | noindex |
 | `library/index.html` | The Library | yes |
 | `library/the-levers-of-labor.html` | The Levers of Labor, free guide | yes |
 | `library/av365.html` | AV365, free guide (form `av365`, guide `AV365`) | yes |
