@@ -13,6 +13,7 @@ self-contained HTML file with its CSS, JS, and images inlined.
 | `how-we-get-paid.html` | How Your AV Department Gets Paid. No nav link; reached by "Read more..." in The Model section on Home | yes |
 | `venue-docs-offer.html` | Copy of `how-we-get-paid.html` whose buttons read "Get My RFP Documents, Free" and go to `show-info.html`. No nav link. Keep its copy in step with `how-we-get-paid.html` | noindex |
 | `show-info.html` | Show details form for the free venue documents offer (Netlify form `venue-docs-free-offer`, no `guide` field so no auto email) | noindex |
+| `fix-my-av-budget.html` | Help! Fix My AV Budget landing page. In the header nav and mobile menu on every page. Buttons open a booking modal for `https://calendar.app.google/nyswcGtXNqdS149r8` (its own booking page, not the Strategic Review one) | yes |
 | `library/index.html` | The Library | yes |
 | `library/the-levers-of-labor.html` | The Levers of Labor, free guide | yes |
 | `library/av365.html` | AV365, free guide (form `av365`, guide `AV365`) | yes |
@@ -21,8 +22,8 @@ self-contained HTML file with its CSS, JS, and images inlined.
 | `field-notes/you-can-make-an-app-for-that.html` | Field Note: You Can Make an App for That | yes |
 | `library/pdf/the-levers-of-labor.pdf` | The Levers of Labor PDF (download button and welcome email link here) | no (see `_headers`) |
 | `library/pdf/av365.pdf` | AV365 PDF (download button and welcome email link here) | no (see `_headers`) |
-| `event-playlists.html` | Event playlists | yes |
-| `meeting-planner-wellness-playlists.html` | Wellness playlists | yes |
+| `playlists-events.html` | Event playlists | yes |
+| `playlists-meeting-planner-wellness.html` | Wellness playlists | yes |
 | `onyva-welcome.html` | Onyva download landing page for frequent travelers | yes |
 | `onyva-landing.html` | Redirect stub to `onyva-welcome.html` (301 in `_redirects`) | no |
 | `onyva-conference-pilot.html` | Onyva Conference Pilot Program | yes |
@@ -38,7 +39,7 @@ buttons will 404.
 
 The noindex pages carry no nav or footer links. They are reached by the site
 map easter egg: click the footer copyright line 5 times within 2 seconds.
-All seventeen pages that carry the site map modal list the same 20 entries, in
+All eighteen pages that carry the site map modal list the same 21 entries, in
 alphabetical order (punctuation ignored). Every page on the site belongs in it. The pages
 under `library/` and `field-notes/` use `../` prefixes for the root-level links.
 
@@ -85,7 +86,7 @@ deploy. The download buttons and the welcome emails pick it up automatically.
 
 Ungated, branded tips. Linked from the header nav and mobile menu on every page
 that has a header (not the footer), and from the site map. The header switches
-to the menu button below 1200px wide so the six nav links never wrap. Each note has exactly one CTA, a navy block
+to the menu button below 1300px wide so the seven nav links never wrap ("Help! Fix My AV Budget." sits after Who We Help and goes to `fix-my-av-budget.html`). Each note has exactly one CTA, a navy block
 reading "If you ___, why don't you book a call and see if we can ___ your AV
 process. It's free...the call and the services!" with a "How is it free?" link to
 `index.html#why-free`. Tags live on each listing card (`data-tags`, slugged) and

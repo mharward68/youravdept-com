@@ -16,3 +16,10 @@
 /how-we-get-paid   /how-we-get-paid.html  200
 /venue-docs-offer  /venue-docs-offer.html 200
 /show-info         /show-info.html        200
+/fix-my-av-budget /fix-my-av-budget.html 200
+
+# playlist pages renamed; forced (!) so the 301 wins if an old file is still present
+/event-playlists                           /playlists-events.html                     301!
+/event-playlists.html                      /playlists-events.html                     301!
+/meeting-planner-wellness-playlists        /playlists-meeting-planner-wellness.html   301!
+/meeting-planner-wellness-playlists.html   /playlists-meeting-planner-wellness.html   301!
