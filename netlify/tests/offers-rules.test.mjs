@@ -29,7 +29,7 @@ export function memoryBlobs() {
     beforeWrite: null,            // test hook: runs just before a write lands
     failHistory: false,
     async get(k) { const e = m.get(k); return e ? JSON.parse(e.v) : null; },
-    async getWithMetadata(k) { const e = m.get(k); return e ? { data: JSON.parse(e.v), etag: e.etag, metadata: {} } : null; },
+    async getWithMetadata(k) { const e = m.get(k); return e ? { data: JSON.parse(e.v), etag: e.etag, metadata: e.meta || {} } : null; },
     async setJSON(k, v, o = {}) {
       if (s.failHistory && k.startsWith('history/')) throw new Error('blobs down');
       if (s.beforeWrite && k === 'all') { const f = s.beforeWrite; s.beforeWrite = null; await f(); }
@@ -37,7 +37,7 @@ export function memoryBlobs() {
       if (o.onlyIfNew && e) return { modified: false };
       if (o.onlyIfMatch && (!e || e.etag !== o.onlyIfMatch)) return { modified: false };
       const etag = `"e${++n}"`;
-      m.set(k, { v: JSON.stringify(v), etag });
+      m.set(k, { v: JSON.stringify(v), etag, meta: o.metadata || {} });
       return { modified: true, etag };
     },
     async list({ prefix = '' } = {}) { return { blobs: [...m.keys()].filter((k) => k.startsWith(prefix)).map((key) => ({ key, etag: m.get(key).etag })) }; },
@@ -375,4 +375,21 @@ test('restore route: bad or unknown keys refused, nothing changed', async () => 
   console.log(`  key "all" -> ${a.status} | "../all" -> ${b.status} | unknown version -> ${c.status} ${JSON.stringify(await c.json())} | text/plain -> ${d.status}`);
   assert.deepEqual([a.status, b.status, c.status, d.status], [400, 400, 404, 415]);
   assert.deepEqual(await blobs.get('all'), before);
+});
+
+test('saved versions keep their real order even when saves land in the same millisecond', async () => {
+  const frozen = () => new Date('2026-10-10T14:00:00.000Z');   // every change at the same moment
+  for (let i = 1; i <= 6; i++) {
+    await st.changeOffers(blobs, (offers) => ({ offers: [...offers, { id: `o${i}`, name: `Offer ${i}` }] }), { action: 'save', now: frozen });
+  }
+  const keys = await st.listHistory(blobs);
+  const counts = [];
+  for (const k of keys) counts.push((await blobs.get(k)).offers.length);
+  console.log(`  6 saves in one millisecond -> versions newest first hold ${JSON.stringify(counts)} offers; keys end ${keys.map((k) => k.slice(-3)).join(',')}`);
+  assert.deepEqual(counts, [5, 4, 3, 2, 1]);
+  // Older-style key (hex ending, from before this fix) sorts as oldest and is still accepted
+  await blobs.setJSON('history/2026-10-10T15:00:00.000Z-abcdef', { offers: [] });
+  const withOld = await st.listHistory(blobs);
+  assert.equal(withOld.at(-1), 'history/2026-10-10T15:00:00.000Z-abcdef');
+  assert.ok(st.isHistoryKey(withOld.at(-1)) && st.isHistoryKey(keys[0]));
 });

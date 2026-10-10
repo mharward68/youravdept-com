@@ -15,10 +15,16 @@
 //      a counter, so two saves at the same moment cannot overwrite each other.
 //   5. trim history to the newest 20 (best effort)
 //
+// Order of saved versions: every write of "all" carries a change number in
+// its metadata (seq). The history key ends in that number, zero-padded, and
+// versions are sorted by it, never by time alone: two saves in the same
+// millisecond, or on two servers with slightly different clocks, still sort
+// in the order they really happened. Keys written before this (6 hex
+// characters at the end, test store only) sort as oldest.
+//
 // If "all" holds something that is not an array, every write is refused:
 // the module never overwrites data it cannot read.
 
-import { randomBytes } from 'node:crypto';
 import { getStore } from '@netlify/blobs';
 import { HISTORY_KEEP, KEYS, STORES, storeName } from '../../../shared/offer-contract.js';
 
@@ -54,15 +60,22 @@ export async function loadOffers(store) {
     console.error('offers-store: read failed', err?.message);
     throw new StoreError('Could not read the offers right now. Try again in a minute.');
   }
-  if (!res) return { offers: [], etag: undefined, exists: false };
+  if (!res) return { offers: [], etag: undefined, exists: false, seq: 0 };
   if (!Array.isArray(res.data)) {
     throw new StoreError('The stored offers are not in the expected format, so nothing was changed. Use an export or a saved version to restore them.', 500);
   }
-  return { offers: res.data, etag: res.etag, exists: true };
+  const seq = Number(res.metadata?.seq);
+  return { offers: res.data, etag: res.etag, exists: true, seq: Number.isSafeInteger(seq) && seq > 0 ? seq : 0 };
 }
 
-function historyKey(now) {
-  return KEYS.history(`${now.toISOString()}-${randomBytes(3).toString('hex')}`);
+const SEQ_DIGITS = 9;
+function historyKey(now, seq) {
+  return KEYS.history(`${now.toISOString()}-${String(seq).padStart(SEQ_DIGITS, '0')}`);
+}
+/** The change number at the end of a history key (0 for older keys). */
+export function historySeq(key) {
+  const m = /-(\d{9})$/.exec(key);
+  return m ? Number(m[1]) : 0;
 }
 
 /**
@@ -78,12 +91,16 @@ export async function changeOffers(store, change, { action, offerId, now = () =>
     if (!next || 'stop' in next) return { saved: false, stop: next?.stop };
 
     const at = now();
+    const seq = current.seq + 1;
     if (current.exists) {
       try {
-        const h = await store.setJSON(historyKey(at),
+        const h = await store.setJSON(historyKey(at, seq),
           { replacedAt: at.toISOString(), action, offerId: offerId ?? null, offers: current.offers },
           { onlyIfNew: true });
-        if (!h?.modified) throw new Error('history key already existed');
+        // modified:false means another save that read this same version (same
+        // change number) already kept it: the copy is identical, so carry on.
+        // Only one of those saves can win the write to "all" below.
+        if (!h || typeof h.modified !== 'boolean') throw new Error('history write gave no result');
       } catch (err) {
         console.error('offers-store: history write failed', err?.message);
         throw new StoreError('Could not keep a copy of the previous version, so nothing was saved. Try again in a minute.');
@@ -92,8 +109,9 @@ export async function changeOffers(store, change, { action, offerId, now = () =>
 
     let w;
     try {
-      w = await store.setJSON(KEYS.all, next.offers,
-        current.exists ? { onlyIfMatch: current.etag } : { onlyIfNew: true });
+      w = await store.setJSON(KEYS.all, next.offers, current.exists
+        ? { onlyIfMatch: current.etag, metadata: { seq } }
+        : { onlyIfNew: true, metadata: { seq } });
     } catch (err) {
       console.error('offers-store: write failed', err?.message);
       throw new StoreError('Offer storage is unavailable right now. Nothing was saved. Try again in a minute.');
@@ -110,7 +128,8 @@ export async function changeOffers(store, change, { action, offerId, now = () =>
 /** Newest first. */
 export async function listHistory(store) {
   const { blobs } = await store.list({ prefix: KEYS.historyPrefix });
-  return blobs.map((b) => b.key).sort().reverse();
+  return blobs.map((b) => b.key)
+    .sort((a, b) => historySeq(b) - historySeq(a) || (a < b ? 1 : a > b ? -1 : 0));
 }
 
 export async function trimHistory(store) {
@@ -122,7 +141,7 @@ export async function trimHistory(store) {
   }
 }
 
-const HISTORY_KEY_SHAPE = /^history\/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z-[0-9a-f]{6}$/;
+const HISTORY_KEY_SHAPE = /^history\/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z-(?:\d{9}|[0-9a-f]{6})$/;
 export function isHistoryKey(key) {
   return typeof key === 'string' && HISTORY_KEY_SHAPE.test(key);
 }
