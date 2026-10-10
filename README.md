@@ -17,11 +17,13 @@ self-contained HTML file with its CSS, JS, and images inlined.
 | `library/index.html` | The Library | yes |
 | `library/the-levers-of-labor.html` | The Levers of Labor, free guide | yes |
 | `library/av365.html` | AV365, free guide (form `av365`, guide `AV365`) | yes |
+| `library/12-av-concessions.html` | 12 AV Concessions to Ask Before You Sign, free guide (form `av-concessions`, guide `12 AV Concessions`) | yes |
 | `field-notes/index.html` | Field Notes, ungated tips listing with tag filter (`?tag=travel`) | yes |
 | `field-notes/road-warrior-sanity-kit.html` | Field Note: The Road Warrior's Sanity Kit | yes |
 | `field-notes/you-can-make-an-app-for-that.html` | Field Note: You Can Make an App for That | yes |
 | `library/pdf/the-levers-of-labor.pdf` | The Levers of Labor PDF (download button and welcome email link here) | no (see `_headers`) |
 | `library/pdf/av365.pdf` | AV365 PDF (download button and welcome email link here) | no (see `_headers`) |
+| `library/pdf/12-av-concessions.pdf` | 12 AV Concessions PDF (download button and welcome email link here) | no (see `_headers`) |
 | `playlists-events.html` | Event playlists | yes |
 | `playlists-meeting-planner-wellness.html` | Wellness playlists | yes |
 | `onyva-welcome.html` | Onyva download landing page for frequent travelers | yes |
@@ -43,7 +45,7 @@ buttons will 404.
 
 The noindex pages carry no nav or footer links. They are reached by the site
 map easter egg: click the footer copyright line 5 times within 2 seconds.
-All eighteen pages that carry the site map modal list the same 25 entries, in
+All eighteen pages that carry the site map modal list the same 26 entries, in
 alphabetical order (punctuation ignored). Every page on the site belongs in it. The pages
 under `library/` and `field-notes/` use `../` prefixes for the root-level links.
 

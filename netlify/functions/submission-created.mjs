@@ -53,6 +53,12 @@ const GUIDES = {
     subject: 'Your copy of AV365',
     blurb:   'Six pages on what a good AV partner should be doing at every stage of your event, and the five questions to ask before you sign a venue contract.',
     closer:  'If you are weighing a venue or a schedule right now, reply to this email and send it over. I am happy to give you a technical read on it before you commit.'
+  },
+  '12 AV Concessions': {
+    file:    `${SITE}/library/pdf/12-av-concessions.pdf`,
+    subject: 'Your copy of 12 AV Concessions to Ask Before You Sign',
+    blurb:   'Five pages on the twelve AV concessions experienced planners ask for, across pricing, labor, and equipment, and how to ask for them before you sign.',
+    closer:  'If you have an AV quote on your desk right now, reply to this email and send it over. I am happy to give you a second set of eyes on it before you sign.'
   }
   // ,'Next Guide Name': {
   //   file:    `${SITE}/library/pdf/next-guide.pdf`,
