@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="same-origin">
+<title>Offers | Your AV Department</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/offer-admin.css">
+<script type="module" src="/assets/offer-admin.js"></script>
+</head>
+<body>
+<!-- YAVD Offers Module admin screen (Sessions 1.7 and 1.8). This file holds
+     no offer data. Everything below the header is filled by offer-admin.js only
+     after the server accepts the sign-in cookie. -->
+<header class="oa-top">
+  <div class="oa-top-in">
+    <div class="oa-brand">
+      <span class="oa-mark" aria-hidden="true"></span>
+      <span class="oa-brand-text">Your AV Department <span class="oa-brand-sub">Offers</span></span>
+      <span class="oa-store" id="oa-store" hidden></span>
+    </div>
+    <nav class="oa-actions" id="oa-actions" aria-label="Offer actions" hidden>
+      <button type="button" class="oa-btn oa-btn-primary" id="oa-new">New offer</button>
+      <button type="button" class="oa-btn" id="oa-refresh">Refresh</button>
+      <button type="button" class="oa-btn" id="oa-versions-btn">Saved versions</button>
+      <button type="button" class="oa-btn" id="oa-export">Export</button>
+      <button type="button" class="oa-btn oa-btn-quiet" id="oa-signout">Sign out</button>
+    </nav>
+  </div>
+</header>
+
+<main class="oa-main" id="oa-main">
+  <section class="oa-state" id="oa-loading" aria-busy="true">
+    <div class="oa-spinner" aria-hidden="true"></div>
+    <p>Loading&hellip;</p>
+  </section>
+
+  <section class="oa-signin" id="oa-signin" hidden aria-labelledby="oa-signin-h">
+    <form class="oa-signin-card" id="oa-signin-form" novalidate>
+      <h1 id="oa-signin-h">Sign in to Offers</h1>
+      <p class="oa-muted" id="oa-signin-note">Enter the admin password.</p>
+      <label for="oa-password">Password</label>
+      <input type="password" id="oa-password" name="password" autocomplete="current-password" required maxlength="500">
+      <p class="oa-msg" id="oa-signin-msg" role="alert"></p>
+      <button type="submit" class="oa-btn oa-btn-primary oa-btn-wide" id="oa-signin-btn">Sign in</button>
+    </form>
+  </section>
+
+  <section class="oa-state oa-error" id="oa-error" hidden role="alert">
+    <h1>Offers could not be loaded</h1>
+    <p id="oa-error-text"></p>
+    <button type="button" class="oa-btn oa-btn-primary" id="oa-retry">Try again</button>
+  </section>
+
+  <section id="oa-dash" hidden aria-labelledby="oa-dash-h">
+    <div class="oa-dash-head">
+      <h1 id="oa-dash-h">Offers</h1>
+      <p class="oa-muted" id="oa-summary"></p>
+    </div>
+    <div id="oa-groups"></div>
+  </section>
+  <!-- Session 1.8: offer editor. Built empty; offer-admin.js fills it. -->
+  <section id="oa-editor" hidden aria-labelledby="oa-ed-h">
+    <div class="oa-ed-head">
+      <button type="button" class="oa-btn oa-btn-sm" id="oa-ed-back">&larr; Back to offers</button>
+      <div class="oa-ed-title">
+        <h1 id="oa-ed-h" tabindex="-1">New offer</h1>
+        <span class="oa-pill" id="oa-ed-status" hidden></span>
+      </div>
+    </div>
+
+    <div class="oa-guard" id="oa-ed-guard" hidden role="alert">
+      <p id="oa-ed-guard-text">You have changes that are not saved.</p>
+      <div class="oa-guard-btns">
+        <button type="button" class="oa-btn oa-btn-sm" id="oa-ed-keep">Keep editing</button>
+        <button type="button" class="oa-btn oa-btn-sm oa-btn-danger" id="oa-ed-discard">Discard changes</button>
+      </div>
+    </div>
+    <div class="oa-banner" id="oa-ed-banner" hidden></div>
+    <div class="oa-summary-err" id="oa-ed-summary" hidden tabindex="-1" role="alert"></div>
+
+    <div class="oa-ed-layout">
+      <form class="oa-ed-form" id="oa-ed-form" novalidate autocomplete="off">
+
+        <fieldset class="oa-fs">
+          <legend>Where and who</legend>
+          <div class="oa-f">
+            <label for="f-page">Page the offer sits on</label>
+            <div class="oa-row">
+              <select id="f-page" name="page"><option value="">Loading pages&hellip;</option></select>
+              <button type="button" class="oa-btn oa-btn-sm" id="f-page-retry" hidden>Try again</button>
+            </div>
+            <p class="oa-ferr" data-err="page"></p>
+          </div>
+          <div class="oa-f">
+            <label for="f-name">Offer name <span class="oa-hint-inline">(shown on the dashboard and in the alert email)</span></label>
+            <input id="f-name" name="name" type="text" maxlength="120" data-count="120">
+            <p class="oa-ferr" data-err="name"></p>
+          </div>
+          <div class="oa-f" role="radiogroup" aria-labelledby="f-aud-l">
+            <span class="oa-label" id="f-aud-l">Who sees it</span>
+            <label class="oa-choice"><input type="radio" name="audience" value="everyone"> <span><b>Everyone</b> on the page</span></label>
+            <label class="oa-choice"><input type="radio" name="audience" value="link"> <span><b>Link only</b>: people who arrive through a private link</span></label>
+            <p class="oa-ferr" data-err="audience"></p>
+          </div>
+          <div class="oa-f" id="f-slug-wrap">
+            <label for="f-slug">Link name</label>
+            <div class="oa-prefix"><span id="f-slug-pre">/offer/</span><input id="f-slug" name="slug" type="text" maxlength="60" spellcheck="false" autocapitalize="off" aria-describedby="f-slug-hint"></div>
+            <p class="oa-hint" id="f-slug-hint">Lowercase letters, numbers and single hyphens, 3 to 60 characters. Example: group-2026</p>
+            <p class="oa-ferr" data-err="slug"></p>
+          </div>
+        </fieldset>
+
+        <fieldset class="oa-fs">
+          <legend>Popup copy</legend>
+          <div class="oa-f">
+            <label for="f-headline">Headline</label>
+            <input id="f-headline" name="headline" type="text" maxlength="150" data-count="150">
+            <p class="oa-ferr" data-err="headline"></p>
+          </div>
+          <div class="oa-f">
+            <label for="f-body">Offer copy <span class="oa-hint-inline">(plain text; a blank line starts a new paragraph)</span></label>
+            <textarea id="f-body" name="body" rows="7" maxlength="3000" data-count="3000"></textarea>
+            <p class="oa-ferr" data-err="body"></p>
+          </div>
+        </fieldset>
+
+        <fieldset class="oa-fs">
+          <legend>Form</legend>
+          <label class="oa-switch"><input type="checkbox" id="f-form-on"> <span>Show a form in the popup</span></label>
+          <p class="oa-ferr" data-err="form.enabled"></p>
+          <p class="oa-ferr" data-err="form"></p>
+
+          <div id="f-form-yes">
+            <table class="oa-fields">
+              <caption class="oa-sr">Form fields</caption>
+              <thead><tr><th scope="col">Field</th><th scope="col">Show</th><th scope="col">Required</th></tr></thead>
+              <tbody id="f-fields"></tbody>
+            </table>
+            <p class="oa-ferr" data-err="form.fields"></p>
+            <p class="oa-ferr" data-err="form.required"></p>
+            <div class="oa-f" id="f-choices-wrap">
+              <label for="f-choices">Choices for &ldquo;Choose one&rdquo; <span class="oa-hint-inline">(one per line, up to 20)</span></label>
+              <textarea id="f-choices" rows="4"></textarea>
+              <p class="oa-ferr" data-err="form.optionChoices"></p>
+            </div>
+            <div class="oa-f">
+              <label for="f-btn">Submit button label</label>
+              <input id="f-btn" type="text" maxlength="40" placeholder="Send">
+              <p class="oa-ferr" data-err="form.buttonLabel"></p>
+            </div>
+            <div class="oa-f">
+              <label for="f-thanks">Thank-you message</label>
+              <input id="f-thanks" type="text" maxlength="300">
+              <p class="oa-ferr" data-err="form.thanks"></p>
+            </div>
+          </div>
+
+          <div id="f-form-no" hidden>
+            <p class="oa-hint">Optional: a button that takes the visitor somewhere. Leave both blank for no button.</p>
+            <div class="oa-f">
+              <label for="f-btn2">Button label</label>
+              <input id="f-btn2" type="text" maxlength="40">
+            </div>
+            <div class="oa-f">
+              <label for="f-url">Button destination</label>
+              <input id="f-url" type="text" maxlength="500" placeholder="https://... or /page.html" spellcheck="false">
+              <p class="oa-ferr" data-err="buttonUrl"></p>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="oa-fs">
+          <legend>Dates (Eastern time)</legend>
+          <div class="oa-dates">
+            <div class="oa-f">
+              <span class="oa-label" id="f-start-l">Start</span>
+              <div class="oa-row">
+                <input id="f-start-d" type="date" aria-label="Start date">
+                <input id="f-start-t" type="time" aria-label="Start time" step="60">
+              </div>
+              <p class="oa-when-words" id="f-start-w" aria-live="polite"></p>
+              <p class="oa-ferr" data-err="startsAt"></p>
+            </div>
+            <div class="oa-f">
+              <span class="oa-label" id="f-end-l">Stop</span>
+              <div class="oa-row">
+                <input id="f-end-d" type="date" aria-label="Stop date">
+                <input id="f-end-t" type="time" aria-label="Stop time" step="60">
+              </div>
+              <p class="oa-when-words" id="f-end-w" aria-live="polite"></p>
+              <p class="oa-ferr" data-err="endsAt"></p>
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="oa-ed-actions">
+          <button type="button" class="oa-btn" id="oa-save-draft">Save as draft</button>
+          <button type="button" class="oa-btn oa-btn-primary" id="oa-save-sched">Save and schedule</button>
+          <span class="oa-saving" id="oa-saving" aria-live="polite"></span>
+          <button type="button" class="oa-btn oa-btn-sm oa-btn-danger oa-push" id="oa-del" hidden>Delete draft</button>
+        </div>
+        <div class="oa-guard" id="oa-del-guard" hidden role="alert">
+          <p>Delete this draft? The list as it was before is kept under Saved versions, so it can be put back.</p>
+          <div class="oa-guard-btns">
+            <button type="button" class="oa-btn oa-btn-sm" id="oa-del-no">Keep it</button>
+            <button type="button" class="oa-btn oa-btn-sm oa-btn-danger" id="oa-del-yes">Delete draft</button>
+          </div>
+        </div>
+      </form>
+
+      <aside class="oa-ed-side" aria-labelledby="oa-pv-h">
+        <div class="oa-pv-head">
+          <h2 id="oa-pv-h">Live preview</h2>
+          <div class="oa-seg" role="group" aria-label="Preview size">
+            <button type="button" class="oa-seg-btn is-on" data-pv="desktop" aria-pressed="true">Desktop</button>
+            <button type="button" class="oa-seg-btn" data-pv="phone" aria-pressed="false">Phone</button>
+          </div>
+        </div>
+        <div class="oa-pv-frame" id="oa-pv-frame">
+          <iframe id="oa-pv" title="Popup preview (not interactive)" sandbox="allow-same-origin" tabindex="-1"></iframe>
+        </div>
+        <p class="oa-hint">Updates as you type. Not interactive. The preview link below shows the last saved version on the real page.</p>
+        <div class="oa-pv-link">
+          <span class="oa-label">Preview link</span>
+          <div id="oa-pv-link-none" class="oa-hint">Save once to get a preview link.</div>
+          <div id="oa-pv-link-yes" hidden>
+            <code id="oa-pv-url"></code>
+            <div class="oa-row">
+              <a class="oa-btn oa-btn-sm" id="oa-pv-open" target="_blank" rel="noopener noreferrer">Open preview</a>
+              <button type="button" class="oa-btn oa-btn-sm" id="oa-pv-copy">Copy preview link</button>
+            </div>
+            <p class="oa-hint">Works in any status. Submissions from it are marked TEST. Saved edits reach it within about a minute.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- Session 1.8: saved versions (contract 1.1.0 restore route). -->
+  <section id="oa-versions" hidden aria-labelledby="oa-v-h">
+    <div class="oa-ed-head">
+      <button type="button" class="oa-btn oa-btn-sm" id="oa-v-back">&larr; Back to offers</button>
+      <div class="oa-ed-title"><h1 id="oa-v-h" tabindex="-1">Saved versions</h1></div>
+    </div>
+    <p class="oa-muted">Each line is the whole offer list as it was just before a change. The newest 20 are kept. Putting one back saves the current list first, so a restore can be undone too.</p>
+    <div id="oa-v-list" class="oa-v-list"></div>
+  </section>
+</main>
+
+<div class="oa-toast" id="oa-toast" role="status" aria-live="polite"></div>
+</body>
+</html>

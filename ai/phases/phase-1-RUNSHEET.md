@@ -69,9 +69,9 @@ END OF SESSION, every step, in order:
 - [x] 1.3  Sign-in. Medium, about 5 min (built 2026-10-10; draft check: run Claude outputs\session-1.3-verify.ps1)
 - [x] 1.4  Saving and listing offers. Large, about 5 min (done 2026-10-10, verified; took about 15 min of your time; added the restore address, contract 1.1.0)
 - [x] 1.5  Offer links, dates and forwarding. Large, about 10 min (done 2026-10-10, verified 15/15 on the second run; took about 10 min of your time)
-- [ ] 1.6  The popup. Large, about 20 min
-- [ ] 1.7  Admin dashboard. Large, about 15 min
-- [ ] 1.8  Offer editor, rerun and preview. Large, about 20 min
+- [x] 1.6  The popup. Large, about 20 min (done 2026-10-10; took about 30 min of your time, including the collapsed reopen tab you asked for)
+- [x] 1.7  Admin dashboard. Large, about 15 min
+- [x] 1.8  Offer editor, rerun and preview. Large, about 20 min (built 2026-10-10; your own run-through still to do)
 - [ ] 1.9  Views and leads counts. Medium, about 5 min (optional)
 - [ ] 1.10 Go live and close the phase. Medium, about 25 min
 

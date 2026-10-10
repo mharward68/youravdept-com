@@ -219,7 +219,7 @@ Result: lib/offers-rules.mjs (checks, plain text, rules), lib/offers-store.mjs (
 - Risk and fallback: most likely to overrun. If the spike fails, the fallback is a one-line script tag added to pages, which touches existing pages and stops for Michael's approval.
 - Backup point: no.
 
-### Session 1.6: The popup
+### Session 1.6: The popup  [DONE 2026-10-10, 39/39 browser checks, 6/6 on the draft address, two real submissions received]
 - Compartment: UI. Depends on: 1.5. Goal: the popup visitors see, in Your AV Department branding, with a working form.
 - Size: L. My time: about 20 min. Confidence: High.
 - Objectives: UX, security (offer copy shown as plain text only).

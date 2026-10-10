@@ -6,7 +6,7 @@ Only what a future session would waste time rediscovering.
 - Site: static HTML at the repo root, plus library/ and field-notes/. No build step. Every page inlines its own CSS and JS (no shared stylesheet). Brand tokens repeat in each page's :root.
 - Netlify config: _redirects (pretty URLs as 200 rewrites, a few 301s), _headers (library PDFs). No root netlify.toml before 1.2. .netlify/netlify.toml is the CLI's generated copy: never edit it.
 - Functions: netlify/functions/submission-created.mjs (existing, Resend guide mailer, runs on every form).
-- Offers module: shared/offer-contract.js (frozen contract). Sign-in: netlify/functions/lib/offers-auth.mjs (requireAdmin, handleLogin). Field checks and rules: lib/offers-rules.mjs. Storage, history, restore: lib/offers-store.mjs. Edge: netlify/edge-functions/offer-link.js and offer-page.js (thin), logic in netlify/edge-lib/offer-edge.js. Tests: netlify/tests/*.test.mjs (run each file by path). ai/ holds the scope, plan, run sheet and these notes.
+- Offers module: shared/offer-contract.js (frozen contract). Popup: assets/offer-panel.css and assets/offer-panel.js (public, published by both deploy scripts). Sign-in: netlify/functions/lib/offers-auth.mjs (requireAdmin, handleLogin). Field checks and rules: lib/offers-rules.mjs. Storage, history, restore: lib/offers-store.mjs. Edge: netlify/edge-functions/offer-link.js and offer-page.js (thin), logic in netlify/edge-lib/offer-edge.js. Tests: netlify/tests/*.test.mjs (run each file by path). ai/ holds the scope, plan, run sheet and these notes.
 - Deploy: deploy.ps1 copies the folder to %TEMP%\youravdept-deploy minus its exclude list, then runs netlify deploy --prod --dir <staging> --functions netlify\functions. Production only.
 - Repo: github.com/mharward68/youravdept-com, branch main. Netlify site id 7b58fbd4-394f-4091-bc6d-29b4e3b6ff79.
 
@@ -67,3 +67,29 @@ Only what a future session would waste time rediscovering.
 - Test switch: request header `x-yavd-test-store-fail: 1` forces a storage failure on non-production deploys only.
 - Edits reach visitors in up to about a minute: each edge instance caches the offer list for 60 s (reads themselves are strong). Seen live: a page kept serving a 60 s old list right after new offers were saved. Any test that saves offers and then checks pages must poll for the expected x-yavd-offer state, never check straight away.
 - Off the live site, offer-page also answers pages with no offer (x-yavd-offer: page-none) and adds x-yavd-offer-src: <cache|store|stale>; offers=<n>; ctx=<context>. The body is never changed by this. On production a page with no offer is a pure pass-through.
+
+## Session 1.6 findings
+- The popup imports /shared/offer-contract.js at runtime. Never add shared/ to a deploy exclude list, or every popup silently stops showing.
+- Popup tests run here, not on Michael's PC: serve the website folder with python -m http.server, build test pages with injectOffer() from netlify/edge-lib/offer-edge.js on a copy of booth-proof.html, and drive them with Playwright (/opt/npm-tools/node_modules/playwright). Intercept POST /offers-form.html with page.route. Block fonts.googleapis/gstatic (no network here; screenshots use fallback fonts).
+- Browsers cache /assets/*: after a draft deploy, check the served file (curl.exe ... | -match '<new text>') and use a NEW private window. Michael's first look at the collapsed tab showed the old CSS.
+- :focus-visible is not a safe trigger for anything that changes layout: a programmatic focus() after a mouse close inherits focus-visible from the dialog. Use an explicit class set on Tab-key focus.
+- The Netlify connector shows a form's submission_count and last_submission_at, not submission contents. 'offers' count: 2 after 1.2, 4 after 1.6.
+- No em dashes or other non-ASCII in the public JS: use \u escapes.
+
+## Session 1.7 findings
+- Admin screen: offer-admin.html + assets/offer-admin.css + assets/offer-admin.js (ES module, imports /shared/offer-contract.js). 1.8 adds the editor to these same three files.
+- Sign-in state comes only from the first GET /api/offers (200 dashboard, 401 sign-in). Any later 401 (Refresh, Export) drops back to sign-in with a note.
+- Status is worked out in the browser with offerStatus() against the server clock (clockSkew from the "now" field of GET /api/offers), so groups match the server even on a PC with a wrong clock.
+- Card buttons are found by data-act on a delegated click handler on #oa-groups; cards carry data-id and data-status. Re-render replaces the whole #oa-groups, so keep any per-card state in the offers array, not the DOM.
+- Local dashboard test harness (no network to Netlify from the container): a small Node server that wraps the real netlify/functions handlers, with in-memory Blobs set through _setOffersStoreFactoryForTests and _setStoreFactoryForTests, and serves the site folder; Playwright on http://localhost (Chromium accepts the Secure cookie on localhost). Run `npm install` in the copied folder first for @netlify/blobs. Do not pkill by a pattern that matches your own shell command.
+- /offer-admin works through a netlify.toml rewrite; _redirects stays untouched.
+
+## Session 1.8 findings
+- Editor code sits in assets/offer-admin.js after the dashboard code, in the "Session 1.8" block. Views: show('loading'|'signin'|'error'|'dash'|'editor'|'versions'); only Sign out shows in the top bar outside the dashboard.
+- The final load() call must stay at the very end of offer-admin.js: load() reads `stash`, which is declared in the editor block (let, temporal dead zone).
+- Live preview: iframe sandbox="allow-same-origin" (no scripts) with a srcdoc that links /assets/offer-panel.css; the admin script builds its DOM with textContent. If offer-panel.js markup or class names change, update drawPreview() to match.
+- Eastern time: easternIso() turns a wall-clock date and time into ISO with the right -04:00/-05:00 by asking Intl for the offset (twice, for clock-change days) and refuses times that do not exist when clocks go forward. Never build offsets by hand.
+- Server field keys can carry an index (form.optionChoices[2]); showErrors() strips it to find the [data-err] slot. New server field keys need a slot in offer-admin.html and an entry in inputFor().
+- Local harness for admin tests lives outside the repo (Claude sandbox): Node server wrapping the real handlers with in-memory Blobs, /offer/* answered with decideLink + injectOffer. Fonts: fulfil fonts.googleapis/gstatic with empty CSS instead of blocking them, or the console fills with load errors.
+- Chromium logs every 4xx fetch as a console "Failed to load resource" line. Expected ones here: 401 on first load (signed out), 400 and 409 from rule refusals. Count script errors separately.
+- Playwright: when a banner may already be visible, wait for the element that only the new state shows (the error summary), not the banner.

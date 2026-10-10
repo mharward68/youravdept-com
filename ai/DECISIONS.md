@@ -70,3 +70,40 @@ Dated, append-only. What was chosen, why, and what was rejected.
 - onError: bypass on both functions, so a crash serves the site as if the module did not exist.
 - Rejected: HTMLRewriter (a new dependency) for a single insert before </body>.
 - 10:26 fix after the first draft run: edge reads use strong consistency. Why: the first run showed a page serving an offer list older than the latest save; strong reads cost one slower read per edge instance per minute at most. Diagnostics (page-none, x-yavd-offer-src) are added on test deploys only, so the live site keeps zero work on pages without an offer.
+
+## 2026-10-10: Session 1.6, the popup
+- The popup script is a classic deferred script that loads the frozen contract with import('/shared/offer-contract.js'). Why: field names, labels, subject line, 7-day memory and 1.5 s delay come from one source; nothing duplicated. If the import fails, no popup and the page is untouched.
+- Submissions POST (url-encoded, fetch) to /offers-form.html. Why: Netlify Forms accepts the post at the blueprint page, and both edge functions skip /offers-form*. Rejected: posting to "/" (runs through offer-page).
+- is_test is sent as "yes" or "no".
+- Offer text only ever goes in with textContent; blank lines make paragraphs, single line breaks make <br>. The button link (form off) is limited to http(s) or a same-site path; anything else shows no button.
+- Submit button: navy text on teal (4.8:1). Rejected: white on teal (2.9:1, fails readable contrast). Overrulable by Michael.
+- Privacy line: "We use your details only to follow up on this offer. We never sell or share them." Overrulable.
+- Phone width (560 px and under): bottom sheet; inputs 16 px so iPhones do not zoom. Only the inside scrolls, so the close button never moves.
+- Preview (isTest): badge "Preview: submissions are marked as tests", ignores and never writes the 7-day memory.
+- After a successful submit, closing does not leave the reopen tab for this page view (later visits within 7 days still show it; the stored value stays "time closed", per contract).
+- Reopen tab (Michael's request, 10:49): tucked against the right edge, only the teal edge and dot show; hover slides the label out; click opens. Expands on keyboard focus only when reached with the Tab key (class is-peek), never because the popup closed and handed focus back (bug found 10:55: click-outside and Escape left it expanded). Thin light rim so it shows on navy sections. Touch screens: a tap opens directly.
+- Events for 1.9: document "yavd-offer:view" on open and "yavd-offer:lead" on a successful submit, detail { id, isTest }.
+
+## 2026-10-10: Session 1.7, admin dashboard
+- The page learns sign-in from GET /api/offers (401 or 200), never from the cookie (HttpOnly, Path=/api/offers). The static page holds no offer data; sign-out empties every container.
+- Group order Running, Upcoming, Draft, Expired. Sort: running by stop time (soonest first), upcoming by start time (soonest first), drafts by last edit (newest first), expired by stop time (newest first). Why: the top of each group is the one that needs attention next.
+- Countdown wording: whole days from 2 days out, hours and minutes inside 48 hours. Re-rendered every 30 s against the server clock. Rejected: a per-second ticker (noise, no value at this scale).
+- Copy link copies location.origin + path, so on the draft address it copies the draft link and on the live site the youravdept.com link. For an Everyone offer the "link" is the page address.
+- Edit, Run again and New offer are shown disabled with a "Session 1.8" tooltip instead of hidden. Why: the layout Michael reviews now is the layout he gets.
+- Export is fetched and saved as a file (not a plain link), so an expired sign-in shows the sign-in box instead of a raw JSON error.
+- Store badge: "Test store" or "Live store" in the top bar (store name on hover). Why: Michael must never mistake the draft address for live.
+- /offer-admin served by a non-forced 200 rewrite in netlify.toml (the allowed file). Rejected: editing _redirects (hard limit).
+- Admin page uses the Polished tokens at Functional effort: navy top bar, teal accents, Montserrat headings, Inter body, navy text on teal buttons (contrast, as in 1.6).
+
+## 2026-10-10: Session 1.8, offer editor, rerun and preview
+- Editor is a view inside /offer-admin (same three files), not a second page. Why: one sign-in check, one script, the plan's file list. Rejected: offer-editor.html (another page to keep in step).
+- The server stays the judge: the editor sends the contract record and shows the server's field messages. Client side only tidies the link name, counts characters, and checks the date inputs. Why: one set of rules (offers-rules.mjs), no drift.
+- Dates entered as Eastern date + time inputs, converted with Intl to ISO with the correct offset for that day; the saved time is shown in plain words ("Stops at the end of Sat, Oct 31, 2026, 11:59 PM EDT"). Blank time = contract defaults. A stop time saves with :59 seconds, so the named minute counts in full. Overrulable.
+- Run again clears both dates and keeps the times of day, same link, rerunOf set. Why: the old dates are always wrong for a rerun, and a blank date cannot be scheduled by mistake (server requires dates to schedule).
+- On running or upcoming offers the draft button reads "Take down (save as draft)". Why: it is the scope's way to remove a popup; the label says what it does.
+- Delete draft added to the editor (asks first). Why: the delete route exists and nothing else exposes it; it also lets Michael clear test drafts. Scheduled offers cannot be deleted (server rule).
+- Live preview is a non-interactive mock: sandboxed iframe (no scripts) using the real popup CSS, Desktop (720 px) and Phone (390 px). Rejected: running offer-panel.js in the frame (focus stealing, 1.5 s delay on every keystroke, a real form that could post a lead). The preview link shows the real popup.
+- Unsaved changes: inline "Keep editing / Discard" bar for Back and Sign out; the browser's own leave-page warning for closing the tab. No alert/confirm/prompt.
+- Expired sign-in during a save: the edits are kept in memory and put back after signing in. If the offer changed meanwhile, the old updatedAt is kept so the server refuses an overwrite.
+- Saved versions screen uses the 1.1.0 restore route; each restore asks first and is itself undoable.
+- Sign-out wipes the editor (inputs, title, preview frame, preview link), not only the dashboard.
