@@ -59,3 +59,14 @@ Dated, append-only. What was chosen, why, and what was rejected.
 - One address for both list and restore. Rejected: a separate history route (two new addresses for one job).
 - Keys accepted only in the exact history/<ISO time>-<6 hex> shape; anything else is 400, an unknown version 404.
 - 10:15 fix: saved versions are ordered by a change number kept in the metadata of "all" and written at the end of each history key (history/<ISO time>-<9 digits>), not by time. Why: the restore test failed on Michael's PC because two saves landed in the same millisecond and sorted at random; the same fault would have shown the wrong "newest" version and could trim the wrong one. Rejected: a random suffix (ties still random) and time-only keys.
+
+## 2026-10-10: Session 1.5, offer links and page offers
+- The link function fetches the page over HTTP with header x-yavd-offer-inner: 1, and offer-page skips such requests. Why: it keeps the "link beats Everyone, one popup" rule without a second lookup, and the fetch goes through _redirects so pretty URLs work. Rejected: context.rewrite (unclear whether other edge functions run on the new path). Cost: a visitor who sends that header sees no Everyone popup, which is harmless.
+- Offer text reaches the page only as the contract's escaped JSON block (publicPayload: no preview key). Injected before the last </body>, never twice.
+- Offer list cached per edge instance for CACHE_SECONDS; a failed or slow read (1.5 s) uses the last good copy if there is one, with dates still checked against the current time. Why: stability without showing anything a fresh read would not. With no copy: the page untouched, or for a link a 302 to /.
+- Out-of-dates and draft-only slugs: 302 to the page of the most recently edited offer on that slug, query string kept except the preview key. Why: links in posts often carry utm tags.
+- Preview: matched by the 32-character key in constant time. An offer with its own slug needs that slug in the address; an Everyone offer previews at /offer/<any word>?preview=<key> (the editor will use /offer/preview). A wrong key is treated as no key.
+- Pages we change get Cache-Control private (no-store on /offer/*) and lose content-length and ETag. Redirects are no-store and noindex.
+- onError: bypass on both functions, so a crash serves the site as if the module did not exist.
+- Rejected: HTMLRewriter (a new dependency) for a single insert before </body>.
+- 10:26 fix after the first draft run: edge reads use strong consistency. Why: the first run showed a page serving an offer list older than the latest save; strong reads cost one slower read per edge instance per minute at most. Diagnostics (page-none, x-yavd-offer-src) are added on test deploys only, so the live site keeps zero work on pages without an offer.

@@ -1,35 +1,36 @@
 # CONTEXT: YAVD Offers Module
 
-Updated: 2026-10-10 10:10 ET, Session 1.4 (Saving and listing offers) plus restore route. VERIFIED on the draft address.
+Updated: 2026-10-10 10:30 ET, Session 1.5 (Offer links, dates and forwarding). VERIFIED on the draft address: 15 of 15 checks pass (second run, 10:26).
 
 ## Where things stand
-- Saving, listing, export, delete (drafts only), the page list and restore are built. 35 local tests pass (22 rules + 13 sign-in). Contract is now 1.1.0 (restore route, approved by Michael). Checked on the draft address at 10:07 (session-1.4-verify.ps1): sign-in 200, page list 200 (27 pages), Everyone A 201, overlapping Everyone B 409, link C 201, draft D 201, list 200 on offers-test, saved versions 200, unknown version 404, export 200 opened with the 3 test offers, delete scheduled 409, delete draft 200, sign-out 200 then 401. The script's verdict printed 4 false FAILs (PowerShell comma precedence); fixed after the run.
-- Draft address: https://offers--your-av-dept.netlify.app. Live site unchanged; no module code is live.
-- 1.3's own draft check (session-1.3-verify.ps1) was still pending at the start of this session. The 1.4 script repeats its sign-in, sign-out and signed-out checks; only the lockout check is not repeated (run the 1.3 script once if you want it, then wait 15 minutes before the 1.4 one).
+- Both edge functions are real now. offer-link (/offer/*): running link serves the offer's page with the offer block; out of dates or draft 302 to the page (query kept, preview key dropped); unknown slug 302 to /; ?preview=<key> serves any status marked isTest. offer-page (every page except module, API and asset paths): attaches the running Everyone offer, matched through normalizePagePath(); otherwise the page passes through untouched.
+- Local tests: 21 new edge tests pass (node --test netlify/tests/offer-edge.test.mjs). Auth and rules tests unchanged.
+- Draft check: Claude outputs\session-1.5-verify.ps1. Run 1 (10:22): 14/15, F failed (Everyone offer not attached). Cause: offer-page's one-minute edge cache held a list read before the test offers were saved, and the checks ran inside that minute. Fix: strong reads at the edge, test-only diagnostics header x-yavd-offer-src, script waits for both offers. Run 2 (10:26): the page showed page-none from the cache for about 60 s, then page-everyone from the store; all 15 PASS. Results: running link 200 with its offer once (beats the Everyone offer on the same page), expired 302 to /booth-proof.html (utm kept), unknown 302 to /, draft no key 302, draft preview 200 isTest=True, wrong key 302, Everyone offer on /show-info and /show-info.html, page with no offer byte-identical to the untouched copy, forced storage failure 200 untouched (page) and 302 to / (link), images skipped. Edge context: branch-deploy.
+- Spike proven: an edge function fetches a static page through a _redirects pretty URL and adds the block. No fallback needed; no existing page touched.
+- Left in the test store: link offers TEST 1.5 RUN/OLD 1594 and 4022 (RUN ones expire on their own an hour after creation). Harmless; delete in 1.7 once the dashboard exists, or leave.
+- Draft address: https://offers--your-av-dept.netlify.app. Live site unchanged.
+- The page block points at /assets/offer-panel.css and .js, which arrive in 1.6. Until then those two requests 404 on pages with an offer (draft only).
 
 ## What this session did
-- Created: netlify/functions/offers-restore.mjs (follow-up, contract 1.1.0), netlify/functions/lib/offers-rules.mjs (field checks, plain text, the two scheduling rules), netlify/functions/lib/offers-store.mjs (Blobs read/write, history, ETag guard, restore), netlify/tests/offers-rules.test.mjs, Claude outputs/session-1.4-verify.ps1.
-- Replaced placeholders: offers.mjs (GET list, POST save), offers-delete.mjs, offers-export.mjs, offers-pages.mjs.
-- Modified: netlify/tests/offers-auth.test.mjs (the "signed-in reaches the placeholder" test now expects 200 and a list; offer storage stubbed).
-- shared/offer-contract.js: ROUTES.apiRestore added, version 1.1.0 (approved). No change to netlify.toml, deploy scripts or any site page.
-
-- 10:15: Michael's local test run caught a real ordering bug (saves in the same millisecond). Fixed in lib/offers-store.mjs: versions sort by change number. 22 rules tests pass 25 runs out of 25; 13 sign-in tests pass. The draft address still runs the 10:07 code: the next draft deploy (1.5's script) picks the fix up.
+- Created: netlify/edge-lib/offer-edge.js (decisions, injection, cached offer source), netlify/tests/offer-edge.test.mjs, Claude outputs/session-1.5-verify.ps1.
+- Replaced placeholders: netlify/edge-functions/offer-link.js, offer-page.js (inline config: routes, onError bypass). No netlify.toml change. No contract change. No site page touched.
 
 ## Assumptions made (logged in DECISIONS)
-- Rules apply to scheduled offers only; drafts never clash. Drafts may be incomplete; scheduling needs page, headline, dates (and link name for Link only).
-- HTML is stripped, not refused; the response lists a note so the editor can say so.
-- Page is checked for shape, not against the page list (the list lives in another function).
-- Saves need the updatedAt the editor loaded; otherwise 409 "saved somewhere else".
+- Link offer beats Everyone offer via a request header (x-yavd-offer-inner) on the link function's own page fetch.
+- Storage failure on a link with nothing cached: 302 to /. A stale copy is used if this edge instance has one (dates still checked).
+- Edge reads use strong consistency (at most one read per edge instance per minute).
+- Everyone offer preview link: /offer/preview?preview=<key> (any word works; key decides).
+- Draft-only slug without key: 302 to the draft's page.
+- Test-only failure switch: request header x-yavd-test-store-fail: 1, honoured only on branch-deploy, deploy-preview, dev.
 
 ## Open items
-1. Done: draft check passed. Backup export of the test store: Claude outputs\yavd-offers-test-export-2026-10-10-1007.json (test offers, since deleted; history keeps them).
-2. Restore route done (/api/offers/restore). The admin screens (1.7 or 1.8) need a "Saved versions" view that calls it: added to Session 1.8's tasks.
+1. Michael's two clicks (running link opens Show Info, expired link lands on Booth Proof with no flash): not yet confirmed.
+2. Done: edge functions report branch-deploy, so the draft reads offers-test.
 3. 1.2b (alert email through Resend) still undecided.
-4. Done: OFFER_SESSION_SECRET replaced 09:30. OFFER_ADMIN_PASSWORD re-saved 10:05 (the 09:29 value did not match Michael's copy).
-5. .netlify/functions/manifest.json tracked by git (backlog, from 1.2).
+4. .netlify/functions/manifest.json tracked by git (backlog, from 1.2).
 
 ## Estimate vs actual
-Session 1.4: estimated L (about 5 min of Michael's time). Actual: L build (about 35 min, plus about 20 min for the restore route and verify fixes); Michael's time about 15 min (three verify runs, re-saving the password in Netlify).
+Session 1.5: estimated L (about 10 min of Michael's time), Low confidence. Actual: L (about 35 min build, about 10 min for the cache fix); two verify runs, Michael's time about 10 min. Overran only by one verify run.
 
 ## Next step
-Commit and push, then Session 1.5 (Offer links, dates and forwarding), new conversation. The unit-test lines in the verify script printed nothing on Michael's PC (fixed to show a summary or the last lines); if 1.5's script shows a problem there, run `node --test netlify/tests/offers-rules.test.mjs` directly.
+Commit and push, then Session 1.6 (The popup) in a new conversation. 1.6 builds /assets/offer-panel.css and .js, read from the #yavd-offer-data block (shape: publicPayload in shared/offer-contract.js). The popup must use the block's isTest to set is_test on the form.
