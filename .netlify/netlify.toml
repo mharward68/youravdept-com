@@ -1,8 +1,11 @@
 functionsDirectory = "C:\\01_AppDevelopment\\12.Your-AV-Dept_Website\\netlify\\functions"
 functionsDirectoryOrigin = "default"
+headersOrigin = "config"
+redirectsOrigin = "config"
 plugins = []
 
 [build]
+edge_functions = "C:\\01_AppDevelopment\\12.Your-AV-Dept_Website\\netlify\\edge-functions"
 publish = "C:\\01_AppDevelopment\\12.Your-AV-Dept_Website"
 publishOrigin = "ui"
 functions = "C:\\01_AppDevelopment\\12.Your-AV-Dept_Website\\netlify\\functions"
@@ -23,6 +26,9 @@ functions = "C:\\01_AppDevelopment\\12.Your-AV-Dept_Website\\netlify\\functions"
 
 [functions]
 
+[functions.offers-pages]
+included_files = ["*.html", "library/*.html", "field-notes/*.html"]
+
 [functions."*"]
 
 [[headers]]
@@ -31,6 +37,25 @@ for = "/library/pdf/*"
 [headers.values]
 X-Robots-Tag = "noindex, noarchive"
 Cache-Control = "public, max-age=86400"
+
+[[headers]]
+for = "/offer/*"
+
+[headers.values]
+X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+for = "/offer-admin*"
+
+[headers.values]
+X-Robots-Tag = "noindex, nofollow"
+Cache-Control = "no-store"
+
+[[headers]]
+for = "/offers-form*"
+
+[headers.values]
+X-Robots-Tag = "noindex, nofollow"
 
 [[redirects]]
 from = "/onyva-swag"
@@ -276,6 +301,30 @@ force = true
 from = "/meeting-planner-wellness-playlists.html"
 to = "/playlists-meeting-planner-wellness.html"
 status = 301.0
+force = true
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/ai/*"
+to = "/404-not-here"
+status = 404.0
+force = true
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/netlify/*"
+to = "/404-not-here"
+status = 404.0
 force = true
 
 [redirects.query]

@@ -1,0 +1,42 @@
+# youravdept.com: Netlify config added by the Offers Module (Session 1.2).
+# Most site config still lives in _redirects and _headers. This file is read
+# from the site folder by the Netlify CLI and is never published (both deploy
+# scripts exclude it).
+
+# The page dropdown in the offer editor lists the site's real pages.
+# Session 1.4's offers-pages function reads these files at runtime.
+[functions."offers-pages"]
+  included_files = ["*.html", "library/*.html", "field-notes/*.html"]
+
+# Offer links and admin screens stay out of search results.
+# These apply to static responses only. Edge function responses (/offer/*
+# in Session 1.5) must set X-Robots-Tag in code as well.
+[[headers]]
+  for = "/offer/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/offer-admin*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Cache-Control = "no-store"
+
+[[headers]]
+  for = "/offers-form*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+# Second lock: build docs and function sources are never served, even if a
+# deploy script ever forgets to exclude them.
+[[redirects]]
+  from = "/ai/*"
+  to = "/404-not-here"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/netlify/*"
+  to = "/404-not-here"
+  status = 404
+  force = true

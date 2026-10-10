@@ -3,6 +3,8 @@
  * Frozen in Session 1.1 on 2026-10-10. Changing anything in this file is a
  * plan revision that goes back to Michael first. Adding a helper that does
  * not change an existing shape is not.
+ * 1.1.0 (2026-10-10, approved by Michael after Session 1.4): added
+ * ROUTES.apiRestore. Additive; no existing shape changed.
  *
  * Pure ES module, no imports, no secrets. It is loaded by:
  *   - Netlify Functions   (netlify/functions/*.mjs, Node)
@@ -12,7 +14,7 @@
  * nothing in it is private.
  */
 
-export const CONTRACT_VERSION = '1.0.0';
+export const CONTRACT_VERSION = '1.1.0';
 
 /* ---------- ADDRESSES ---------- */
 
@@ -25,7 +27,8 @@ export const ROUTES = Object.freeze({
   apiOffers:   '/api/offers',             // GET list all, POST create or update one
   apiDelete:   '/api/offers/delete',      // POST {id}  drafts only
   apiExport:   '/api/offers/export',      // GET all offers as one JSON file
-  apiPages:    '/api/offers/pages'        // GET list of site pages for the dropdown
+  apiPages:    '/api/offers/pages',       // GET list of site pages for the dropdown
+  apiRestore:  '/api/offers/restore'      // GET saved versions, newest first; POST {key} puts one back
 });
 
 export const OFFER_LINK_PREFIX = '/offer/';

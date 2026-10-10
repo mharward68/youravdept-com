@@ -8,8 +8,8 @@ $Site    = $PSScriptRoot
 $Staging = Join-Path $env:TEMP 'youravdept-deploy'
 
 # Folders and files that must never reach the live site
-$ExcludeDirs  = @('Claude outputs', 'claude', 'docs', '.git', '.netlify', 'node_modules')
-$ExcludeFiles = @('deploy.ps1', 'README.md', '.gitignore', '*.docx', '*.patch', '*.gs')
+$ExcludeDirs  = @('Claude outputs', 'claude', 'docs', '.git', '.netlify', 'node_modules', 'ai', 'netlify')
+$ExcludeFiles = @('deploy.ps1', 'deploy-preview.ps1', 'README.md', '.gitignore', 'netlify.toml', 'package.json', 'package-lock.json', '*.docx', '*.patch', '*.gs')
 
 if (Test-Path $Staging) { Remove-Item $Staging -Recurse -Force }
 robocopy $Site $Staging /E /XD $ExcludeDirs /XF $ExcludeFiles /NFL /NDL /NJH /NJS /NP | Out-Null

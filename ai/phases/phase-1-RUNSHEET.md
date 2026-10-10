@@ -6,7 +6,8 @@ YAVD Offers Module. Your AV Department: run several dated offers on any page of 
 The authoritative copy is `ai/phases/phase-1-RUNSHEET.md` in the repo (copied in Session 1.1 on 2026-10-10). The Google Doc "YAVD Offers Module" and the Claude Project copy are now secondary: if they disagree with the repo, the repo wins and the copy is the one to correct. Delete this run sheet when the phase closes.
 
 ## Read this first
-- Before Session 1.2, answer the three items in ai/CONTEXT.md under "Needed from Michael before 1.2" (deploy exclusion, the @netlify/blobs package, git status) and have the admin password ready.
+- Test address for every session: https://offers--your-av-dept.netlify.app (run .\deploy-preview.ps1 to update it).
+- Secrets go into the Netlify screen only. Never into PowerShell prompts or chat.
 - Nothing reaches the live site until Session 1.10.
 
 ## Steps
@@ -63,9 +64,10 @@ END OF SESSION, every step, in order:
 
 ## The sessions
 - [x] 1.1  Read the repo and freeze the contracts. Small, about 5 min of your time
-- [ ] 1.2  Netlify setup. Medium, about 15 min
-- [ ] 1.3  Sign-in. Medium, about 5 min
-- [ ] 1.4  Saving and listing offers. Large, about 5 min
+- [x] 1.2  Netlify setup. Medium, about 15 min (took about 70 min of your time)
+- [ ] 1.2b Lead alert through Resend. Small, about 5 min (needs your OK: edits submission-created.mjs)
+- [x] 1.3  Sign-in. Medium, about 5 min (built 2026-10-10; draft check: run Claude outputs\session-1.3-verify.ps1)
+- [x] 1.4  Saving and listing offers. Large, about 5 min (done 2026-10-10, verified; took about 15 min of your time; added the restore address, contract 1.1.0)
 - [ ] 1.5  Offer links, dates and forwarding. Large, about 10 min
 - [ ] 1.6  The popup. Large, about 20 min
 - [ ] 1.7  Admin dashboard. Large, about 15 min
@@ -74,7 +76,7 @@ END OF SESSION, every step, in order:
 - [ ] 1.10 Go live and close the phase. Medium, about 25 min
 
 ## What to have ready
-- Before 1.2: the first admin password (12+ characters); answers on the deploy exclusion and the @netlify/blobs package; `git status` output.
+- Before 1.3: OFFER_ADMIN_PASSWORD added in Netlify (Project configuration > Environment variables; secret; Functions; Production, Deploy Previews, Branch deploys). Type it only into Netlify.
 - Before 1.10: final popup copy, dates and link names for the three Booth Proof offers.
 
 ## Step 3: Close the phase

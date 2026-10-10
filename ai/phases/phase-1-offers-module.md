@@ -48,7 +48,7 @@ Risk check from the plan ("the site may have a build step or framework"): it doe
 
 ## Frozen contracts
 
-The authority is `shared/offer-contract.js` (CONTRACT_VERSION 1.0.0). This summary is for reading; if it and the file disagree, the file wins.
+The authority is `shared/offer-contract.js` (CONTRACT_VERSION 1.1.0 since 2026-10-10: restore route added after Session 1.4, approved by Michael). This summary is for reading; if it and the file disagree, the file wins.
 
 ```
 ADDRESSES
@@ -62,6 +62,7 @@ ADDRESSES
 /api/offers/delete   POST {id}           drafts only
 /api/offers/export   GET all offers as one JSON file
 /api/offers/pages    GET list of site pages for the dropdown
+/api/offers/restore  GET saved versions  POST {key} puts one back   (1.1.0)
 
 OFFER RECORD  (OFFER_KEYS, FORM_KEYS, emptyOffer())
 id, name, slug, page (canonical .html path), audience "link"|"everyone",
@@ -126,6 +127,9 @@ netlify/functions/offers-delete.mjs      1.4
 netlify/functions/offers-export.mjs      1.4
 netlify/functions/offers-pages.mjs       1.4
 netlify/functions/lib/offers-rules.mjs   1.4 (+ tests)
+netlify/functions/lib/offers-store.mjs   1.4 storage, history, restore
+netlify/functions/offers-restore.mjs     1.4 follow-up (contract 1.1.0)
+netlify/tests/*.test.mjs                 1.3 on: node --test <file> (never deployed: netlify/ is excluded)
 netlify/edge-functions/offer-link.js     1.5
 netlify/edge-functions/offer-page.js     1.5
 assets/offer-panel.css, .js              1.6
@@ -142,7 +146,8 @@ Function files use `.mjs`, matching the existing `submission-created.mjs`. Anyth
 - Files created: ai/spec/offers-scope.md, ai/phases/phase-1-offers-module.md, ai/phases/phase-1-RUNSHEET.md, ai/CONTEXT.md, ai/BUILD_NOTES.md, ai/DECISIONS.md, shared/offer-contract.js.
 - Done when: the contract file loads with no errors, and the list of corrections is shown.
 
-### Session 1.2: Netlify setup
+### Session 1.2: Netlify setup  [DONE 2026-10-10, alert email open: see 1.2b]
+Result: netlify.toml, deploy-preview.ps1, package.json + lock (@netlify/blobs 11.1.1), offers-form.html, six 501 placeholder functions, two route-less edge placeholders. deploy.ps1 exclude list extended (approved). "offers" form registered (25 fields + form-name). OFFER_SESSION_SECRET set. OFFER_ADMIN_PASSWORD deleted after exposure, re-add before 1.3. Draft context = "branch-deploy" (C8 closed). Netlify email alert did not arrive: 1.2b.
 - Compartment: INFRA. Depends on: 1.1. Goal: everything the host needs is in place on a draft deploy.
 - Size: M. My time: about 15 min. Confidence: High.
 - Objectives: security (secrets in protected settings), stability (draft deploy, not live).
@@ -159,20 +164,31 @@ Function files use `.mjs`, matching the existing `submission-created.mjs`. Anyth
 - Risk and fallback: if the subject field does not control the subject on this plan, either put the offer name first in the body, or (with approval) send the alert through Resend from submission-created.mjs.
 - Backup point: no.
 
-### Session 1.3: Sign-in
+### Session 1.2b: Lead alert through Resend  [PROPOSED 2026-10-10, needs Michael's OK]
+- Compartment: INFRA. Depends on: 1.2. Goal: every "offers" submission emails michaelh@youravdept.com with subject "New offer lead: <name>" or "TEST offer lead: <name>".
+- Size: S. My time: about 5 min. Confidence: High.
+- Why: two hand-posted submissions reached Netlify (verified) but no Netlify notification email arrived, spam included. Resend already sends the guide emails from submission-created.mjs.
+- Files modified: netlify/functions/submission-created.mjs (EXISTING FILE: hard limit, needs approval). Add a branch for form_name "offers": send alertSubject() + every filled field to michaelh@youravdept.com. Guide behaviour unchanged.
+- Done when: a hand-posted test on the draft address arrives with the exact subject; a guide-form test still sends its guide.
+- Needs my eyes: the alert in the inbox.
+
+### Session 1.3: Sign-in  [BUILT 2026-10-10, draft-deploy check pending: Claude outputs\session-1.3-verify.ps1]
+Result: lib/offers-auth.mjs (shared check, signed cookie, per-attempt lockout keys in store "offer-auth"), real login and logout, the four 1.4 placeholders now guarded (401 signed out, 501 signedIn:true signed in), netlify/tests/offers-auth.test.mjs (13 pass locally). Lockout kept (no fallback needed): one new Blobs key per attempt, not a counter.
 - Compartment: AUTH. Depends on: 1.2. Goal: only the password holder can reach offer data.
 - Size: M. My time: about 5 min. Confidence: High.
 - Objectives: security.
 - Files created: offers-login.mjs, offers-logout.mjs, lib/offers-auth.mjs.
 - Password check in constant time, signed 12 hour cookie, lockout after 5 wrong tries.
 - Every /api/offers route except login refuses requests without a valid cookie.
-- Inputs needed from Michael: none.
+- Inputs needed from Michael: OFFER_ADMIN_PASSWORD re-added in Netlify (Functions scope, all three contexts), a password never typed in chat or PowerShell.
+- Note: Netlify advises against counters in Blobs (no concurrency control). Use the planned fallback if the lockout counter misbehaves: fixed delay per wrong try.
 - Done when: pasted output shows a wrong password refused, the sixth try locked out, a signed-out call to /api/offers refused, and a signed-in call accepted.
 - Needs my eyes: nothing.
 - Risk and fallback: lockout needs a small counter in storage. If unreliable, fall back to a fixed delay on every wrong try.
 - Backup point: no.
 
-### Session 1.4: Saving and listing offers
+### Session 1.4: Saving and listing offers  [DONE 2026-10-10, verified on the draft address 10:07]
+Result: lib/offers-rules.mjs (checks, plain text, rules), lib/offers-store.mjs (ETag-guarded writes, history before every change, trim to 20, restore in code only), real offers, delete, export and pages handlers, netlify/tests/offers-rules.test.mjs (19 pass; sign-in tests 13 pass). Follow-up the same day, approved by Michael: contract 1.1.0 adds /api/offers/restore (offers-restore.mjs); 21 rules tests pass.
 - Compartment: API. Depends on: 1.3. Goal: offers can be created, changed, listed, exported and reverted, with the rules enforced.
 - Size: L. My time: about 5 min. Confidence: High.
 - Objectives: stability (history on every save), security (input checked on the server).
@@ -232,7 +248,7 @@ Function files use `.mjs`, matching the existing `submission-created.mjs`. Anyth
 - Compartment: UI. Depends on: 1.7. Goal: Michael can create, edit and rerun an offer without help.
 - Size: L. My time: about 20 min. Confidence: High.
 - Files modified: offer-admin.html, assets/offer-admin.js, assets/offer-admin.css.
-- Editor form (page dropdown, name, audience, link name, headline, copy, form on/off, field ticks, required ticks, option choices, spare labels, button label, dates and times). Save draft, Save and schedule, field-level server messages. Run again. Live preview and preview link. Unsaved-changes warning.
+- Editor form (page dropdown, name, audience, link name, headline, copy, form on/off, field ticks, required ticks, option choices, spare labels, button label, dates and times). Save draft, Save and schedule, field-level server messages. Run again. Live preview and preview link. Unsaved-changes warning. Saved versions: list from GET /api/offers/restore, Restore button with a confirm step (added with contract 1.1.0).
 - Inputs needed from Michael: none.
 - Done when: a recorded run shows an offer created, previewed, edited, expired by date, and rerun, with no console errors.
 - Needs my eyes: Michael creates one offer himself start to finish.

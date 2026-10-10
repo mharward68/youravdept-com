@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Offers form blueprint</title>
+<!--
+  YAVD Offers Module, Session 1.2.
+  This page exists only so Netlify registers the form "offers" with every
+  field name at deploy time. Visitors never see it: the popup builds its own
+  form in the browser and posts to it with the same names.
+  Field names come from ALL_FORM_FIELDS in shared/offer-contract.js (26).
+  Never add a field named "guide" (see submission-created.mjs).
+  Changing a name here is a frozen-contract change.
+-->
+<style>body{font-family:Inter,system-ui,sans-serif;color:#152B4A;margin:40px}form{display:none}</style>
+</head>
+<body>
+<p>Nothing to see here.</p>
+<form name="offers" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="hidden" name="form-name" value="offers">
+  <input type="hidden" name="subject">
+  <input type="hidden" name="offer_name">
+  <input type="hidden" name="offer_slug">
+  <input type="hidden" name="offer_id">
+  <input type="hidden" name="is_test">
+  <input name="bot-field">
+  <input type="text" name="name">
+  <input type="text" name="title">
+  <input type="email" name="email">
+  <input type="tel" name="phone">
+  <input type="text" name="company">
+  <input type="text" name="org_type">
+  <input type="text" name="show_name">
+  <input type="text" name="show_dates">
+  <input type="text" name="show_city">
+  <input type="text" name="exhibitor_count">
+  <select name="option_choice"><option value="">Choose one</option></select>
+  <input type="text" name="heard_from">
+  <textarea name="message"></textarea>
+  <input type="text" name="extra_1">
+  <input type="text" name="extra_2">
+  <input type="text" name="extra_3">
+  <input type="hidden" name="extra_1_label">
+  <input type="hidden" name="extra_2_label">
+  <input type="hidden" name="extra_3_label">
+</form>
+</body>
+</html>
