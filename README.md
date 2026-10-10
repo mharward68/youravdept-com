@@ -31,6 +31,10 @@ self-contained HTML file with its CSS, JS, and images inlined.
 | `onyva-download.html` | Onyva as a digital gift | noindex |
 | `michaelh.html` + `michaelh.vcf` | Michael Harward digital card | noindex |
 | `trishah.html` + `trishah.vcf` | Trisha Harward digital card | noindex |
+| `booth-proof.html` | Booth Proof product page: $11,250 flat plus travel, 10 videos a day guaranteed. Permanent and orphaned; offers get their own pages and link back here. Standalone page: no header, footer or site map modal. Buttons go to `booth-proof-dates.html` | noindex |
+| `booth-proof-dates.html` | Booth Proof show dates form for the product page (Netlify form `booth-proof-dates`, no `guide` field so no auto email). Standalone page | noindex |
+| `booth-proof-pilot.html` | Booth Proof Q4 2026 pilot offer (fee waived, travel only, apply by October 16). Was `booth-proof.html` until 2026-10-09. Standalone page. Buttons go to `booth-proof-apply.html` | noindex |
+| `booth-proof-apply.html` | Booth Proof pilot application: short summary plus the intake form (Netlify form `booth-proof-pilot`, no `guide` field so no auto email). Standalone page | noindex |
 
 The `.vcf` files must deploy alongside the HTML or the "Save to Contacts"
 buttons will 404.
@@ -39,7 +43,7 @@ buttons will 404.
 
 The noindex pages carry no nav or footer links. They are reached by the site
 map easter egg: click the footer copyright line 5 times within 2 seconds.
-All eighteen pages that carry the site map modal list the same 21 entries, in
+All eighteen pages that carry the site map modal list the same 25 entries, in
 alphabetical order (punctuation ignored). Every page on the site belongs in it. The pages
 under `library/` and `field-notes/` use `../` prefixes for the root-level links.
 

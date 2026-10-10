@@ -17,6 +17,10 @@
 /venue-docs-offer  /venue-docs-offer.html 200
 /show-info         /show-info.html        200
 /fix-my-av-budget /fix-my-av-budget.html 200
+/booth-proof       /booth-proof.html      200
+/booth-proof-apply /booth-proof-apply.html 200
+/booth-proof-pilot /booth-proof-pilot.html 200
+/booth-proof-dates /booth-proof-dates.html 200
 
 # playlist pages renamed; forced (!) so the 301 wins if an old file is still present
 /event-playlists                           /playlists-events.html                     301!
