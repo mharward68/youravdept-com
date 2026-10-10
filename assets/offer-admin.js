@@ -1,5 +1,6 @@
 // YAVD Offers Module: admin dashboard (Session 1.7) and offer editor,
-// rerun, live preview and saved versions (Session 1.8)
+// rerun, live preview and saved versions (Session 1.8), views and leads
+// counts on each card (Session 1.9)
 //
 // Sign-in state: the cookie is HttpOnly and scoped to /api/offers, so this
 // page cannot see it. It asks GET /api/offers: 200 = signed in, 401 = show
@@ -44,6 +45,11 @@ let clockSkew = 0;      // server time minus browser time, ms
 let storeName = '';
 let tickTimer = null;
 let lastStatuses = '';
+// Session 1.9: { "<id>": { views, leads } } from GET /api/offers/stats.
+// null = not loaded yet; statsFailed = the last read failed.
+const STATS_PATH = '/api/offers/stats';   // route set in netlify/functions/offers-stats.mjs
+let stats = null;
+let statsFailed = false;
 
 /* ---------- small helpers ---------- */
 
@@ -178,6 +184,33 @@ function metaRow(dl, label, valueNode) {
   dl.append(dd);
 }
 
+/* Session 1.9: "12 views \u00b7 3 leads (25% of views)". Drafts that never ran show nothing. */
+function plural(n, word) { return `${n} ${word}${n === 1 ? '' : 's'}`; }
+function countsLine(o, status) {
+  const s = stats && stats[o.id];
+  if (status === 'draft' && !(s && (s.views || s.leads))) return '';
+  if (stats === null) return statsFailed ? 'Counts unavailable right now' : 'Counting\u2026';
+  if (status === 'upcoming' && !(s && (s.views || s.leads))) return 'Counts start when it runs';
+  const v = s ? s.views : 0;
+  const l = s ? s.leads : 0;
+  const rate = v > 0 ? ` (${Math.round((l / v) * 100)}% of views)` : '';
+  return `${plural(v, 'view')} \u00b7 ${plural(l, 'lead')}${rate}`;
+}
+
+async function loadStats() {
+  let out = null;
+  try { out = await api(STATS_PATH); } catch { out = null; }
+  if (out && out.res.status === 401) return;          // the next load() shows sign-in
+  if (out && out.res.ok && out.body && out.body.stats && typeof out.body.stats === 'object') {
+    stats = out.body.stats;
+    statsFailed = false;
+  } else {
+    stats = null;
+    statsFailed = true;
+  }
+  if (view === 'dash') render();
+}
+
 function card(o, status, t) {
   const c = make('article', `oa-card is-${status}`);
   c.dataset.id = o.id;
@@ -194,6 +227,8 @@ function card(o, status, t) {
   const lp = linkPath(o);
   metaRow(dl, 'Link', lp ? make('code', null, lp) : 'Not set yet');
   metaRow(dl, 'Dates', dateRange(o));
+  const counts = countsLine(o, status);
+  if (counts) metaRow(dl, 'Results', counts);
   if (o.rerunOf) {
     const src = offers.find((x) => x.id === o.rerunOf);
     metaRow(dl, 'Rerun of', src ? src.name : 'an earlier offer');
@@ -290,6 +325,8 @@ function clearData() {
   if (!stash) wipeEditor();
   el.versions.querySelector('#oa-v-list').replaceChildren();
   offers = [];
+  stats = null;
+  statsFailed = false;
   storeName = '';
   el.groups.replaceChildren();
   el.summary.textContent = '';
@@ -340,6 +377,7 @@ async function load({ quiet = false, signedOutNote } = {}) {
   el.store.classList.toggle('is-live', storeName === 'offers');
   render();
   startTicking();
+  loadStats();   // Session 1.9: counts fill in when they arrive; never blocks the dashboard
   if (stash) return resumeStash();
   if (view === 'editor' || view === 'versions') { if (quiet) toast('Up to date.'); return; }
   show('dash');

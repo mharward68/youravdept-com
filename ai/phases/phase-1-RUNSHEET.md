@@ -72,7 +72,7 @@ END OF SESSION, every step, in order:
 - [x] 1.6  The popup. Large, about 20 min (done 2026-10-10; took about 30 min of your time, including the collapsed reopen tab you asked for)
 - [x] 1.7  Admin dashboard. Large, about 15 min
 - [x] 1.8  Offer editor, rerun and preview. Large, about 20 min (built 2026-10-10; your own run-through still to do)
-- [ ] 1.9  Views and leads counts. Medium, about 5 min (optional)
+- [x] 1.9  Views and leads counts. Medium, about 5 min (built 2026-10-10; draft check: run Claude outputs\session-1.9-verify.ps1)
 - [ ] 1.10 Go live and close the phase. Medium, about 25 min
 
 ## What to have ready

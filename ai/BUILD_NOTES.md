@@ -6,7 +6,7 @@ Only what a future session would waste time rediscovering.
 - Site: static HTML at the repo root, plus library/ and field-notes/. No build step. Every page inlines its own CSS and JS (no shared stylesheet). Brand tokens repeat in each page's :root.
 - Netlify config: _redirects (pretty URLs as 200 rewrites, a few 301s), _headers (library PDFs). No root netlify.toml before 1.2. .netlify/netlify.toml is the CLI's generated copy: never edit it.
 - Functions: netlify/functions/submission-created.mjs (existing, Resend guide mailer, runs on every form).
-- Offers module: shared/offer-contract.js (frozen contract). Popup: assets/offer-panel.css and assets/offer-panel.js (public, published by both deploy scripts). Sign-in: netlify/functions/lib/offers-auth.mjs (requireAdmin, handleLogin). Field checks and rules: lib/offers-rules.mjs. Storage, history, restore: lib/offers-store.mjs. Edge: netlify/edge-functions/offer-link.js and offer-page.js (thin), logic in netlify/edge-lib/offer-edge.js. Tests: netlify/tests/*.test.mjs (run each file by path). ai/ holds the scope, plan, run sheet and these notes.
+- Offers module: shared/offer-contract.js (frozen contract). Popup: assets/offer-panel.css and assets/offer-panel.js (public, published by both deploy scripts). Sign-in: netlify/functions/lib/offers-auth.mjs (requireAdmin, handleLogin). Field checks and rules: lib/offers-rules.mjs. Storage, history, restore: lib/offers-store.mjs. Counts: netlify/functions/offers-stats.mjs + lib/offers-stats.mjs. Edge: netlify/edge-functions/offer-link.js and offer-page.js (thin), logic in netlify/edge-lib/offer-edge.js. Tests: netlify/tests/*.test.mjs (run each file by path). ai/ holds the scope, plan, run sheet and these notes.
 - Deploy: deploy.ps1 copies the folder to %TEMP%\youravdept-deploy minus its exclude list, then runs netlify deploy --prod --dir <staging> --functions netlify\functions. Production only.
 - Repo: github.com/mharward68/youravdept-com, branch main. Netlify site id 7b58fbd4-394f-4091-bc6d-29b4e3b6ff79.
 
@@ -93,3 +93,10 @@ Only what a future session would waste time rediscovering.
 - Local harness for admin tests lives outside the repo (Claude sandbox): Node server wrapping the real handlers with in-memory Blobs, /offer/* answered with decideLink + injectOffer. Fonts: fulfil fonts.googleapis/gstatic with empty CSS instead of blocking them, or the console fills with load errors.
 - Chromium logs every 4xx fetch as a console "Failed to load resource" line. Expected ones here: 401 on first load (signed out), 400 and 409 from rule refusals. Count script errors separately.
 - Playwright: when a banner may already be visible, wait for the element that only the new state shows (the error summary), not the banner.
+
+## Session 1.9 findings
+- Counts: POST /api/offers/stats {id, event:"view"|"lead"} from the popup, GET (signed in) for the dashboard. The route is in the function's config, not in the contract's ROUTES. Response header x-yavd-stat: counted | unknown | not-running | busy | store-failed; read it with curl.exe -D.
+- A curl count needs -H "origin: <site>" and content-type application/json, or it is refused (403/415). A well-formed id that is not an offer answers 204 unknown: a safe smoke test that counts nothing.
+- The stats function caches the offer list 60 s per instance: an offer saved a moment ago answers "unknown" or "not-running" for up to a minute. Poll, as with the edge.
+- Stats tests: netlify/tests/offers-stats.test.mjs has its own memoryBlobs copy. Never import another *.test.mjs file for a helper: node --test runs that file's tests too.
+- To prove a concurrency test is real, remove the onlyIfMatch condition and watch it fail (20 parallel views stored 1). The in-memory setJSON awaits setImmediate so parallel requests interleave.

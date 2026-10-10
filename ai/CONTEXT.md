@@ -1,36 +1,33 @@
 # CONTEXT: YAVD Offers Module
 
-Updated: 2026-10-10 11:40 ET, Session 1.8 (Offer editor, rerun and preview). BUILT and verified locally. Draft check and Michael's own run waiting on session-1.8-verify.ps1.
+Updated: 2026-10-10 11:50 ET, Session 1.9 (Views and leads counts). BUILT and verified locally. Draft check waiting on session-1.9-verify.ps1. Session 1.8's own draft check and Michael's run-through are still open too.
 
 ## Where things stand
-- /offer-admin now creates, edits, schedules, takes down, deletes (drafts only) and reruns offers, with a live preview and the saved-versions list. Same three files as 1.7: offer-admin.html, assets/offer-admin.css, assets/offer-admin.js.
-- Editor: page dropdown (from /api/offers/pages), name, Everyone or Link only, link name (tidied to lowercase-hyphens on leaving the field), headline, copy, form on/off, Show and Required ticks for all 16 fields, labels for the three spare fields, choices for "Choose one", button label, thank-you, button destination when the form is off, start and stop date and time in Eastern with the saved time in plain words underneath.
-- Buttons: Save as draft / Save and schedule; on a running or upcoming offer they read "Take down (save as draft)" / "Save changes". Server messages appear next to their field plus a summary at the top with links to each field.
-- Run again (expired cards): a filled-in copy, same link, dates cleared (times of day kept), rerunOf set. The original stays in Expired.
-- Live preview: sandboxed iframe, same markup and CSS as the real popup, Desktop and Phone sizes, updates as you type. Preview link (Open and Copy) appears after the first save.
-- Unsaved changes: Back, Sign out and closing the tab all ask first (inline bar; only tab-close uses the browser's own warning). Expired sign-in during a save keeps the edits and brings them back after signing in. A save made elsewhere is refused (409) with "Load the saved version".
-- Saved versions: top-bar button lists the last 20 with what changed; "Put this back" asks first; the restore itself is kept, so it can be undone.
-- Local checks (real functions, in-memory Blobs, Playwright): 27/27 main run (recorded) + 10/10 edge cases. No script errors.
-- Live site unchanged. Contract unchanged (1.1.0).
+- Every offer now counts views and leads. The popup sends a view the first time it opens on a page view and a lead on each successful submit. Previews never count (the popup skips them; the server also refuses anything not running).
+- New route /api/offers/stats (netlify/functions/offers-stats.mjs, logic in lib/offers-stats.mjs): public POST to count, signed-in GET for the dashboard. Storage exactly as the contract says: offer-stats / offer-stats-test, key = offer id, { views, leads }. Writes are ETag-guarded, so parallel counts are not lost.
+- Dashboard cards show a Results line: "2 views · 1 lead (50% of views)". Upcoming: "Counts start when it runs". Drafts that never ran: nothing. Read failure: "Counts unavailable right now", the dashboard still works.
+- Local checks: tests 10/10 (stats) + 22 rules + 13 auth + 21 edge, all pass. Browser run (real functions, in-memory Blobs, Playwright): 15/15, no script errors.
+- Live site unchanged. Contract unchanged (1.1.0). No netlify.toml change.
 
 ## What this session did
-- Modified: offer-admin.html, assets/offer-admin.css, assets/offer-admin.js.
-- Created: Claude outputs/session-1.8-verify.ps1, session-1.8-recorded-run.webm, session-1.8-*.png (8 screenshots).
-- No server code, contract, netlify.toml or existing page touched.
+- Created: netlify/functions/offers-stats.mjs, netlify/functions/lib/offers-stats.mjs, netlify/tests/offers-stats.test.mjs, Claude outputs/session-1.9-verify.ps1, session-1.9-*.png (3 screenshots).
+- Modified: assets/offer-panel.js (count calls), assets/offer-admin.js (Results line, loadStats).
+- Docs: phase plan (1.9 result), run sheet (1.9 ticked), DECISIONS, BUILD_NOTES.
 
 ## Assumptions made (logged in DECISIONS)
-- Stop time saves as hh:mm:59 so "11:59 PM" includes that minute. Rerun clears dates, keeps times. Delete draft button in the editor. Preview is a non-interactive mock in an iframe; the real popup is the preview link.
+- Route kept out of the frozen contract; declared in the function. Reopen on the same page view does not count twice. Counts refresh with Refresh only. Rerun starts at zero. Counts are a guide, not billing data.
 
 ## Open items
-1. Michael runs session-1.8-verify.ps1, then creates one offer himself start to finish (Needs my eyes).
-2. Backlog (1.6 file, not this compartment): at phone width the "Preview: submissions are marked as tests" badge on the real popup runs under the close button. One CSS line in offer-panel.css (margin-right on .yavd-op-test). Contingency session or 1.10.
+1. Michael runs session-1.9-verify.ps1 (it also redeploys 1.8), then the YOUR TURN steps of 1.8 and 1.9.
+2. Backlog (1.6 file): phone-width preview badge under the close button. One CSS line in offer-panel.css. Contingency session or 1.10.
 3. 1.2b (alert email through Resend) still needs Michael's OK.
-4. Test store tidy: leftover TEST offers from 1.4 to 1.7. Drafts can now be deleted from the editor; scheduled ones can be taken down to draft first. Only in offers-test.
+4. Test store tidy: leftover TEST offers from 1.4 to 1.8 (offers-test only).
 5. .netlify/functions/manifest.json tracked by git (backlog, from 1.2).
-6. Michael's 1.7 layout look: no notes recorded yet.
+6. New backlog: a deleted draft leaves its counts in offer-stats (harmless, never shown). Clearing them is a data delete: needs Michael.
+7. 1.10 drift audit: decide whether ROUTES.apiStats joins the contract (additive, 1.2.0).
 
 ## Estimate vs actual
-Session 1.8: estimated L (about 20 min of Michael's time). Actual: L build (about 45 min). Michael's time so far: about 1 min; the verify run and his own offer add about 15.
+Session 1.9: estimated M (about 5 min of Michael's time). Actual: M build (about 30 min). Michael's time so far: about 1 min; the verify run and his check add about 10.
 
 ## Next step
-Run the verify block, create one offer on the draft address, commit and push. Then Session 1.9 (Views and leads counts, optional) or straight to 1.10, in a new conversation.
+Run the verify block, do the two YOUR TURN lists, commit and push. Then Session 1.10 (go live and close the phase) in a new conversation, with the three Booth Proof offers' copy, dates and link names ready.

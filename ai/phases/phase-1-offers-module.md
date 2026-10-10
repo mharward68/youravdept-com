@@ -134,7 +134,7 @@ netlify/edge-functions/offer-link.js     1.5
 netlify/edge-functions/offer-page.js     1.5
 assets/offer-panel.css, .js              1.6
 offer-admin.html, assets/offer-admin.*   1.7, 1.8
-netlify/functions/offers-stats.mjs       1.9
+netlify/functions/offers-stats.mjs       1.9 (+ lib/offers-stats.mjs, tests)
 ```
 Function files use `.mjs`, matching the existing `submission-created.mjs`. Anything under `netlify/functions/lib/` must not be picked up as its own function: 1.3 confirms how the CLI treats that folder and moves it if needed.
 
@@ -255,7 +255,8 @@ Result: lib/offers-rules.mjs (checks, plain text, rules), lib/offers-store.mjs (
 - Risk and fallback: date entry; the form shows the Eastern time it will save in plain words.
 - Backup point: no.
 
-### Session 1.9: Views and leads counts
+### Session 1.9: Views and leads counts  [BUILT 2026-10-10, draft check pending: Claude outputs\session-1.9-verify.ps1]
+Result: netlify/functions/offers-stats.mjs (GET signed-in counts, public POST count) + lib/offers-stats.mjs (ETag-guarded bump, running-offers-only check, request checks) + netlify/tests/offers-stats.test.mjs (10 pass). Popup sends the first open per page view and each successful submit, never previews. Each dashboard card shows "N views · N leads (N% of views)". Route /api/offers/stats declared in the function, contract unchanged (1.1.0). Local browser run 15/15.
 - Compartment: LOGIC. Depends on: 1.6 and 1.7. Goal: each card shows views and submissions.
 - Size: M. My time: about 5 min. Confidence: High. Can be cut.
 - Files: offers-stats.mjs; popup script; dashboard.
