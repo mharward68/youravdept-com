@@ -27,6 +27,13 @@
   [headers.values]
     X-Robots-Tag = "noindex, nofollow"
 
+# Session 1.7: the admin screen at its short address. Not forced, so it only
+# applies when no file sits at /offer-admin. _redirects is left untouched.
+[[redirects]]
+  from = "/offer-admin"
+  to = "/offer-admin.html"
+  status = 200
+
 # Second lock: build docs and function sources are never served, even if a
 # deploy script ever forgets to exclude them.
 [[redirects]]

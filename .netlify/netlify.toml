@@ -310,6 +310,18 @@ force = true
 [redirects.headers]
 
 [[redirects]]
+from = "/offer-admin"
+to = "/offer-admin.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
 from = "/ai/*"
 to = "/404-not-here"
 status = 404.0

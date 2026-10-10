@@ -1,0 +1,226 @@
+/* YAVD Offers Module: popup styles (Session 1.6)
+   Loaded only on pages the edge function attached an offer to.
+   Every rule is scoped under .yavd-op so it never touches the host page,
+   and sets its own fonts and sizes so the host page's h2, p and .btn rules
+   never leak in. Brand: AV Navy #152B4A, Signal Teal #2AA4A2, white.
+   Montserrat headings, Inter body (both already loaded by the site's pages). */
+
+.yavd-op, .yavd-op *, .yavd-op *::before, .yavd-op *::after { box-sizing: border-box; }
+
+.yavd-op {
+  --op-navy: #152B4A;
+  --op-navy2: #1D3A61;
+  --op-teal: #2AA4A2;
+  --op-teal-dk: #1F7F7D;
+  --op-tint: #EAF6F6;
+  --op-rule: #D9DFE7;
+  --op-muted: #4A5B73;
+  --op-error: #B3261E;
+  --op-head: Montserrat, "Proxima Nova", Arial, sans-serif;
+  --op-body: Inter, "Open Sans", Arial, sans-serif;
+  font-family: var(--op-body);
+  color: var(--op-navy);
+  font-size: 16px;
+  line-height: 1.5;
+  text-align: left;
+}
+
+/* ---------- backdrop and dialog ---------- */
+
+.yavd-op-backdrop {
+  position: fixed; inset: 0; z-index: 2147483000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  background: rgba(10, 22, 40, .62);
+  opacity: 0; transition: opacity .22s ease;
+}
+.yavd-op-backdrop[hidden] { display: none; }
+.yavd-op-backdrop.is-open { opacity: 1; }
+
+.yavd-op-dialog {
+  position: relative;
+  display: flex; flex-direction: column;
+  width: 100%; max-width: 520px;
+  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
+  overflow: hidden;
+  background: #fff;
+  border-radius: 12px;
+  border-top: 6px solid var(--op-teal);
+  box-shadow: 0 24px 60px rgba(10, 22, 40, .35), 0 2px 8px rgba(10, 22, 40, .18);
+  transform: translateY(14px) scale(.985);
+  transition: transform .26s cubic-bezier(.2, .8, .2, 1);
+}
+/* only the inside scrolls, so the close button never moves */
+.yavd-op-scroll {
+  flex: 1 1 auto; min-height: 0;
+  overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+  padding: 30px 30px 24px;
+}
+.yavd-op-backdrop.is-open .yavd-op-dialog { transform: none; }
+.yavd-op-dialog:focus { outline: none; }
+
+.yavd-op-close {
+  position: absolute; top: 8px; right: 8px; z-index: 1;
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0; padding: 0;
+  background: rgba(255, 255, 255, .94); border: 0; border-radius: 50%;
+  color: var(--op-navy); cursor: pointer;
+  font: 400 28px/1 var(--op-body);
+}
+.yavd-op-close:hover { background: var(--op-tint); }
+.yavd-op-close:focus-visible { outline: 3px solid var(--op-teal); outline-offset: 1px; }
+
+.yavd-op-test {
+  display: inline-block; margin: 0 0 12px;
+  padding: 3px 10px; border-radius: 999px;
+  background: #FFF3CD; color: #6B4E00;
+  font: 700 11px/1.5 var(--op-head); letter-spacing: .14em; text-transform: uppercase;
+}
+
+.yavd-op-headline {
+  margin: 0 34px 12px 0; padding: 0;
+  font-family: var(--op-head); font-weight: 800;
+  font-size: 26px; line-height: 1.15; letter-spacing: -.005em;
+  color: var(--op-navy); text-transform: none; text-wrap: balance;
+}
+
+.yavd-op-body { margin: 0 0 18px; }
+.yavd-op-body p {
+  margin: 0 0 10px; padding: 0;
+  font-family: var(--op-body); font-size: 16px; line-height: 1.55; color: var(--op-navy);
+}
+.yavd-op-body p:last-child { margin-bottom: 0; }
+
+/* ---------- form ---------- */
+
+.yavd-op-form { margin: 0; }
+.yavd-op-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; }
+.yavd-op-field { display: flex; flex-direction: column; min-width: 0; }
+.yavd-op-field.is-wide { grid-column: 1 / -1; }
+
+.yavd-op-label {
+  display: block; margin: 0 0 4px;
+  font: 600 13px/1.3 var(--op-body); color: var(--op-navy);
+}
+.yavd-op-req { color: var(--op-teal-dk); font-weight: 700; }
+
+.yavd-op-input {
+  display: block; width: 100%; margin: 0;
+  min-height: 44px; padding: 10px 12px;
+  font: 400 16px/1.3 var(--op-body); color: var(--op-navy);   /* 16px stops iOS zooming in */
+  background: #fff; border: 1.5px solid #B8C2D0; border-radius: 6px;
+  -webkit-appearance: none; appearance: none;
+}
+textarea.yavd-op-input { min-height: 92px; resize: vertical; line-height: 1.45; }
+select.yavd-op-input {
+  padding-right: 36px;
+  background-image: linear-gradient(45deg, transparent 50%, #152B4A 50%), linear-gradient(135deg, #152B4A 50%, transparent 50%);
+  background-position: calc(100% - 18px) 19px, calc(100% - 13px) 19px;
+  background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+}
+.yavd-op-input:focus { outline: none; border-color: var(--op-teal); box-shadow: 0 0 0 3px rgba(42, 164, 162, .30); }
+.yavd-op-input[aria-invalid="true"] { border-color: var(--op-error); }
+.yavd-op-input[aria-invalid="true"]:focus { box-shadow: 0 0 0 3px rgba(179, 38, 30, .22); }
+
+.yavd-op-err {
+  margin: 4px 0 0; font: 600 13px/1.35 var(--op-body); color: var(--op-error);
+}
+.yavd-op-err:empty { display: none; }
+
+/* honeypot: off screen, out of the tab order, hidden from screen readers */
+.yavd-op-hp { position: absolute !important; left: -10000px !important; width: 1px; height: 1px; overflow: hidden; }
+
+.yavd-op-btn {
+  display: block; width: 100%; margin: 18px 0 0;
+  min-height: 50px; padding: 14px 22px;
+  background: var(--op-teal); color: var(--op-navy);   /* navy on teal: 4.8:1 (white on teal is 2.9:1) */
+  border: 0; border-radius: 6px; cursor: pointer;
+  font: 800 17px/1.2 var(--op-head); text-align: center; text-decoration: none; letter-spacing: .01em;
+  transition: background .15s, transform .15s;
+}
+.yavd-op-btn:hover { background: #33B7B5; transform: translateY(-1px); }
+.yavd-op-btn:focus-visible { outline: 3px solid var(--op-navy); outline-offset: 2px; }
+.yavd-op-btn[disabled] { opacity: .7; cursor: progress; transform: none; }
+
+.yavd-op-status {
+  margin: 12px 0 0; padding: 10px 12px; border-radius: 6px;
+  background: #FCEBEA; color: var(--op-error);
+  font: 600 14px/1.45 var(--op-body);
+}
+.yavd-op-status:empty { display: none; }
+
+.yavd-op-privacy {
+  margin: 12px 0 0; font: 400 12.5px/1.45 var(--op-body); color: var(--op-muted);
+}
+
+/* ---------- thank-you ---------- */
+
+.yavd-op-thanks { padding: 6px 0 4px; text-align: center; }
+.yavd-op-thanks:focus { outline: none; }
+.yavd-op-check {
+  width: 56px; height: 56px; margin: 4px auto 14px;
+  border-radius: 50%; background: var(--op-tint); color: var(--op-teal-dk);
+  display: flex; align-items: center; justify-content: center;
+  font: 800 28px/1 var(--op-head);
+}
+.yavd-op-thanks p {
+  margin: 0 auto; max-width: 380px;
+  font: 600 17px/1.5 var(--op-body); color: var(--op-navy);
+}
+.yavd-op-thanks .yavd-op-btn { max-width: 220px; margin: 20px auto 0; background: var(--op-navy); color: #fff; }
+.yavd-op-thanks .yavd-op-btn:hover { background: var(--op-navy2); }
+
+/* ---------- reopen tab ---------- */
+
+.yavd-op-tab {
+  /* Tucked against the right edge: only the teal edge and the dot show.
+     Hover (or keyboard focus) slides the label out; a click opens the offer.
+     On touch screens there is no hover, so a tap opens the offer directly. */
+  position: fixed; right: 0; bottom: 16px; z-index: 2147482999;
+  display: inline-flex; align-items: center; gap: 0;
+  max-width: min(340px, calc(100vw - 16px));
+  min-height: 44px; margin: 0; padding: 10px 16px 10px 14px;
+  background: var(--op-navy); color: #fff;
+  border: 0; border-left: 5px solid var(--op-teal); border-radius: 8px 0 0 8px;
+  box-shadow: 0 8px 24px rgba(10, 22, 40, .28), 0 0 0 1px rgba(255, 255, 255, .22);   /* thin light rim so it shows on navy pages too */
+  font: 700 14px/1.2 var(--op-head); cursor: pointer;
+  transition: gap .25s ease, padding .25s ease;
+}
+.yavd-op-tab[hidden] { display: none; }
+.yavd-op-tab:focus-visible { outline: 3px solid var(--op-teal); outline-offset: 2px; }
+.yavd-op-tab-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--op-teal); flex: none; }
+.yavd-op-tab-text {
+  max-width: 0; opacity: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  transition: max-width .3s ease, opacity .2s ease;
+}
+.yavd-op-tab:hover, .yavd-op-tab:focus-visible { gap: 8px; padding-right: 18px; }
+.yavd-op-tab:hover .yavd-op-tab-text,
+.yavd-op-tab:focus-visible .yavd-op-tab-text { max-width: 300px; opacity: 1; }
+
+html.yavd-op-lock, html.yavd-op-lock body { overflow: hidden !important; }
+
+/* ---------- phone width: bottom sheet ---------- */
+
+@media (max-width: 560px) {
+  .yavd-op-backdrop { align-items: flex-end; padding: 0; }
+  .yavd-op-dialog {
+    max-width: none;
+    max-height: 92vh; max-height: 92dvh;
+    border-radius: 14px 14px 0 0;
+    transform: translateY(40px);
+  }
+  .yavd-op-scroll { padding: 24px 20px calc(20px + env(safe-area-inset-bottom)); }
+  .yavd-op-headline { font-size: 22px; }
+  .yavd-op-grid { grid-template-columns: 1fr; gap: 10px; }
+  .yavd-op-tab { bottom: calc(12px + env(safe-area-inset-bottom)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .yavd-op-backdrop, .yavd-op-dialog, .yavd-op-btn, .yavd-op-tab, .yavd-op-tab-text { transition: none !important; }
+  .yavd-op-dialog { transform: none !important; }
+}
+
+@media print { .yavd-op-backdrop, .yavd-op-tab { display: none !important; } }
