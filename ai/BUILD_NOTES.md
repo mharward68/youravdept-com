@@ -7,12 +7,12 @@ Only what a future session would waste time rediscovering.
 - Netlify config: _redirects (pretty URLs as 200 rewrites, a few 301s), _headers (library PDFs). No root netlify.toml before 1.2. .netlify/netlify.toml is the CLI's generated copy: never edit it.
 - Functions: netlify/functions/submission-created.mjs (existing, Resend guide mailer, runs on every form).
 - Offers module: shared/offer-contract.js (frozen contract). Popup: assets/offer-panel.css and assets/offer-panel.js (public, published by both deploy scripts). Sign-in: netlify/functions/lib/offers-auth.mjs (requireAdmin, handleLogin). Field checks and rules: lib/offers-rules.mjs. Storage, history, restore: lib/offers-store.mjs. Counts: netlify/functions/offers-stats.mjs + lib/offers-stats.mjs. Edge: netlify/edge-functions/offer-link.js and offer-page.js (thin), logic in netlify/edge-lib/offer-edge.js. Tests: netlify/tests/*.test.mjs (run each file by path). ai/ holds the scope, plan, run sheet and these notes.
-- Deploy: deploy.ps1 copies the folder to %TEMP%\youravdept-deploy minus its exclude list, then runs netlify deploy --prod --dir <staging> --functions netlify\functions. Production only.
+- Deploy: deploy.ps1 (production) and deploy-preview.ps1 (TEST address https://offers--your-av-dept.netlify.app) both copy the folder to %TEMP% minus one shared exclude list, then run netlify deploy with --functions netlify\functions. Live since 2026-10-10 12:23 ET.
 - Repo: github.com/mharward68/youravdept-com, branch main. Netlify site id 7b58fbd4-394f-4091-bc6d-29b4e3b6ff79.
 
 ## Deploying
-- deploy.ps1 is production. Never run it before Session 1.10. Draft deploys need deploy-preview.ps1 (created in 1.2).
-- Anything in the folder that is not excluded becomes a public file. Excluded today: Claude outputs, claude, docs, .git, .netlify, node_modules, deploy.ps1, README.md, .gitignore, *.docx, *.patch, *.gs. Not excluded: ai/, shared/, netlify/ sources, package.json.
+- Test on deploy-preview.ps1 first; deploy.ps1 publishes youravdept.com. Rollback: Netlify > Deploys > previous production deploy > Publish deploy. Offer rollback: set it to draft.
+- Anything in the folder that is not excluded becomes a public file. Excluded: Claude outputs, claude, docs, .git, .netlify, node_modules, ai, netlify, deploy*.ps1, README.md, .gitignore, netlify.toml, package*.json, *.docx, *.patch, *.gs. netlify.toml also 404s /ai/* and /netlify/* as a second lock. shared/ must stay published (the popup imports it).
 
 ## Forms
 - submission-created.mjs runs on every Netlify form submission. It skips forms with no "guide" field. Never add a "guide" field to the offers form.
@@ -24,11 +24,10 @@ Only what a future session would waste time rediscovering.
 - booth-proof.html: noindex, standalone (no header, footer or site map), no form; loads Montserrat 700/800 and Inter from Google Fonts.
 
 ## Environment for Claude sessions
-- Session 1.1 had file list, stage and commit access to Michael's PC but no shell there: git and the Netlify CLI had to be run by Michael from PowerShell blocks. Check the tool list at boot.
+- Sessions 1.1 to 1.10 had file list, stage and commit access to Michael's PC but no shell there: git and the Netlify CLI run from PowerShell scripts Michael pastes. Check the tool list at boot. Claude in Chrome (his Chrome, signed in to Netlify) can read function logs when a request fails.
 
 ## Session 1.2 findings
-- Test address: `.\deploy-preview.ps1` deploys to https://offers--your-av-dept.netlify.app. Functions there see deploy context "branch-deploy".
-- Production deploy: `.\deploy.ps1` (only in 1.10). Both scripts exclude ai, netlify, netlify.toml, package*.json. The CLI reads netlify.toml and netlify/edge-functions from the site folder, not the staged copy.
+- Functions on the TEST address see deploy context "branch-deploy" and use the "-test" stores. The CLI reads netlify.toml and netlify/edge-functions from the site folder, not the staged copy.
 - Env vars: set them in the Netlify screen. `netlify env:set` (CLI 27.4.2) printed nothing and saved nothing on Michael's PC. Netlify values are frozen per deploy: redeploy after changing one.
 - Never use Read-Host prompts in scripts that also ask Michael to act in a browser: he typed a secret into the prompt. Keep secrets in the Netlify screen only.
 - In Windows PowerShell 5.1, `2>&1` on the netlify CLI with $ErrorActionPreference = 'Stop' kills the script on normal progress output.
@@ -43,7 +42,7 @@ Only what a future session would waste time rediscovering.
 - Run tests with a file path: `node --test netlify/tests/offers-auth.test.mjs`. Passing the folder fails on Node 22 (treated as a file).
 - Tests swap Blobs for an in-memory store via _setStoreFactoryForTests(); no @netlify/blobs network calls in tests.
 - Lockout lives in Blobs store "offer-auth" / "offer-auth-test", keys attempt/<ms>-<rand>. To unlock by hand: delete the attempt/ keys in that store (Netlify screen: Data & Storage > Blobs), or wait 15 minutes.
-- Running the verify script leaves the TEST sign-in locked for 15 minutes (its last check). Wait before signing in on the draft address again.
+- session-1.3-verify.ps1 leaves the TEST sign-in locked for 15 minutes (its last check).
 - The cookie only goes to /api/offers paths (Path=/api/offers). The admin page (1.7) cannot read it (HttpOnly): it learns sign-in state from a 401 on its first API call.
 - Never pass a password to PowerShell as a typed value. The verify script reads it once from the clipboard and clears it.
 
@@ -57,6 +56,7 @@ Only what a future session would waste time rediscovering.
 - Restore: /api/offers/restore (offers-restore.mjs). historySummary() reads each history blob (20 max) to describe it; restoreHistory() goes through changeOffers(), so it gets the ETag guard and its own history entry. Contract is 1.1.0.
 - Verify scripts that read the password from the clipboard must clear it first and wait for a fresh copy. Michael copies the run command to paste it, which overwrites a password copied earlier (the cause of the first 1.4 run's 401 "Wrong password"). session-1.4-verify.ps1 does this; session-1.3-verify.ps1 does not.
 - PowerShell: in @('label', $a -eq 'x') the comma binds before -eq, so the check silently becomes a filter. Always wrap: @('label', ($a -eq 'x')).
+- PowerShell scripts run at script scope: a helper loop that reuses a result variable ($r) silently overwrites earlier results. Give every result set its own name (1.10 go-live verdict read 8 false FAILs this way).
 - The 1.3 draft check never ran, so the first real sign-in was in 1.4: the 09:29 OFFER_ADMIN_PASSWORD did not match Michael's copy. If sign-in says "Wrong password" with the right clipboard (check length and last 4 only), re-save the value in the Netlify screen by pasting, confirm updated_at through the connector, redeploy.
 - Saved versions sort by the change number (metadata seq on "all", ends each history key), never by time: Michael's PC ran two saves in the same millisecond and a time sort put them in random order. Old test-store keys ending in 6 hex characters sort as oldest. Run new tests several times in a loop before calling them clean.
 
@@ -73,7 +73,7 @@ Only what a future session would waste time rediscovering.
 - Popup tests run here, not on Michael's PC: serve the website folder with python -m http.server, build test pages with injectOffer() from netlify/edge-lib/offer-edge.js on a copy of booth-proof.html, and drive them with Playwright (/opt/npm-tools/node_modules/playwright). Intercept POST /offers-form.html with page.route. Block fonts.googleapis/gstatic (no network here; screenshots use fallback fonts).
 - Browsers cache /assets/*: after a draft deploy, check the served file (curl.exe ... | -match '<new text>') and use a NEW private window. Michael's first look at the collapsed tab showed the old CSS.
 - :focus-visible is not a safe trigger for anything that changes layout: a programmatic focus() after a mouse close inherits focus-visible from the dialog. Use an explicit class set on Tab-key focus.
-- The Netlify connector shows a form's submission_count and last_submission_at, not submission contents. 'offers' count: 2 after 1.2, 4 after 1.6.
+- The Netlify connector shows a form's submission_count and last_submission_at, not submission contents. 'offers' count: 7 after the 1.10 TEST-address run, then 3 more TEST leads from the live go-live.
 - No em dashes or other non-ASCII in the public JS: use \u escapes.
 
 ## Session 1.7 findings
@@ -105,3 +105,11 @@ Only what a future session would waste time rediscovering.
 - A 5xx whose body is "Error - Request ID: ..." (not our JSON) is Netlify's own error page: the request never reached the function. Proof: the function log (Netlify > Functions > offers > Last hour) has no line for it. Nothing was saved; send it again. Our own failures always answer JSON {"error": ...}. Seen once in 1.10 (third of four quick creates).
 - On Node 24, `node --test` piped to PowerShell prints the spec reporter ("i pass 10"), not "# pass 10". Scripts that parse the summary must pass --test-reporter=tap.
 - git status always shows .netlify/ changes after a deploy (CLI-generated files tracked by mistake, backlog). Clean-tree checks must ignore " .netlify/".
+
+## MP4 to MP3 Converter (added 2026-10-11)
+- Lives in mp3-converter/ (landing page index.html, manifest, sw.js, icons) and mp3-converter/app/ (the converter). Source of truth is the separate project C:\01_AppDevelopment\19_mp4-mp3_converter (repo mharward68/mp4-mp3_converter): change it there, run its tests, then copy its mp3-mp4_app\public folder over mp3-converter here. Its ai/ folder has the full notes.
+- The landing page is generated from library/av365.html by that project's tools/build-landing.py. After changing the header, footer, :root or site map on the library pages, re-run it.
+- netlify.toml sets a strict content security policy on /mp3-converter/app/* only. Never widen it to /mp3-converter/* or site-wide: every other page relies on inline CSS and JS.
+- Functions: netlify/functions/mp3-count.mjs (POST /api/mp3-converter/count) and mp3-stats.mjs (GET /api/mp3-converter/stats?key=). Stores: mp3-usage (live) and mp3-usage-test. Env var MP3_STATS_KEY.
+- Releasing a change to the converter: bump VERSION in mp3-converter/sw.js or installed copies keep the old files.
+- offer-page.js still runs on /mp3-converter/* (pass-through unless an Everyone offer targets that page). An offer injected into /mp3-converter/app/ would be blocked by the content security policy, so do not target it.

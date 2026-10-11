@@ -1,0 +1,15 @@
+{
+  "name": "MP4 to MP3 Converter by Your AV Department",
+  "short_name": "MP4 to MP3",
+  "description": "Convert MP4 recordings to MP3 on your own computer. Nothing uploads.",
+  "id": "yavd-mp4-to-mp3",
+  "start_url": "app/",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#152B4A",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

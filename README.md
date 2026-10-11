@@ -24,6 +24,8 @@ self-contained HTML file with its CSS, JS, and images inlined.
 | `library/pdf/the-levers-of-labor.pdf` | The Levers of Labor PDF (download button and welcome email link here) | no (see `_headers`) |
 | `library/pdf/av365.pdf` | AV365 PDF (download button and welcome email link here) | no (see `_headers`) |
 | `library/pdf/12-av-concessions.pdf` | 12 AV Concessions PDF (download button and welcome email link here) | no (see `_headers`) |
+| `mp3-converter/index.html` | MP4 to MP3 Converter landing page, a free tool. Built from `library/av365.html` by `tools/build-landing.py` in the `19_mp4-mp3_converter` project; edit it there, not here | yes |
+| `mp3-converter/app/` | The converter itself (installable, works offline). Multi-file on purpose: it runs under a strict content security policy set in `netlify.toml`, so nothing can be inlined | noindex |
 | `playlists-events.html` | Event playlists | yes |
 | `playlists-meeting-planner-wellness.html` | Wellness playlists | yes |
 | `onyva-welcome.html` | Onyva download landing page for frequent travelers | yes |
@@ -45,7 +47,7 @@ buttons will 404.
 
 The noindex pages carry no nav or footer links. They are reached by the site
 map easter egg: click the footer copyright line 5 times within 2 seconds.
-All eighteen pages that carry the site map modal list the same 26 entries, in
+All twenty pages that carry the site map modal list the same 27 entries, in
 alphabetical order (punctuation ignored). Every page on the site belongs in it. The pages
 under `library/` and `field-notes/` use `../` prefixes for the root-level links.
 

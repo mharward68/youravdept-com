@@ -274,6 +274,8 @@ Result: netlify/functions/offers-stats.mjs (GET signed-in counts, public POST co
 - Risk and fallback: if a live page misbehaves, set the offers to draft, which removes every popup within a minute.
 - Backup point: yes, before the live publish and after the offers are entered.
 
+Result: live 2026-10-10 12:23 ET (backup tag pre-offers-live-20261010-1223). Scripts: Claude outputs/session-1.10-preflight.ps1, -golive.ps1 (-OffersOnly to rerun step 6), -livecheck.ps1. Live check 9/9 PASS. Three Booth Proof offers entered as drafts with placeholder copy (Michael schedules); 3 TEST leads accepted; first live export saved. Gone live without alert email (Michael's choice, 1.2b carried). One Netlify platform 5xx on a TEST create (never reached the function); creates now retry once. Phase closed: see ai/CONTEXT.md.
+
 ## Phase summary
 - Sessions: 10 (1 small, 4 medium, 5 large). With 35 percent for review of new screens: 13 to 14.
 - Michael's attention: about 2 hours, most in 1.6, 1.8 and 1.10.

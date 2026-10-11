@@ -1,33 +1,47 @@
 # CONTEXT: YAVD Offers Module
 
-Updated: 2026-10-10 11:50 ET, Session 1.9 (Views and leads counts). BUILT and verified locally. Draft check waiting on session-1.9-verify.ps1. Session 1.8's own draft check and Michael's run-through are still open too.
+Updated: 2026-10-10 12:30 ET, Session 1.10 (Go live and close the phase). PHASE 1 CLOSED. The module is live on youravdept.com.
 
-## Where things stand
-- Every offer now counts views and leads. The popup sends a view the first time it opens on a page view and a lead on each successful submit. Previews never count (the popup skips them; the server also refuses anything not running).
-- New route /api/offers/stats (netlify/functions/offers-stats.mjs, logic in lib/offers-stats.mjs): public POST to count, signed-in GET for the dashboard. Storage exactly as the contract says: offer-stats / offer-stats-test, key = offer id, { views, leads }. Writes are ETag-guarded, so parallel counts are not lost.
-- Dashboard cards show a Results line: "2 views · 1 lead (50% of views)". Upcoming: "Counts start when it runs". Drafts that never ran: nothing. Read failure: "Counts unavailable right now", the dashboard still works.
-- Local checks: tests 10/10 (stats) + 22 rules + 13 auth + 21 edge, all pass. Browser run (real functions, in-memory Blobs, Playwright): 15/15, no script errors.
-- Live site unchanged. Contract unchanged (1.1.0). No netlify.toml change.
+## What exists now
+- Live since 2026-10-10 12:23 ET (deploy.ps1 run by Michael after "go"). Backup tag before publish: pre-offers-live-20261010-1223 (pushed to GitHub).
+- Admin at youravdept.com/offer-admin. Popup on any page via the edge; private links at /offer/<slug>; previews; counts; saved versions; export.
+- Live store holds three Booth Proof offers, all DRAFTS with Mark's placeholder copy: "Booth Proof: Industry group" (/offer/industry-group, Oct 13 to Dec 31), "Booth Proof: 2027 shows" (Everyone on /booth-proof.html, Oct 13 to Dec 31), "Booth Proof: AV companies" (/offer/av-partners, Oct 13 to Nov 30). Michael replaces the copy and schedules them.
+- First live export: Claude outputs\yavd-offers-LIVE-export-2026-10-10-<time>.json (gitignored, on Michael's PC only).
+- Contract unchanged: 1.1.0. Stats route stays declared in its function (decided in 1.9; no drift).
 
-## What this session did
-- Created: netlify/functions/offers-stats.mjs, netlify/functions/lib/offers-stats.mjs, netlify/tests/offers-stats.test.mjs, Claude outputs/session-1.9-verify.ps1, session-1.9-*.png (3 screenshots).
-- Modified: assets/offer-panel.js (count calls), assets/offer-admin.js (Results line, loadStats).
-- Docs: phase plan (1.9 result), run sheet (1.9 ticked), DECISIONS, BUILD_NOTES.
+## Success criteria (scope section 12)
+Note: Mark saw the output of preflight run 1 (two stand-ins plus a Netlify 5xx) and of the live check, not of preflight run 2. Criteria 1 and 2 on TEST rest on run 1 plus run 2 being re-run before go-live; paste run 2's verdict into this file if it is wanted on record.
+1. Three offers set up at once: run 1 proved two (group link, everyone) side by side; the third failed on a Netlify 5xx before reaching the function. Live: all three entered as drafts; running together once Michael schedules them.
+2. Made in the admin API, no file copied, no deploy: live drafts were made through the API (3 created, PASS in the go-live verdict).
+3. Test submission from each preview names the offer and is marked test: run 1 previews showed isTest=True; live: 3 TEST leads accepted by the "offers" form (PASS). No alert email: go-live without alerts was Michael's choice (DECISIONS 1.10).
+4. Private link outside dates lands on /booth-proof.html, no offer: PASS (TEST). Live: a draft link without key 302s to /booth-proof.html, link-draft.
+5. Admin refuses anyone not signed in: PASS on TEST (7 routes 401) and live (list, export 401).
+6. Storage off, pages still load: PASS on TEST (byte-identical page). On live the test switch is ignored (PASS).
 
-## Assumptions made (logged in DECISIONS)
-- Route kept out of the frozen contract; declared in the function. Reopen on the same page view does not count twice. Counts refresh with Refresh only. Rerun starts at zero. Counts are a guide, not billing data.
+## Five objectives at the phase boundary
+- Security: password checked on the server, lockout, signed cookie; all admin routes 401 signed out on live; build docs and sources 404. Fine.
+- Stability: history of 20 versions plus export; storage failure serves the normal page. One Netlify platform 5xx seen (request never reached the function): retry and it works.
+- Efficiency: no new framework; one Netlify-owned dependency; lookups cached 60 s.
+- User experience: popup, admin and editor reviewed through 1.6 to 1.8. Phone-width preview badge item still open.
+- Scalability: one record per offer, ids never reused, no page or offer cap.
 
-## Open items
-1. Michael runs session-1.9-verify.ps1 (it also redeploys 1.8), then the YOUR TURN steps of 1.8 and 1.9.
-2. Backlog (1.6 file): phone-width preview badge under the close button. One CSS line in offer-panel.css. Contingency session or 1.10.
-3. 1.2b (alert email through Resend) still needs Michael's OK.
-4. Test store tidy: leftover TEST offers from 1.4 to 1.8 (offers-test only).
-5. .netlify/functions/manifest.json tracked by git (backlog, from 1.2).
-6. New backlog: a deleted draft leaves its counts in offer-stats (harmless, never shown). Clearing them is a data delete: needs Michael.
-7. 1.10 drift audit: decide whether ROUTES.apiStats joins the contract (additive, 1.2.0).
+## Deferred / backlog (in order)
+1. 1.2b: lead alert email through Resend (edits submission-created.mjs, needs Michael's OK). Until then, check Netlify > Forms > "offers" by hand.
+2. README update (existing file, needs approval): describe the module and that offers no longer get their own pages.
+3. Phone-width preview badge under the close button (one CSS line in offer-panel.css).
+4. .netlify/ files tracked by git: untrack them (git rm --cached) and add .netlify/ to .gitignore.
+5. Test store tidy: leftover TEST offers from 1.4 to 1.9 (offers-test only). Deleted drafts' counts in offer-stats. Both are data deletes: need Michael.
+6. Later list from the scope: access codes, GA4 events, per-offer designs, more admins.
 
-## Estimate vs actual
-Session 1.9: estimated M (about 5 min of Michael's time). Actual: M build (about 30 min). Michael's time so far: about 1 min; the verify run and his check add about 10.
+## Estimate vs actual (phase)
+- Sessions: planned 10 (+35% contingency allowed: 13 to 14). Actual: 10, no contingency session used; 1.2b split out and still open.
+- Michael's time: planned about 125 min, actual about 200 min (about 60% over). Almost all of the overrun was 1.2 (70 min vs 15: CLI and prompt problems) and 1.6 (30 vs 20: the tab change he asked for). Excluding 1.2, the phase ran about 15% over.
+- Build sizes: every session landed at its planned size or one step smaller. 1.5 (the Low-confidence L) overran by one verify run only.
+- Session 1.10: estimated M (about 25 min of Michael's time). Actual M; about 25 min of his time (two preflight runs, go-live, live check) plus the previews and scheduling still to do.
+- Calibration for the next phase on this stack: plan Michael's time at 1.3x the estimate, and add one extra verify run to any session whose script drives the Netlify CLI.
+
+## Backup coverage
+This session created live data: the three draft offers (live store "offers") and six TEST leads (Netlify form "offers"). Covered: history keeps the previous 20 versions automatically, and the live export file was saved after the drafts were entered. Back up again (Export in /offer-admin) after Michael schedules the real copy.
 
 ## Next step
-Run the verify block, do the two YOUR TURN lists, commit and push. Then Session 1.10 (go live and close the phase) in a new conversation, with the three Booth Proof offers' copy, dates and link names ready.
+Michael: open the three preview links on desktop and phone, replace the placeholder copy in /offer-admin, Save and schedule. Then Export once. Next build work: Session 1.2b (alert email) in a new conversation, after his OK.

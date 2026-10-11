@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#152B4A">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="../icon-192.png">
+<link rel="stylesheet" href="css/styles.css">
+<title>MP4 to MP3 Converter | Your AV Department</title>
+<meta name="description" content="Convert MP4 recordings to MP3 on your own computer. A free tool from Your AV Department.">
+<meta name="robots" content="noindex">
+</head>
+<body>
+<header class="site-header">
+<div class="site-header-inner">
+<a class="brand" href="../../index.html"><img src="img/emblem.webp" width="38" height="38" alt="Your AV Department emblem"><span>YOUR AV DEPARTMENT</span></a>
+<div class="privacy-note">
+<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+<span>Files never leave this computer</span>
+</div>
+</div>
+</header>
+<main>
+<div class="page-head">
+<span class="eyebrow">A free tool from Your AV Department</span>
+<h1>MP4 to MP3 Converter</h1>
+<p>Drop in your recordings and get an MP3 of each one. Nothing uploads.</p>
+</div>
+<div id="unsupported" class="notice" role="alert" hidden>
+<strong>This browser cannot run the converter.</strong> Please open this page in Google Chrome or Microsoft Edge on a Windows or Mac computer.
+</div>
+<button id="dropzone" class="dropzone is-empty" type="button">
+<svg aria-hidden="true" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+<span class="dropzone-title">Drop MP4 files here</span>
+<span class="dropzone-hint">or click to browse. Each file becomes its own MP3. Add more any time, even while a batch is running.</span>
+</button>
+<input id="picker" class="sr-only" type="file" accept=".mp4,.m4v,video/mp4" multiple tabindex="-1" aria-hidden="true">
+<div class="options">
+<div>Output: MP3, 192 kbps, same file name</div>
+<div class="options-right">
+<span id="folder-label">Saving to: Downloads</span>
+<button id="choose-folder" class="btn btn-outline" type="button">Choose a folder</button>
+</div>
+</div>
+<section id="queue" class="queue" aria-labelledby="queue-title" hidden>
+<div class="queue-head">
+<div>
+<h2 id="queue-title">Queue</h2>
+<div id="summary" class="queue-summary"></div>
+</div>
+<div class="queue-actions">
+<button id="download-all" class="btn btn-primary" type="button" disabled>Download all finished</button>
+<button id="clear-finished" class="btn btn-ghost" type="button" disabled>Clear finished</button>
+</div>
+</div>
+<div class="bar" aria-hidden="true"><span id="batch-bar"></span></div>
+<ul id="rows" class="rows"></ul>
+<p id="keep-open" class="keep-open" hidden>Keep this window open until the queue finishes. Closing it stops the conversion.</p>
+</section>
+<p id="empty-note" class="empty-note">Nothing in the queue yet. Files up to about 2 GB each.</p>
+<div id="live" class="sr-only" aria-live="polite"></div>
+</main>
+<footer class="site-footer">
+<div class="site-footer-inner">
+<p>Independent AV production sourcing and project management for national associations and corporate groups, <strong>at no cost to you.</strong></p>
+<div class="footer-links"><a href="../index.html">About this tool</a><a href="../../library/index.html">The Library</a><a href="../../index.html">youravdept.com</a></div>
+</div>
+<p class="fineprint">We count visits, installs and conversions so we know if this tool is useful. We never see your files, their names or their contents. <a href="licenses.html">Open source notices</a></p>
+</footer>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
