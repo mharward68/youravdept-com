@@ -6,21 +6,23 @@ export const STATUS = Object.freeze({
 
 export const MAX_BYTES = 2 * 1024 * 1024 * 1024; // about 2 GB per file, by design
 
-export function isMp4(file) {
+/** MP4, MOV and M4A are the same family of file, and the engine reads all three. */
+export function isSupported(file) {
   const name = String(file.name || '').toLowerCase();
-  return name.endsWith('.mp4') || name.endsWith('.m4v') || file.type === 'video/mp4';
+  return ['.mp4', '.m4v', '.mov', '.m4a'].some((ext) => name.endsWith(ext))
+    || ['video/mp4', 'video/quicktime', 'audio/mp4', 'audio/x-m4a'].includes(file.type);
 }
 
 /** Returns null when the file can be queued, or a plain-English reason when it cannot. */
 export function rejectReason(file) {
-  if (!isMp4(file)) return 'Not an MP4. This app only converts MP4 files.';
+  if (!isSupported(file)) return 'Not an MP4, MOV or M4A. This app only converts those three file types.';
   if (file.size === 0) return 'This file is empty.';
   if (file.size > MAX_BYTES) return 'This file is over 2 GB, which is more than this app can handle.';
   return null;
 }
 
 export function mp3Name(name) {
-  const base = String(name).replace(/\.(mp4|m4v)$/i, '');
+  const base = String(name).replace(/\.(mp4|m4v|mov|m4a)$/i, '');
   // Characters Windows will not accept in a file name.
   const safe = base.replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_').replace(/[. ]+$/, '');
   return (safe || 'audio') + '.mp3';

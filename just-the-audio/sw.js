@@ -1,6 +1,6 @@
 // Offline support. Bump VERSION on every release so installed copies pick up the new files.
-const VERSION = 'v1.1.0';
-const CACHE = 'mp4-mp3-' + VERSION;
+const VERSION = 'v2.1.2';
+const CACHE = 'just-the-audio-' + VERSION;
 const FILES = [
   './', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png',
   'app/', 'app/licenses.html', 'app/css/styles.css',
@@ -17,7 +17,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('mp4-mp3-') && k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('just-the-audio-') && k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim()),
   );
 });

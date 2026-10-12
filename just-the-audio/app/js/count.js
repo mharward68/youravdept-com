@@ -2,7 +2,7 @@
 // Never sends file names, sizes or contents. Failures are ignored: counting must never break the app.
 export function count(event) {
   try {
-    const url = new URL('/api/mp3-converter/count', location.origin);
+    const url = new URL('/api/just-the-audio/count', location.origin);
     url.searchParams.set('e', event);
     if (navigator.sendBeacon && navigator.sendBeacon(url)) return;
     fetch(url, { method: 'POST', keepalive: true }).catch(() => {});
@@ -10,6 +10,6 @@ export function count(event) {
 }
 export function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/mp3-converter/sw.js', { scope: '/mp3-converter/' }).catch(() => {});
+    navigator.serviceWorker.register('/just-the-audio/sw.js', { scope: '/just-the-audio/' }).catch(() => {});
   }
 }

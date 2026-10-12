@@ -48,10 +48,10 @@
   status = 404
   force = true
 
-# MP4 to MP3 Converter (2026-10-11). Source: the 19_mp4-mp3_converter project.
+# Just the Audio (2026-10-11). Source: the 19_mp4-mp3_converter project.
 # The converter may only talk to its own address. This is the "files never leave this computer" promise.
 [[headers]]
-  for = "/mp3-converter/app/*"
+  for = "/just-the-audio/app/*"
   [headers.values]
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; object-src 'none'"
     X-Content-Type-Options = "nosniff"
@@ -59,6 +59,13 @@
 
 # Installed copies must notice new versions.
 [[headers]]
-  for = "/mp3-converter/sw.js"
+  for = "/just-the-audio/sw.js"
   [headers.values]
     Cache-Control = "no-cache"
+
+# Just the Audio activity page: private, never in search.
+[[headers]]
+  for = "/just-the-audio-activity*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Cache-Control = "no-store"

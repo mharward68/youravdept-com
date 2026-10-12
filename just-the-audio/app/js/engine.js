@@ -28,7 +28,7 @@ export function browserSupported() {
 }
 
 /**
- * Converts one MP4 File to an MP3 Blob.
+ * Converts one MP4, MOV or M4A File to an MP3 Blob.
  * @param {File} file
  * @param {{onProgress?: (fraction:number)=>void}} [opts]
  * @returns {{promise: Promise<Blob>, cancel: () => void}}
@@ -46,7 +46,7 @@ export function convert(file, opts = {}) {
       try {
         audioTrack = await input.getPrimaryAudioTrack();
       } catch (err) {
-        throw new ConvertError('This file could not be read. It may be damaged or not a real MP4.', 'unreadable');
+        throw new ConvertError('This file could not be read. It may be damaged, or not really the file type its name says.', 'unreadable');
       }
       if (!audioTrack) {
         throw new ConvertError('This file has no audio track, so there is nothing to convert.', 'no_audio');

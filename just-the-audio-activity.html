@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Just the Audio: Activity</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<!-- Private page for Michael. Source: 19_mp4-mp3_converter project, mp3-mp4_app/site-pages/. Not linked anywhere except the hidden site map. -->
+<style>
+  :root{ --navy:#152B4A; --teal:#2AA4A2; --card:#eef6f5; --line:rgba(21,43,74,.13); --muted:#44556E;
+    --wash:linear-gradient(100deg,#152B4A 0%,#1F6776 55%,#2AA4A2 100%);
+    --head:'Montserrat',system-ui,sans-serif; --body:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:#fff; color:var(--navy); font-family:var(--body); line-height:1.55; }
+  .wrap{ max-width:960px; margin:0 auto; padding:32px 20px 56px; }
+  header{ display:flex; flex-wrap:wrap; gap:12px; align-items:baseline; justify-content:space-between; margin-bottom:24px; }
+  .eyebrow{ font-family:var(--head); font-size:.74rem; letter-spacing:.14em; text-transform:uppercase; }
+  h1{ font-family:var(--head); font-weight:800; font-size:clamp(1.6rem,4vw,2.2rem); margin:4px 0 0; }
+  h2{ font-family:var(--head); font-weight:800; font-size:1.1rem; margin:36px 0 12px; }
+  .status{ font-size:.86rem; color:var(--muted); display:flex; align-items:center; gap:8px; }
+  .dot{ width:9px; height:9px; border-radius:50%; background:var(--teal); }
+  .dot.off{ background:#9AA6B5; }
+  .tiles{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; }
+  .tile{ border:1px solid var(--line); border-radius:16px; padding:20px; }
+  .tile .label{ font-size:.86rem; color:var(--muted); font-weight:600; }
+  .tile .big{ font-family:var(--head); font-weight:800; font-size:2.4rem; line-height:1.1; margin:6px 0 4px; }
+  .tile .sub{ font-size:.86rem; color:var(--muted); }
+  .tile.key{ background:var(--card); border-color:var(--teal); }
+  .periods{ display:inline-flex; flex-wrap:wrap; gap:4px; padding:4px; border:1px solid var(--line); border-radius:999px; margin-bottom:16px; }
+  .periods button{ background:none; color:var(--navy); border:0; min-height:40px; padding:8px 18px; font-size:.86rem; }
+  .periods button[aria-pressed="true"]{ background:var(--wash); color:#fff; }
+  .range{ font-size:.86rem; color:var(--muted); margin:0 0 16px; }
+  .big.bump{ animation:bump .9s ease-out; }
+  @keyframes bump{ 0%{ color:var(--teal); transform:scale(1.08); } 100%{ color:inherit; transform:scale(1); } }
+  @media (prefers-reduced-motion: reduce){ .big.bump{ animation:none; } }
+  .scroll{ overflow-x:auto; border:1px solid var(--line); border-radius:12px; }
+  table{ border-collapse:collapse; width:100%; font-size:.92rem; }
+  th,td{ padding:10px 14px; text-align:right; white-space:nowrap; }
+  th:first-child,td:first-child{ text-align:left; }
+  thead th{ border-bottom:2px solid var(--teal); font-weight:700; }
+  tbody tr+tr > *{ border-top:1px solid var(--line); }
+  .bar{ display:inline-block; height:8px; border-radius:4px; background:var(--teal); vertical-align:middle; margin-left:8px; }
+  form{ max-width:420px; border:1px solid var(--line); border-radius:16px; padding:24px; display:flex; flex-direction:column; gap:12px; }
+  label{ font-weight:600; }
+  input{ font:inherit; padding:10px 12px; border:1px solid rgba(21,43,74,.24); border-radius:10px; }
+  button{ font:800 .9rem var(--head); color:#fff; background:var(--wash); border:0; border-radius:999px; padding:12px 22px; cursor:pointer; min-height:44px; }
+  .ghost{ background:none; color:var(--navy); border:1px solid rgba(21,43,74,.24); }
+  .err{ color:var(--navy); background:var(--card); border:1px dashed var(--navy); border-radius:10px; padding:10px 12px; }
+  .note{ font-size:.82rem; color:var(--muted); margin-top:28px; }
+  a{ color:var(--navy); font-weight:600; }
+  [hidden]{ display:none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">Private &middot; Your AV Department</div>
+      <h1>Just the Audio: Activity</h1>
+    </div>
+    <div class="status" id="status" aria-live="polite"><span class="dot off" id="dot"></span><span id="statusText">Not connected</span></div>
+  </header>
+
+  <form id="keyForm" hidden>
+    <label for="keyInput">Activity key</label>
+    <input id="keyInput" type="password" autocomplete="current-password" required>
+    <p class="err" id="keyErr" hidden>That key did not work. Check it and try again.</p>
+    <button type="submit">Show activity</button>
+    <p class="note" style="margin:0">Asked once per browser. The key is in Netlify under JUST_THE_AUDIO_STATS_KEY.</p>
+  </form>
+
+  <main id="board" hidden>
+    <div class="periods" role="group" aria-label="Period">
+      <button type="button" data-period="today">Today</button>
+      <button type="button" data-period="wtd">WTD</button>
+      <button type="button" data-period="mtd">MTD</button>
+      <button type="button" data-period="ytd">YTD</button>
+      <button type="button" data-period="all">All time</button>
+    </div>
+    <p class="range" id="range"></p>
+    <div class="tiles">
+      <div class="tile key"><div class="label">Visits</div><div class="big" id="tVisit">0</div><div class="sub" id="sVisit"></div></div>
+      <div class="tile key"><div class="label">Installs</div><div class="big" id="tInstall">0</div><div class="sub" id="sInstall"></div></div>
+      <div class="tile key"><div class="label">Files converted</div><div class="big" id="tConvert">0</div><div class="sub" id="sConvert"></div></div>
+    </div>
+
+    <h2>By day, last 60 days</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th scope="col">Day (Eastern)</th><th scope="col">Visits</th><th scope="col">Installs</th><th scope="col">Files converted</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+
+    <p class="note">Updates every 30 seconds while this page is open. Weeks start on Sunday; days follow Eastern time. Visits count each load of the Just the Audio page; installs count each time someone installs the app; files converted counts every finished MP3. Nothing about who visited or what they converted is stored. <a href="just-the-audio/index.html">Open Just the Audio</a> &middot; <button type="button" class="ghost" id="forget" style="padding:6px 14px;min-height:0;font-size:.8rem">Forget key on this browser</button></p>
+  </main>
+</div>
+
+<script>
+(function(){
+  var KEY_NAME = 'jta-activity-key';
+  var form = document.getElementById('keyForm'), board = document.getElementById('board');
+  var input = document.getElementById('keyInput'), keyErr = document.getElementById('keyErr');
+  var dot = document.getElementById('dot'), statusText = document.getElementById('statusText');
+  var timer = null;
+
+  function getKey(){ try { return localStorage.getItem(KEY_NAME) || ''; } catch (e) { return window.__jtaKey || ''; } }
+  function setKey(v){ try { localStorage.setItem(KEY_NAME, v); } catch (e) {} window.__jtaKey = v; }
+  function clearKey(){ try { localStorage.removeItem(KEY_NAME); } catch (e) {} window.__jtaKey = ''; }
+  function fmt(n){ return Number(n || 0).toLocaleString('en-US'); }
+  var PERIOD_KEY = 'jta-activity-period', period = 'today', lastData = null, shown = {};
+  var NAMES = { today:'Today', wtd:'Week to date', mtd:'Month to date', ytd:'Year to date', all:'All time' };
+  try { period = localStorage.getItem(PERIOD_KEY) || 'today'; } catch (e) {}
+  // Today's date in Eastern time as YYYY-MM-DD, matching how the server files each count.
+  function etToday(){ return new Date().toLocaleDateString('en-CA', { timeZone:'America/New_York' }); }
+  function shift(day, n){ var p = day.split('-'), d = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2] + n)); return d.toISOString().slice(0, 10); }
+  function startOf(p, today){
+    if (p === 'today') return today;
+    if (p === 'wtd'){ var q = today.split('-'); return shift(today, -new Date(Date.UTC(+q[0], +q[1] - 1, +q[2])).getUTCDay()); }
+    if (p === 'mtd') return today.slice(0, 8) + '01';
+    if (p === 'ytd') return today.slice(0, 5) + '01-01';
+    return '0000-00-00';
+  }
+  function nice(day){ var p = day.split('-'); return new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])).toLocaleDateString('en-US', { month:'short', day:'numeric', timeZone:'UTC' }); }
+
+  function showForm(bad){ clearInterval(timer); board.hidden = true; form.hidden = false; keyErr.hidden = !bad;
+    dot.className = 'dot off'; statusText.textContent = 'Not connected'; input.focus(); }
+
+  function renderTiles(){
+    if (!lastData) return;
+    var today = etToday(), from = startOf(period, today), sum = { visit:0, install:0, convert:0 };
+    lastData.days.forEach(function(r){ if (r.day >= from && r.day <= today){ sum.visit += r.visit; sum.install += r.install; sum.convert += r.convert; } });
+    if (period === 'all') sum = lastData.totals;
+    document.querySelectorAll('.periods button').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.period === period)); });
+    document.getElementById('range').textContent = NAMES[period] + (period === 'all' ? '' : period === 'today' ? ', ' + nice(today) : ', ' + nice(from) + ' to ' + nice(today));
+    [['Visit','visit'],['Install','install'],['Convert','convert']].forEach(function(p){
+      var el = document.getElementById('t' + p[0]), key = period + p[1];
+      el.textContent = fmt(sum[p[1]]);
+      // A count that went up since the last refresh pulses briefly.
+      if (shown[key] !== undefined && sum[p[1]] > shown[key]){ el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+      shown[key] = sum[p[1]];
+      document.getElementById('s' + p[0]).textContent = period === 'all' ? 'Since launch' : fmt(lastData.totals[p[1]]) + ' all time';
+    });
+  }
+
+  function render(data){
+    lastData = data; renderTiles();
+    var cutoff = shift(etToday(), -59);
+    data = { days: data.days.filter(function(r){ return r.day >= cutoff; }), generatedAt: data.generatedAt };
+    var max = Math.max(1, Math.max.apply(null, data.days.map(function(r){ return r.visit; })));
+    var tbody = document.getElementById('rows'); tbody.textContent = '';
+    if (!data.days.length){ var tr = document.createElement('tr'), td = document.createElement('td');
+      td.colSpan = 4; td.textContent = 'No activity yet.'; tr.appendChild(td); tbody.appendChild(tr); }
+    data.days.forEach(function(r){
+      var tr = document.createElement('tr');
+      [r.day, r.visit, r.install, r.convert].forEach(function(v, i){
+        var td = document.createElement(i === 0 ? 'th' : 'td'); if (i === 0) td.scope = 'row';
+        td.textContent = i === 0 ? v : fmt(v);
+        if (i === 1){ var b = document.createElement('span'); b.className = 'bar'; b.style.width = Math.round(60 * r.visit / max) + 'px'; b.setAttribute('aria-hidden','true'); td.appendChild(b); }
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    dot.className = 'dot'; statusText.textContent = 'Live · updated ' + new Date(data.generatedAt).toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit', second:'2-digit' });
+  }
+
+  function load(){
+    var key = getKey(); if (!key) return showForm(false);
+    fetch('/api/just-the-audio/stats?format=json&key=' + encodeURIComponent(key), { cache:'no-store' })
+      .then(function(res){
+        if (res.status === 404){ clearKey(); showForm(true); throw null; }
+        if (!res.ok) throw new Error('status ' + res.status);
+        return res.json();
+      })
+      .then(function(data){ form.hidden = true; board.hidden = false; render(data); })
+      .catch(function(err){ if (err === null) return;
+        dot.className = 'dot off'; statusText.textContent = 'Could not reach the server. Retrying.'; });
+  }
+
+  function start(){ clearInterval(timer); load(); timer = setInterval(function(){ if (!document.hidden) load(); }, 30000); }
+  document.querySelectorAll('.periods button').forEach(function(b){
+    b.addEventListener('click', function(){ period = b.dataset.period; try { localStorage.setItem(PERIOD_KEY, period); } catch (e) {} renderTiles(); });
+  });
+  form.addEventListener('submit', function(e){ e.preventDefault(); setKey(input.value.trim()); input.value = ''; start(); });
+  document.getElementById('forget').addEventListener('click', function(){ clearKey(); showForm(false); });
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden && getKey()) load(); });
+  start();
+})();
+</script>
+</body>
+</html>

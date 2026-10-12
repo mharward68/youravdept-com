@@ -104,7 +104,7 @@ function render() {
   downloadAllBtn.disabled = ready.length === 0;
   downloadAllBtn.textContent = ready.length ? `Download all finished (${ready.length})` : 'Download all finished';
   clearBtn.disabled = !items.some((i) => [STATUS.DONE, STATUS.FAILED, STATUS.SKIPPED].includes(i.status));
-  document.title = s.busy ? `${Math.round(s.fraction * 100)}% - MP4 to MP3 Converter` : 'MP4 to MP3 Converter';
+  document.title = s.busy ? `${Math.round(s.fraction * 100)}% - Just the Audio` : 'Just the Audio';
 }
 
 // Progress ticks update only the active row and header, so focus on other buttons is not lost.
@@ -123,7 +123,7 @@ function renderProgress(item) {
   if (s.failed) line += `, ${s.failed} failed`;
   if (speed > 0) { const left = formatRemaining(s.remainingBytes / speed); if (left) line += ', ' + left; }
   summaryEl.textContent = line;
-  document.title = `${Math.round(s.fraction * 100)}% - MP4 to MP3 Converter`;
+  document.title = `${Math.round(s.fraction * 100)}% - Just the Audio`;
 }
 
 function addFiles(fileList) {

@@ -106,10 +106,11 @@ Only what a future session would waste time rediscovering.
 - On Node 24, `node --test` piped to PowerShell prints the spec reporter ("i pass 10"), not "# pass 10". Scripts that parse the summary must pass --test-reporter=tap.
 - git status always shows .netlify/ changes after a deploy (CLI-generated files tracked by mistake, backlog). Clean-tree checks must ignore " .netlify/".
 
-## MP4 to MP3 Converter (added 2026-10-11)
-- Lives in mp3-converter/ (landing page index.html, manifest, sw.js, icons) and mp3-converter/app/ (the converter). Source of truth is the separate project C:\01_AppDevelopment\19_mp4-mp3_converter (repo mharward68/mp4-mp3_converter): change it there, run its tests, then copy its mp3-mp4_app\public folder over mp3-converter here. Its ai/ folder has the full notes.
+## Just the Audio (added 2026-10-11)
+- A free tool that turns MP4, MOV and M4A recordings into MP3 in the visitor's own browser. Called "MP4 to MP3 Converter" during the build; the project folder and repo keep that name.
+- Lives in just-the-audio/ (landing page index.html, manifest, sw.js, icons) and just-the-audio/app/ (the tool). Source of truth is the separate project C:\01_AppDevelopment\19_mp4-mp3_converter (repo mharward68/mp4-mp3_converter): change it there, run its tests, then copy its mp3-mp4_app\public folder over just-the-audio here. Its ai/ folder has the full notes.
 - The landing page is generated from library/av365.html by that project's tools/build-landing.py. After changing the header, footer, :root or site map on the library pages, re-run it.
-- netlify.toml sets a strict content security policy on /mp3-converter/app/* only. Never widen it to /mp3-converter/* or site-wide: every other page relies on inline CSS and JS.
-- Functions: netlify/functions/mp3-count.mjs (POST /api/mp3-converter/count) and mp3-stats.mjs (GET /api/mp3-converter/stats?key=). Stores: mp3-usage (live) and mp3-usage-test. Env var MP3_STATS_KEY.
-- Releasing a change to the converter: bump VERSION in mp3-converter/sw.js or installed copies keep the old files.
-- offer-page.js still runs on /mp3-converter/* (pass-through unless an Everyone offer targets that page). An offer injected into /mp3-converter/app/ would be blocked by the content security policy, so do not target it.
+- netlify.toml sets a strict content security policy on /just-the-audio/app/* only. Never widen it to /just-the-audio/* or site-wide: every other page relies on inline CSS and JS.
+- Functions: netlify/functions/just-the-audio-count.mjs (POST /api/just-the-audio/count) and just-the-audio-stats.mjs (GET /api/just-the-audio/stats?key=). Stores: just-the-audio-usage (live) and just-the-audio-usage-test. Env var JUST_THE_AUDIO_STATS_KEY.
+- Releasing a change: bump VERSION in just-the-audio/sw.js or installed copies keep the old files.
+- offer-page.js still runs on /just-the-audio/* (pass-through unless an Everyone offer targets that page). An offer injected into /just-the-audio/app/ would be blocked by the content security policy, so do not target it.

@@ -1,8 +1,8 @@
 {
-  "name": "MP4 to MP3 Converter by Your AV Department",
-  "short_name": "MP4 to MP3",
-  "description": "Convert MP4 recordings to MP3 on your own computer. Nothing uploads.",
-  "id": "yavd-mp4-to-mp3",
+  "name": "Just the Audio by Your AV Department",
+  "short_name": "Just the Audio",
+  "description": "Convert MP4, MOV and M4A recordings to MP3 on your own computer. Nothing uploads.",
+  "id": "yavd-just-the-audio",
   "start_url": "app/",
   "scope": "./",
   "display": "standalone",

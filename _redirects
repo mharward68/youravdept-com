@@ -21,6 +21,7 @@
 /booth-proof-apply /booth-proof-apply.html 200
 /booth-proof-pilot /booth-proof-pilot.html 200
 /booth-proof-dates /booth-proof-dates.html 200
+/just-the-audio-activity /just-the-audio-activity.html 200
 
 # playlist pages renamed; forced (!) so the 301 wins if an old file is still present
 /event-playlists                           /playlists-events.html                     301!
