@@ -69,3 +69,38 @@
   [headers.values]
     X-Robots-Tag = "noindex, nofollow"
     Cache-Control = "no-store"
+
+# Site admin (2026-10-12): /admin panel, /site-map, page takedowns.
+# Same sign-in as the Offers Module. The site map, link check and takedown
+# routes read the deployed pages (and _redirects) bundled here.
+[functions."site-pages"]
+  included_files = ["*.html", "library/*.html", "field-notes/*.html", "just-the-audio/index.html"]
+
+[functions."site-links"]
+  included_files = ["*.html", "library/*.html", "field-notes/*.html", "just-the-audio/index.html", "_redirects"]
+
+[functions."site-takedown"]
+  included_files = ["*.html", "library/*.html", "field-notes/*.html", "just-the-audio/index.html"]
+
+[[headers]]
+  for = "/admin*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Cache-Control = "no-store"
+
+[[headers]]
+  for = "/site-map*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Cache-Control = "no-store"
+
+# Short addresses. Not forced, like /offer-admin above.
+[[redirects]]
+  from = "/admin"
+  to = "/admin.html"
+  status = 200
+
+[[redirects]]
+  from = "/site-map"
+  to = "/site-map.html"
+  status = 200

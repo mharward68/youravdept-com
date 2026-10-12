@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="same-origin">
+<title>Admin</title>
+<!-- Site admin panel (2026-10-12). Reached by clicking the footer copyright
+     line 5 times. Same sign-in as /offer-admin (one password, one cookie).
+     Deliberately plain: grey, no branding. Holds no data. -->
+<style>
+  :root{ --bg:#e6e7e9; --card:#fff; --line:#d3d5d8; --ink:#1f2124; --muted:#6b6f75; --bad:#b3261e; }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;width:100%;max-width:400px;padding:28px 24px}
+  h1{font-size:20px;margin:0 0 4px}
+  .muted{color:var(--muted);font-size:14px;margin:0 0 20px}
+  label{display:block;font-weight:600;font-size:14px;margin-bottom:6px}
+  input{width:100%;padding:11px 12px;font:inherit;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink)}
+  input:focus,button:focus-visible,a:focus-visible{outline:2px solid #9aa0a6;outline-offset:2px}
+  .msg{color:var(--bad);font-size:14px;min-height:20px;margin:8px 0 12px}
+  .btn{display:flex;align-items:center;justify-content:center;width:100%;font:inherit;font-weight:600;padding:12px 14px;border-radius:6px;
+       border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;text-decoration:none}
+  .btn:hover{background:#f1f2f3}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+  .btn-main{background:#2b2d31;border-color:#2b2d31;color:#fff}
+  .btn-main:hover{background:#3a3d42}
+  .big{padding:18px 14px;font-size:17px;margin-bottom:12px}
+  .quiet{border-color:transparent;background:transparent;color:var(--muted);font-weight:500;margin-top:8px}
+  .quiet:hover{background:transparent;color:var(--ink);text-decoration:underline}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main class="card">
+  <section id="loading"><p class="muted" style="margin:0">Loading&hellip;</p></section>
+
+  <form id="signin" hidden novalidate>
+    <h1>Admin</h1>
+    <p class="muted">Enter the admin password.</p>
+    <label for="pw">Password</label>
+    <input type="password" id="pw" autocomplete="current-password" required maxlength="500">
+    <p class="msg" id="msg" role="alert"></p>
+    <button type="submit" class="btn btn-main" id="go">Sign in</button>
+  </form>
+
+  <section id="panel" hidden>
+    <h1>Admin</h1>
+    <p class="muted">Signed in for 12 hours.</p>
+    <a class="btn btn-main big" href="/offer-admin">Offers portal</a>
+    <a class="btn big" href="/site-map">Site map</a>
+    <button type="button" class="btn quiet" id="out">Sign out</button>
+  </section>
+
+  <section id="down" hidden>
+    <h1>Admin</h1>
+    <p class="msg" id="downmsg" role="alert"></p>
+    <button type="button" class="btn" id="retry">Try again</button>
+  </section>
+</main>
+<script>
+(function(){
+  'use strict';
+  var $ = function(id){ return document.getElementById(id); };
+  var views = ['loading','signin','panel','down'];
+  function show(v){ views.forEach(function(k){ $(k).hidden = k !== v; }); if (v === 'signin') $('pw').focus(); }
+
+  // Only these addresses may be returned to after sign-in.
+  var next = new URLSearchParams(location.search).get('next');
+  if (next !== '/site-map' && next !== '/offer-admin') next = null;
+
+  function check(){
+    show('loading');
+    fetch('/api/offers/session', { credentials:'same-origin', cache:'no-store' }).then(function(r){
+      if (r.ok) { if (next) location.replace(next); else show('panel'); return; }
+      if (r.status === 401) { show('signin'); return; }
+      return r.json().catch(function(){ return {}; }).then(function(b){
+        $('downmsg').textContent = b.error || 'Sign-in is unavailable right now. Try again in a minute.';
+        show('down');
+      });
+    }).catch(function(){
+      $('downmsg').textContent = 'Could not reach the site. Check your connection and try again.';
+      show('down');
+    });
+  }
+
+  $('signin').addEventListener('submit', function(e){
+    e.preventDefault();
+    var pw = $('pw').value;
+    if (!pw) { $('msg').textContent = 'Enter the password.'; return; }
+    $('go').disabled = true; $('msg').textContent = '';
+    fetch('/api/offers/login', {
+      method:'POST', credentials:'same-origin',
+      headers:{ 'content-type':'application/json', accept:'application/json' },
+      body: JSON.stringify({ password: pw })
+    }).then(function(r){
+      return r.json().catch(function(){ return {}; }).then(function(b){
+        $('go').disabled = false;
+        if (r.ok) { $('pw').value = ''; if (next) location.replace(next); else show('panel'); return; }
+        $('msg').textContent = b.error || 'Sign-in failed. Try again.';
+        $('pw').select();
+      });
+    }).catch(function(){
+      $('go').disabled = false;
+      $('msg').textContent = 'Could not reach the site. Check your connection and try again.';
+    });
+  });
+
+  $('out').addEventListener('click', function(){
+    $('out').disabled = true;
+    fetch('/api/offers/logout', { method:'POST', credentials:'same-origin' })
+      .catch(function(){}).then(function(){ $('out').disabled = false; show('signin'); });
+  });
+  $('retry').addEventListener('click', check);
+
+  check();
+})();
+</script>
+</body>
+</html>

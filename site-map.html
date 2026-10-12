@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="same-origin">
+<title>Site Map</title>
+<!-- Site map (2026-10-12). Signed-in only: the page list comes from
+     /api/offers/site/pages, built from the deployed files, so new pages appear
+     on their own. Take down hides a page (visitors go to the home page) until
+     Undo. Deliberately plain: grey, no branding. -->
+<style>
+  :root{ --bg:#e6e7e9; --card:#fff; --line:#d3d5d8; --soft:#eceded; --ink:#1f2124; --muted:#6b6f75;
+         --hover:#f3f4f5; --ok:#2e7d32; --bad:#b3261e; --warn-bg:#fff6e0; --warn-line:#e8c66a; }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;padding:28px 16px 64px}
+  .wrap{max-width:900px;margin:0 auto}
+  .top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+  h1{font-size:22px;margin:0}
+  .nav{display:flex;gap:8px;flex-wrap:wrap}
+  .meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+  input[type=search],input[type=text]{width:100%;padding:10px 12px;font:inherit;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink)}
+  input:focus,button:focus-visible,a:focus-visible{outline:2px solid #9aa0a6;outline-offset:1px}
+  #q{margin-bottom:18px}
+  section.grp{background:var(--card);border:1px solid var(--line);border-radius:8px;margin-bottom:16px;overflow:hidden}
+  h2{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0;padding:10px 14px;border-bottom:1px solid var(--line);background:#f7f7f8}
+  ul{list-style:none;margin:0;padding:0}
+  li.row{display:flex;align-items:center;gap:8px;padding:8px 10px 8px 14px;border-bottom:1px solid var(--soft)}
+  li.row:last-child{border-bottom:0}
+  li.row:hover{background:var(--hover)}
+  li.row.is-down{background:#f4f4f5}
+  .t{flex:1;min-width:0}
+  .t a,.t .name{color:var(--ink);font-weight:600;text-decoration:none}
+  .t a:hover{text-decoration:underline}
+  .is-down .name{color:var(--muted);text-decoration:line-through}
+  .p{display:block;color:var(--muted);font-size:13px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}
+  .tag{display:inline-block;font-size:12px;font-weight:600;color:var(--bad);margin-left:6px}
+  .btn{flex:none;font:inherit;font-size:13px;padding:6px 10px;border-radius:6px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;text-decoration:none;white-space:nowrap}
+  .btn:hover{background:#eef0f2}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn.done{color:var(--ok);border-color:#a5d6a7}
+  .btn.danger{color:var(--bad)}
+  .btn.danger-solid{background:var(--bad);border-color:var(--bad);color:#fff}
+  .btn.danger-solid:hover:not(:disabled){background:#8f1e17}
+  .state{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:18px;color:var(--muted)}
+  .none{color:var(--muted);padding:12px 2px}
+  /* dialog */
+  .scrim{position:fixed;inset:0;background:rgba(20,22,25,.55);display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;z-index:10}
+  .dlg{background:#fff;border-radius:10px;width:100%;max-width:560px;padding:22px 20px;margin:auto 0}
+  .dlg h3{margin:0 0 2px;font-size:18px}
+  .dlg h4{margin:16px 0 6px;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  .dlg ul.lst{border:1px solid var(--soft);border-radius:6px}
+  .dlg ul.lst li{padding:7px 10px;border-bottom:1px solid var(--soft);font-size:14px}
+  .dlg ul.lst li:last-child{border-bottom:0}
+  .dlg .ok{color:var(--ok);font-size:14px;margin:4px 0}
+  .warn{background:var(--warn-bg);border:1px solid var(--warn-line);border-radius:6px;padding:10px 12px;font-size:14px;margin-top:14px}
+  .stop{background:#fdecea;border:1px solid #f1b0aa;border-radius:6px;padding:10px 12px;font-size:14px;margin-top:14px;color:#7a1712}
+  .confirm{margin-top:16px}
+  .confirm label{display:block;font-size:14px;margin-bottom:6px}
+  .confirm code{background:#f1f2f3;padding:1px 5px;border-radius:4px}
+  .acts{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;flex-wrap:wrap}
+  .err{color:var(--bad);font-size:14px;margin-top:10px;min-height:1px}
+  .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#2b2d31;color:#fff;padding:10px 14px;border-radius:8px;font-size:14px;max-width:calc(100% - 32px);z-index:20}
+  [hidden]{display:none!important}
+  @media (max-width:560px){ li.row{flex-wrap:wrap} .t{flex-basis:100%} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1>Site Map</h1>
+    <nav class="nav">
+      <a class="btn" href="/admin">Admin</a>
+      <a class="btn" href="/offer-admin">Offers portal</a>
+    </nav>
+  </div>
+  <p class="meta" id="meta">Loading&hellip;</p>
+  <input id="q" type="search" placeholder="Filter pages" aria-label="Filter pages" autocomplete="off" hidden>
+  <div id="list"></div>
+  <p class="none" id="none" hidden>No pages match.</p>
+</div>
+
+<div class="scrim" id="scrim" hidden>
+  <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlg-h">
+    <h3 id="dlg-h">Take down</h3>
+    <p class="p" id="dlg-addr"></p>
+    <div id="dlg-body"></div>
+    <div class="confirm" id="dlg-confirm" hidden>
+      <label for="dlg-word">Type <code id="dlg-wordshow"></code> to confirm</label>
+      <input type="text" id="dlg-word" autocomplete="off" autocapitalize="off" spellcheck="false">
+    </div>
+    <p class="err" id="dlg-err" role="alert"></p>
+    <div class="acts">
+      <button type="button" class="btn" id="dlg-cancel">Cancel</button>
+      <button type="button" class="btn danger-solid" id="dlg-go" disabled hidden>Take down page</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script type="module">
+import { GROUP_ORDER, confirmWord, isProtected } from '/shared/site-admin.js';
+
+const $ = (id) => document.getElementById(id);
+const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = String(text); return n; };
+let pages = [];
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, { credentials: 'same-origin', cache: 'no-store', ...opts,
+    headers: { accept: 'application/json', ...(opts.headers || {}) } });
+  if (res.status === 401) { location.replace('/admin?next=/site-map'); throw new Error('signed out'); }
+  let body = {};
+  try { body = await res.json(); } catch { /* empty */ }
+  if (!res.ok) throw new Error(body.error || `Something went wrong (${res.status}).`);
+  return body;
+}
+
+let toastTimer;
+function toast(text) {
+  const t = $('toast'); t.textContent = text; t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 4500);
+}
+
+function fmtDate(iso) {
+  try { return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); } catch { return ''; }
+}
+
+async function copy(text) {
+  if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
+  const ta = el('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.append(ta); ta.select();
+  try { if (!document.execCommand('copy')) throw new Error('copy'); } finally { ta.remove(); }
+}
+
+function row(p) {
+  const li = el('li', 'row' + (p.takenDown ? ' is-down' : ''));
+  li.dataset.search = `${p.title} ${p.address}`.toLowerCase();
+  const t = el('span', 't');
+  if (p.takenDown) {
+    const n = el('span', 'name', p.title); t.append(n, el('span', 'tag', `Taken down ${fmtDate(p.takenDownAt)}`));
+  } else {
+    const a = el('a', null, p.title); a.href = p.address; t.append(a);
+  }
+  t.append(el('span', 'p', p.address));
+  li.append(t);
+
+  if (p.takenDown) {
+    const undo = el('button', 'btn', 'Undo'); undo.type = 'button';
+    undo.addEventListener('click', () => restore(p, undo));
+    li.append(undo);
+    return li;
+  }
+  const c = el('button', 'btn', 'Copy link'); c.type = 'button';
+  c.addEventListener('click', async () => {
+    try { await copy(location.origin + p.address); c.textContent = 'Copied'; c.classList.add('done'); }
+    catch { c.textContent = 'Copy failed'; }
+    setTimeout(() => { c.textContent = 'Copy link'; c.classList.remove('done'); }, 1500);
+  });
+  li.append(c);
+  if (!isProtected(p.page)) {
+    const d = el('button', 'btn danger', 'Take down'); d.type = 'button';
+    d.addEventListener('click', () => openTakedown(p));
+    li.append(d);
+  }
+  return li;
+}
+
+function render() {
+  const list = $('list'); list.replaceChildren();
+  for (const g of GROUP_ORDER) {
+    const inGroup = pages.filter((p) => p.group === g);
+    if (!inGroup.length) continue;
+    const s = el('section', 'grp'); s.append(el('h2', null, g));
+    const ul = el('ul'); inGroup.forEach((p) => ul.append(row(p)));
+    s.append(ul); list.append(s);
+  }
+  const down = pages.filter((p) => p.takenDown).length;
+  $('meta').textContent = `${pages.length} pages${down ? `, ${down} taken down` : ''}. Hidden page, not indexed. Built from the live site.`;
+  $('q').hidden = false;
+  applyFilter();
+}
+
+function applyFilter() {
+  const v = $('q').value.trim().toLowerCase();
+  let shown = 0;
+  document.querySelectorAll('li.row').forEach((li) => { const hit = !v || li.dataset.search.includes(v); li.hidden = !hit; if (hit) shown++; });
+  document.querySelectorAll('section.grp').forEach((s) => { s.hidden = !s.querySelector('li.row:not([hidden])'); });
+  $('none').hidden = shown > 0;
+}
+$('q').addEventListener('input', applyFilter);
+
+async function load() {
+  try {
+    const data = await api('/api/offers/site/pages');
+    pages = data.pages;
+    render();
+    if (data.takedownsReadable === false) toast('Could not read the taken-down list. Take down and Undo may fail right now.');
+  } catch (err) {
+    if (err.message === 'signed out') return;
+    $('list').replaceChildren(el('div', 'state', err.message));
+    $('meta').textContent = '';
+  }
+}
+
+/* ---------- take down ---------- */
+
+let current = null;
+function closeDlg() { $('scrim').hidden = true; current = null; }
+$('dlg-cancel').addEventListener('click', closeDlg);
+$('scrim').addEventListener('click', (e) => { if (e.target === $('scrim')) closeDlg(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('scrim').hidden) closeDlg(); });
+
+function listBlock(title, items, render) {
+  const frag = document.createDocumentFragment();
+  frag.append(el('h4', null, title));
+  const ul = el('ul', 'lst'); items.forEach((i) => ul.append(render(i))); frag.append(ul);
+  return frag;
+}
+
+async function openTakedown(p) {
+  current = p;
+  $('dlg-h').textContent = `Take down: ${p.title}`;
+  $('dlg-addr').textContent = p.address;
+  $('dlg-body').replaceChildren(el('p', 'meta', 'Checking what links to this page…'));
+  $('dlg-confirm').hidden = true; $('dlg-go').hidden = true; $('dlg-go').disabled = true;
+  $('dlg-err').textContent = ''; $('dlg-word').value = '';
+  $('scrim').hidden = false;
+
+  let r;
+  try { r = await api(`/api/offers/site/links?page=${encodeURIComponent(p.page)}`); }
+  catch (err) { if (current === p) $('dlg-body').replaceChildren(el('p', 'err', err.message)); return; }
+  if (current !== p) return;
+
+  const body = $('dlg-body'); body.replaceChildren();
+  const clean = !r.linkedFrom.length && !r.mentionedIn.length && !r.redirects.length && !r.offers.length;
+  if (clean) body.append(el('p', 'ok', 'Nothing on the site links to this page.'));
+
+  if (r.linkedFrom.length) body.append(listBlock(`Linked from ${r.linkedFrom.length} page${r.linkedFrom.length === 1 ? '' : 's'}`, r.linkedFrom, (x) => {
+    const li = el('li'); const a = el('a', null, x.title); a.href = x.address; a.target = '_blank'; a.rel = 'noopener';
+    li.append(a, document.createTextNode(` (${x.address}, ${x.count} link${x.count === 1 ? '' : 's'})`)); return li;
+  }));
+  if (r.mentionedIn.length) body.append(listBlock('Mentioned in page code (buttons, scripts)', r.mentionedIn, (x) => {
+    const li = el('li'); li.textContent = `${x.title} (${x.address})`; return li;
+  }));
+  if (r.redirects.length) body.append(listBlock('Redirect rules that send people here', r.redirects, (x) => {
+    const li = el('li'); li.textContent = `${x.from} → ${x.to}`; return li;
+  }));
+  if (r.offers.length) body.append(listBlock('Offers on this page', r.offers, (x) => {
+    const li = el('li'); li.textContent = `${x.name} (${x.status})`; return li;
+  }));
+  if (r.offersReadable === false) body.append(el('div', 'warn', 'Could not read the offers right now, so offers on this page were not checked.'));
+
+  if (r.protected) { body.append(el('div', 'stop', 'This page cannot be taken down.')); return; }
+  if (r.blocked) { body.append(el('div', 'stop', 'An offer is scheduled on this page. Save it as a draft in the Offers portal first.')); return; }
+
+  if (r.linkedFrom.length || r.mentionedIn.length) {
+    body.append(el('div', 'warn', 'Those links will send people to the home page instead. Fix or remove them in the site files, then deploy.'));
+  }
+  body.append(el('div', 'warn', 'Links outside the site (emails, QR codes, LinkedIn, PDFs) cannot be checked. Visitors from those will land on the home page. Undo puts the page back.'));
+
+  const word = confirmWord(p.page);
+  $('dlg-wordshow').textContent = word;
+  $('dlg-confirm').hidden = false; $('dlg-go').hidden = false;
+  $('dlg-word').focus();
+}
+
+$('dlg-word').addEventListener('input', () => {
+  if (current) $('dlg-go').disabled = $('dlg-word').value.trim().toLowerCase() !== confirmWord(current.page);
+});
+
+$('dlg-go').addEventListener('click', async () => {
+  const p = current; if (!p) return;
+  $('dlg-go').disabled = true; $('dlg-err').textContent = '';
+  try {
+    await api('/api/offers/site/takedown', { method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ page: p.page, action: 'down', confirm: $('dlg-word').value.trim().toLowerCase() }) });
+    closeDlg();
+    toast(`${p.title} is taken down. Visitors go to the home page within about a minute.`);
+    await load();
+  } catch (err) {
+    if (err.message === 'signed out') return;
+    $('dlg-err').textContent = err.message; $('dlg-go').disabled = false;
+  }
+});
+
+async function restore(p, btn) {
+  btn.disabled = true;
+  try {
+    await api('/api/offers/site/takedown', { method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ page: p.page, action: 'restore' }) });
+    toast(`${p.title} is back. It is live again within about a minute.`);
+    await load();
+  } catch (err) {
+    if (err.message === 'signed out') return;
+    btn.disabled = false; toast(err.message);
+  }
+}
+
+load();
+</script>
+</body>
+</html>

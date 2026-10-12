@@ -38,7 +38,7 @@ export const LIMITS = Object.freeze({
 });
 
 /** Pages an offer may never sit on. */
-export const BLOCKED_PAGES = Object.freeze(['/offer-admin.html', '/offers-form.html']);
+export const BLOCKED_PAGES = Object.freeze(['/offer-admin.html', '/offers-form.html', '/admin.html', '/site-map.html']);   // admin and site map added 2026-10-12
 
 const EXTRA_FIELDS = ['extra_1', 'extra_2', 'extra_3'];
 const ISO_WITH_OFFSET = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|[+-]\d{2}:\d{2})$/;

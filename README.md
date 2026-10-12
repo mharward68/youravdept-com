@@ -36,21 +36,46 @@ self-contained HTML file with its CSS, JS, and images inlined.
 | `onyva-download.html` | Onyva as a digital gift | noindex |
 | `michaelh.html` + `michaelh.vcf` | Michael Harward digital card | noindex |
 | `trishah.html` + `trishah.vcf` | Trisha Harward digital card | noindex |
-| `booth-proof.html` | Booth Proof product page: $11,250 flat plus travel, 10 videos a day guaranteed. Permanent and orphaned; offers get their own pages and link back here. Standalone page: no header, footer or site map modal. Buttons go to `booth-proof-dates.html` | noindex |
+| `booth-proof.html` | Booth Proof product page: $11,250 flat plus travel, 10 videos a day guaranteed. Permanent and orphaned; offers get their own pages and link back here. Standalone page: no header or footer. Buttons go to `booth-proof-dates.html` | noindex |
 | `booth-proof-dates.html` | Booth Proof show dates form for the product page (Netlify form `booth-proof-dates`, no `guide` field so no auto email). Standalone page | noindex |
 | `booth-proof-pilot.html` | Booth Proof Q4 2026 pilot offer (fee waived, travel only, apply by October 16). Was `booth-proof.html` until 2026-10-09. Standalone page. Buttons go to `booth-proof-apply.html` | noindex |
 | `booth-proof-apply.html` | Booth Proof pilot application: short summary plus the intake form (Netlify form `booth-proof-pilot`, no `guide` field so no auto email). Standalone page | noindex |
+| `admin.html` | Admin panel: sign-in, then Offers portal and Site map buttons. Opened by 5 clicks on the footer copyright line | noindex |
+| `site-map.html` | Signed-in site map with Copy link and Take down. Built from the deployed pages | noindex |
 
 The `.vcf` files must deploy alongside the HTML or the "Save to Contacts"
 buttons will 404.
 
-## Hidden pages
+## Hidden pages and the admin panel
 
-The noindex pages carry no nav or footer links. They are reached by the site
-map easter egg: click the footer copyright line 5 times within 2 seconds.
-All twenty pages that carry the site map modal list the same 28 entries, in
-alphabetical order (punctuation ignored). Every page on the site belongs in it. The pages
-under `library/` and `field-notes/` use `../` prefixes for the root-level links.
+The noindex pages carry no nav or footer links. Click the footer copyright
+line 5 times within 2 seconds on any page with a footer to open `/admin`.
+
+- `admin.html` (`/admin`): sign in with the Offers admin password (same
+  password and cookie as `/offer-admin`), then two buttons: Offers portal and
+  Site map. Plain grey, no branding, noindex, no-store.
+- `site-map.html` (`/site-map`): signed-in only. The page list comes from
+  `/api/offers/site/pages`, which reads the deployed `.html` files, so a new
+  page shows up on its own after a deploy. Nothing to edit when pages change.
+  Each row has Copy link and Take down.
+- Take down: first runs a link check (`/api/offers/site/links`): other pages
+  linking to it, mentions in page code, `_redirects` rules, and offers on the
+  page. Then you type the page's address to confirm. The file is NOT deleted:
+  the `page-takedown` edge function sends its visitors to the home page (302)
+  until Undo. Changes reach every edge server within about a minute. Pages that
+  can never come down: home, `/admin`, `/site-map`, `/offer-admin`. A page
+  with a scheduled (running or upcoming) offer cannot come down until that
+  offer is saved as a draft.
+- To delete a page for good: take it down, fix the links the check listed,
+  delete the file, deploy, then Undo the takedown (the address now 404s or
+  redirects as `_redirects` says).
+- Storage: Netlify Blobs store `site-takedowns` (`site-takedowns-test` on draft
+  deploys), key `all`. Shared rules: `shared/site-admin.js`. Server code:
+  `netlify/functions/lib/site-admin.mjs` and the `site-*` and
+  `offers-session` functions. Tests: `node --test netlify/tests/site-admin.test.mjs`.
+
+The site map pop-up that used to be copied into twenty pages was removed on
+2026-10-12.
 
 ## Conventions
 
@@ -60,7 +85,7 @@ under `library/` and `field-notes/` use `../` prefixes for the root-level links.
   Page JS intercepts any `a.btn[href*="calendar.app.google"]` click and opens the
   Strategic Review modal; the href is the no-JS fallback.
 - Onyva calls to action on `onyva-welcome.html` link to `https://your-av-dept.onyva.life`.
-- Editing one page's `:root` or site map means editing all of them. There is no
+- Editing one page's `:root` means editing all of them. There is no
   shared stylesheet.
 
 ## Hero chrome logo and flare lights (reversible)
@@ -94,14 +119,14 @@ deploy. The download buttons and the welcome emails pick it up automatically.
 ## Field Notes
 
 Ungated, branded tips. Linked from the header nav and mobile menu on every page
-that has a header (not the footer), and from the site map. The header switches
+that has a header (not the footer). The site map lists notes automatically. The header switches
 to the menu button below 1300px wide so the seven nav links never wrap ("Help! Fix My AV Budget." sits after Who We Help and goes to `fix-my-av-budget.html`). Each note has exactly one CTA, a navy block
 reading "If you ___, why don't you book a call and see if we can ___ your AV
 process. It's free...the call and the services!" with a "How is it free?" link to
 `index.html#why-free`. Tags live on each listing card (`data-tags`, slugged) and
 the filter chips are generated from them, so a new tag needs no JS change. To add
-a note, copy `road-warrior-sanity-kit.html`, add its card to `field-notes/index.html`,
-and add it to every site map.
+a note, copy `road-warrior-sanity-kit.html` and add its card to `field-notes/index.html`.
+The site map picks it up on the next deploy.
 
 ## Deploying
 

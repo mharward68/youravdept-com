@@ -29,6 +29,15 @@ functions = "C:\\01_AppDevelopment\\12.Your-AV-Dept_Website\\netlify\\functions"
 [functions.offers-pages]
 included_files = ["*.html", "library/*.html", "field-notes/*.html"]
 
+[functions.site-pages]
+included_files = ["*.html", "library/*.html", "field-notes/*.html", "just-the-audio/index.html"]
+
+[functions.site-links]
+included_files = ["*.html", "library/*.html", "field-notes/*.html", "just-the-audio/index.html", "_redirects"]
+
+[functions.site-takedown]
+included_files = ["*.html", "library/*.html", "field-notes/*.html", "just-the-audio/index.html"]
+
 [functions."*"]
 
 [[headers]]
@@ -73,6 +82,20 @@ Cache-Control = "no-cache"
 
 [[headers]]
 for = "/just-the-audio-activity*"
+
+[headers.values]
+X-Robots-Tag = "noindex, nofollow"
+Cache-Control = "no-store"
+
+[[headers]]
+for = "/admin*"
+
+[headers.values]
+X-Robots-Tag = "noindex, nofollow"
+Cache-Control = "no-store"
+
+[[headers]]
+for = "/site-map*"
 
 [headers.values]
 X-Robots-Tag = "noindex, nofollow"
@@ -371,6 +394,30 @@ from = "/netlify/*"
 to = "/404-not-here"
 status = 404.0
 force = true
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/admin"
+to = "/admin.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/site-map"
+to = "/site-map.html"
+status = 200.0
+force = false
 
 [redirects.query]
 

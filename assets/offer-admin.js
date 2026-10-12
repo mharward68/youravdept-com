@@ -29,6 +29,7 @@ const el = {
   actions: $('oa-actions'), store: $('oa-store'), refresh: $('oa-refresh'),
   exportBtn: $('oa-export'), signout: $('oa-signout'), toast: $('oa-toast'),
   newBtn: $('oa-new'), versionsBtn: $('oa-versions-btn'),
+  adminHome: $('oa-admin-home'), siteMapLink: $('oa-sitemap-link'),
   editor: $('oa-editor'), versions: $('oa-versions')
 };
 
@@ -60,7 +61,7 @@ function show(which) {
   const signedIn = ['dash', 'editor', 'versions'].includes(which);
   el.actions.hidden = !signedIn;
   // In the editor and the versions list only Sign out stays in the top bar.
-  for (const b of [el.newBtn, el.refresh, el.versionsBtn, el.exportBtn]) b.hidden = which !== 'dash';
+  for (const b of [el.newBtn, el.refresh, el.versionsBtn, el.exportBtn, el.adminHome, el.siteMapLink]) b.hidden = which !== 'dash';
   el.store.hidden = !signedIn || !storeName;
 }
 

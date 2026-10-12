@@ -505,33 +505,6 @@
     .partner-grid{ grid-template-columns:repeat(3,1fr); }
   }
 
-  .sitemap-modal{
-    position:fixed; inset:0; background:rgba(21,43,74,.92);
-    display:flex; align-items:center; justify-content:center;
-    padding:24px; z-index:950; opacity:0; visibility:hidden;
-    transition:opacity .25s var(--ease), visibility .25s var(--ease);
-  }
-  .sitemap-modal.open{ opacity:1; visibility:visible; }
-  .sitemap-card{
-    background:var(--bg); border-radius:var(--radius); max-width:420px; width:100%;
-    padding:32px 28px 28px; position:relative; box-shadow:0 30px 80px rgba(21,43,74,.35);
-    transform:translateY(14px); transition:transform .25s var(--ease);
-  }
-  .sitemap-modal.open .sitemap-card{ transform:translateY(0); }
-  .sitemap-card h3{ margin:0 0 4px; font-size:1.15rem; color:var(--navy-deep); }
-  .sitemap-sub{ margin:0 0 18px; font-size:.86rem; color:var(--ink-faint); }
-  .sitemap-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px; }
-  .sitemap-list a{
-    display:block; padding:10px 12px; border-radius:10px; text-decoration:none;
-    color:var(--ink); font-weight:600; font-size:.96rem; transition:background .15s, color .15s;
-  }
-  .sitemap-list a:hover{ background:var(--card); color:var(--teal-deep); }
-  .sitemap-close{
-    position:absolute; top:14px; right:14px; width:32px; height:32px; border-radius:50%;
-    border:none; background:var(--card); color:var(--navy-deep); font-size:20px; line-height:1;
-    cursor:pointer; display:flex; align-items:center; justify-content:center;
-  }
-  .sitemap-close:hover{ background:var(--line); }
 
   .budget-modal{
     position:fixed; inset:0; background:rgba(21,43,74,.92);
@@ -1084,43 +1057,6 @@
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
 </button>
 
-<div class="sitemap-modal" id="sitemapModal">
-  <div class="sitemap-card">
-    <button class="sitemap-close" id="sitemapClose" aria-label="Close">&times;</button>
-    <h3>Site Map</h3>
-    <p class="sitemap-sub">Every page on Your AV Department.</p>
-    <ul class="sitemap-list">
-      <li><a href="12-av-concessions.html">12 AV Concessions &mdash; Free Guide</a></li>
-      <li><a href="av365.html">AV365 &mdash; Free Guide</a></li>
-      <li><a href="../booth-proof.html">Booth Proof</a></li>
-      <li><a href="../booth-proof-apply.html">Booth Proof Pilot Application</a></li>
-      <li><a href="../booth-proof-pilot.html">Booth Proof Pilot Program</a></li>
-      <li><a href="../booth-proof-dates.html">Booth Proof Show Dates Form</a></li>
-      <li><a href="../field-notes/index.html">Field Notes</a></li>
-      <li><a href="../fix-my-av-budget.html">Help! Fix My AV Budget</a></li>
-      <li><a href="../index.html">Home</a></li>
-      <li><a href="../how-we-get-paid.html">How We Get Paid</a></li>
-      <li><a href="../just-the-audio/index.html">Just the Audio: Free Tool</a></li>
-      <li><a href="../just-the-audio-activity.html">Just the Audio: Activity</a></li>
-      <li><a href="../michaelh.html">Michael Harward &mdash; Digital Card</a></li>
-      <li><a href="../onyva-download.html">Onyva &mdash; A Digital Gift</a></li>
-      <li><a href="../onyva-conference-pilot.html">Onyva Conference Pilot Program</a></li>
-      <li><a href="../onyva-welcome.html">Onyva &mdash; For Travelers</a></li>
-      <li><a href="../onyva.html">Onyva Quick Start Guide</a></li>
-      <li><a href="../our-story.html">Our Story</a></li>
-      <li><a href="../playlists-events.html">Playlists: Events</a></li>
-      <li><a href="../playlists-meeting-planner-wellness.html">Playlists: Meeting Planner Wellness</a></li>
-      <li><a href="../show-info.html">Show Info</a></li>
-      <li><a href="the-levers-of-labor.html">The Levers of Labor &mdash; Free Guide</a></li>
-      <li><a href="index.html">The Library</a></li>
-      <li><a href="../field-notes/road-warrior-sanity-kit.html">The Road Warrior&rsquo;s Sanity Kit &mdash; Field Note</a></li>
-      <li><a href="../trishah.html">Trisha Harward &mdash; Digital Card</a></li>
-      <li><a href="../venue-docs-offer.html">Venue Docs Offer</a></li>
-      <li><a href="../why-is-av-so-expensive.html">Why Is AV So Expensive?</a></li>
-      <li><a href="../field-notes/you-can-make-an-app-for-that.html">You Can Make an App for That &mdash; Field Note</a></li>
-    </ul>
-  </div>
-</div>
 
 <div class="budget-modal" id="budgetModal">
   <div class="budget-modal-card">
@@ -1243,33 +1179,20 @@
 
 
 
-  var sitemapModal = document.getElementById('sitemapModal');
+  // Admin: click the copyright line 5 times within 2 seconds to open /admin.
   var copyrightLine = document.getElementById('copyrightLine');
-  var sitemapClicks = 0, sitemapTimer = null;
-  function openSitemap(){
-    sitemapModal.classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeSitemap(){
-    sitemapModal.classList.remove('open');
-    document.body.style.overflow = '';
-  }
+  var adminClicks = 0, adminTimer = null;
   if (copyrightLine){
     copyrightLine.addEventListener('click', function(){
-      sitemapClicks++;
-      clearTimeout(sitemapTimer);
-      sitemapTimer = setTimeout(function(){ sitemapClicks = 0; }, 2000);
-      if (sitemapClicks >= 5){
-        sitemapClicks = 0;
-        clearTimeout(sitemapTimer);
-        openSitemap();
+      adminClicks++;
+      clearTimeout(adminTimer);
+      adminTimer = setTimeout(function(){ adminClicks = 0; }, 2000);
+      if (adminClicks >= 5){
+        adminClicks = 0;
+        clearTimeout(adminTimer);
+        window.location.href = '/admin';
       }
     });
-  }
-  if (sitemapModal){
-    sitemapModal.addEventListener('click', function(e){ if (e.target === sitemapModal) closeSitemap(); });
-    document.getElementById('sitemapClose').addEventListener('click', closeSitemap);
-    document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeSitemap(); });
   }
 
 
