@@ -40,7 +40,7 @@ self-contained HTML file with its CSS, JS, and images inlined.
 | `booth-proof-dates.html` | Booth Proof show dates form for the product page (Netlify form `booth-proof-dates`, no `guide` field so no auto email). Standalone page | noindex |
 | `booth-proof-pilot.html` | Booth Proof Q4 2026 pilot offer (fee waived, travel only, apply by October 16). Was `booth-proof.html` until 2026-10-09. Standalone page. Buttons go to `booth-proof-apply.html` | noindex |
 | `booth-proof-apply.html` | Booth Proof pilot application: short summary plus the intake form (Netlify form `booth-proof-pilot`, no `guide` field so no auto email). Standalone page | noindex |
-| `production-partners.html` | Production Partners: why AV production companies (Suppliers) should bid through Your AV Department (channel and lower acquisition cost, direct client contract, production support, multi-year path, 10% commission on won shows). Orphaned, for supplier outreach. Standalone page like Booth Proof. Buttons email Michael | noindex |
+| `production-partners.html` | Production Partners: why AV production companies (Suppliers) should bid through Your AV Department (channel and lower acquisition cost, direct client contract, production support, multi-year path, commission only on won shows; no commission rates on the page by design). Orphaned, for supplier outreach. Standalone page like Booth Proof. Buttons email Michael | noindex |
 
 The `.vcf` files must deploy alongside the HTML or the "Save to Contacts"
 buttons will 404.
