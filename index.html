@@ -552,6 +552,91 @@
   .yl-logo{ display:block; width:100%; height:auto; overflow:visible; }
   @media (prefers-reduced-motion: reduce){ .yl-logo .yl-fx{ display:none; } }
   /* YAVD-LOGO-LIGHTS:END */
+
+  /* YAVD-MENU:START (header keeps 5 links; everything else lives in the always-visible menu) */
+  .header-cta{ display:none !important; }
+  .hamburger{ display:flex !important; position:relative; z-index:2; transition:background .25s var(--ease), border-color .25s var(--ease); }
+  .hamburger.open{ background:#ffffff; border-color:#ffffff; }
+  nav.primary-nav{ display:none; }
+  @media (min-width:1024px){
+    nav.primary-nav{ display:block; margin-left:auto; margin-right:8px; }
+    nav.primary-nav ul{ gap:22px; }
+    nav.primary-nav a{ font-size:.84rem; }
+  }
+  .mobile-drawer.ym-menu{
+    position:fixed; inset:0; z-index:490; display:block; padding:0; gap:0;
+    background:rgba(21,43,74,.38); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px);
+    opacity:0; visibility:hidden; transform:none;
+    transition:opacity .35s var(--ease), visibility .35s;
+  }
+  .mobile-drawer.ym-menu.open{ opacity:1; visibility:visible; }
+  .ym-panel{
+    position:absolute; top:0; right:0; bottom:0; width:min(440px, 100%);
+    background:
+      radial-gradient(120% 60% at 100% 0%, rgba(42,164,162,.28) 0%, rgba(42,164,162,0) 60%),
+      radial-gradient(90% 50% at 0% 100%, rgba(42,164,162,.16) 0%, rgba(42,164,162,0) 65%),
+      #152B4A;
+    color:#ffffff; overflow-y:auto; overscroll-behavior:contain;
+    padding:92px 30px 34px; box-shadow:-24px 0 60px rgba(21,43,74,.35);
+    transform:translateX(104%); transition:transform .5s cubic-bezier(.2,.8,.2,1);
+  }
+  .ym-panel::before{
+    content:""; position:absolute; top:0; left:0; bottom:0; width:3px;
+    background:linear-gradient(180deg, #2AA4A2 0%, rgba(42,164,162,0) 85%);
+  }
+  .mobile-drawer.ym-menu.open .ym-panel{ transform:translateX(0); }
+  .ym-group{ margin:0 0 26px; }
+  .ym-label{
+    display:flex; align-items:center; gap:10px; margin:0 0 6px;
+    font-family:var(--font-head); font-size:.68rem; font-weight:800; letter-spacing:.16em; text-transform:uppercase; color:#2AA4A2;
+  }
+  .ym-label::after{ content:""; flex:1; height:1px; background:rgba(255,255,255,.14); }
+  .mobile-drawer.ym-menu .ym-panel a.ym-link{
+    display:flex; align-items:center; gap:14px; padding:11px 10px; margin:0 -10px; border-radius:12px;
+    font-size:1rem; font-weight:400; color:#ffffff; text-decoration:none;
+    opacity:0; transform:translateX(18px);
+    transition:opacity .4s var(--ease), transform .4s var(--ease), background .2s;
+  }
+  .mobile-drawer.ym-menu.open .ym-panel a.ym-link{ opacity:1; transform:translateX(0); }
+  .ym-link .ym-text{ flex:1; min-width:0; display:flex; flex-direction:column; gap:1px; }
+  .ym-link .ym-t{ font-family:var(--font-head); font-weight:700; font-size:1.02rem; line-height:1.25; }
+  .ym-link .ym-d{ font-size:.8rem; color:rgba(255,255,255,.62); line-height:1.35; }
+  .ym-link .ym-arrow{
+    flex-shrink:0; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    border:1px solid rgba(255,255,255,.18); color:#ffffff; transition:transform .25s var(--ease), background .25s, border-color .25s;
+  }
+  .ym-link .ym-arrow svg{ width:14px; height:14px; }
+  .ym-link:hover, .ym-link:focus-visible{ background:rgba(255,255,255,.07); outline:none; }
+  .ym-link:hover .ym-arrow, .ym-link:focus-visible .ym-arrow{ background:#2AA4A2; border-color:#2AA4A2; transform:translateX(3px); }
+  .ym-link[aria-current="page"] .ym-t{ color:#2AA4A2; }
+  .ym-link[aria-current="page"] .ym-arrow{ border-color:#2AA4A2; }
+  .ym-main{ display:block; }
+  @media (min-width:1024px){ .ym-main{ display:none; } }
+  .ym-cta{
+    margin-top:0; padding:22px 22px 20px; border-radius:18px;
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14);
+  }
+  .ym-cta p{ margin:0 0 14px; font-family:var(--font-head); font-weight:800; font-size:1.15rem; line-height:1.3; color:#ffffff; }
+  .ym-cta p span{ display:block; margin-top:4px; font-family:var(--font-body); font-weight:400; font-size:.86rem; color:rgba(255,255,255,.7); }
+  .mobile-drawer.ym-menu .ym-cta .btn{
+    display:flex; width:100%; max-width:none; margin:0; justify-content:center; text-align:center;
+    background:#2AA4A2; border-color:#2AA4A2; color:#ffffff; opacity:1; transform:none; font-size:.86rem; padding:14px 18px;
+  }
+  .mobile-drawer.ym-menu .ym-cta .btn:hover{ background:#ffffff; border-color:#ffffff; color:#152B4A; }
+  .mobile-drawer.ym-menu .ym-cta a.ym-mail{
+    display:block; margin-top:14px; padding:0; font-size:.84rem; font-weight:600; color:rgba(255,255,255,.75);
+    opacity:1; transform:none; text-align:center;
+  }
+  .mobile-drawer.ym-menu .ym-cta a.ym-mail:hover{ color:#ffffff; }
+  @media (max-width:480px){ .ym-panel{ padding:84px 22px 28px; } }
+  @media (prefers-reduced-motion: reduce){
+    .ym-panel, .mobile-drawer.ym-menu .ym-panel a.ym-link{ transition:none; }
+  }
+  header.site-header .brand, header.site-header nav.primary-nav{ transition:opacity .3s var(--ease); }
+  header.site-header:has(.hamburger.open) nav.primary-nav{ opacity:0; pointer-events:none; }
+  @media (max-width:520px){ header.site-header:has(.hamburger.open) .brand{ opacity:0; pointer-events:none; } }
+  .ym-cta{ margin:0 0 30px; }
+  /* YAVD-MENU:END */
 </style>
 </head>
 <body>
@@ -569,8 +654,6 @@
         <li><a href="#how-it-works" data-nav>How It Works</a></li>
         <li><a href="#who-we-help" data-nav>Who We Help</a></li>
         <li><a href="fix-my-av-budget.html">Help! Fix My AV Budget.</a></li>
-        <li><a href="field-notes/index.html">Field Notes</a></li>
-        <li><a href="#contact" data-nav>Contact</a></li>
       </ul>
     </nav>
     <a href="https://calendar.app.google/Do7aNUGLhraagUKV6" target="_blank" rel="noopener" class="btn btn-primary header-cta">Get Your Free Strategic Review</a>
@@ -578,15 +661,43 @@
   </div>
 </header>
 
-<div class="mobile-drawer" id="mobileDrawer">
-  <a href="#why-free" data-nav>Why It's Free</a>
-  <a href="#what-we-do" data-nav>What We Do</a>
-  <a href="#how-it-works" data-nav>How It Works</a>
-  <a href="#who-we-help" data-nav>Who We Help</a>
-  <a href="fix-my-av-budget.html">Help! Fix My AV Budget.</a>
-  <a href="field-notes/index.html">Field Notes</a>
-  <a href="#contact" data-nav>Contact</a>
-  <a href="https://calendar.app.google/Do7aNUGLhraagUKV6" target="_blank" rel="noopener" class="btn btn-primary">Get Your Free Strategic Review</a>
+<div class="mobile-drawer ym-menu" id="mobileDrawer" aria-hidden="true">
+<nav class="ym-panel" aria-label="Site menu">
+  <div class="ym-cta">
+    <p>Planning a show?<span>Talk it through with Michael. It's free.</span></p>
+    <a href="https://calendar.app.google/Do7aNUGLhraagUKV6" target="_blank" rel="noopener" class="btn btn-primary">Get Your Free Strategic Review</a>
+    <a class="ym-mail" href="mailto:michaelh@youravdept.com">michaelh@youravdept.com</a>
+  </div>
+  <div class="ym-group ym-main">
+    <div class="ym-label">On this site</div>
+    <a class="ym-link" href="#why-free"><span class="ym-text"><span class="ym-t">Why It's Free</span></span><span class="ym-arrow" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></a>
+    <a class="ym-link" href="#what-we-do"><span class="ym-text"><span class="ym-t">What We Do</span></span><span class="ym-arrow" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></a>
+    <a class="ym-link" href="#how-it-works"><span class="ym-text"><span class="ym-t">How It Works</span></span><span class="ym-arrow" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></a>
+    <a class="ym-link" href="#who-we-help"><span class="ym-text"><span class="ym-t">Who We Help</span></span><span class="ym-arrow" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></a>
+    <a class="ym-link" href="fix-my-av-budget.html"><span class="ym-text"><span class="ym-t">Help! Fix My AV Budget.</span></span><span class="ym-arrow" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></a>
+  </div>
+  <div class="ym-group">
+    <div class="ym-label">Free guides and tips</div>
+    <a class="ym-link" href="library/index.html"><span class="ym-text"><span class="ym-t">The Library</span><span class="ym-d">Every free guide in one place</span></span><span class="ym-arrow" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></a>
+    <a class="ym-link" href="library/12-av-concessions.html"><span class="ym-text"><span class="ym-t">12 AV Concessions</span><span class="ym-d">Free guide: what to ask before you sign</span></span><span class="ym-arrow" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></a>
+    <a class="ym-link" href="library/av365.html"><span class="ym-text"><span class="ym-t">AV365</span><span class="ym-d">Free guide</span></span><span class="ym-arrow" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></a>
+    <a class="ym-link" href="library/the-levers-of-labor.html"><span class="ym-text"><span class="ym-t">The Levers of Labor</span><span class="ym-d">Free guide</span></span><span class="ym-arrow" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></a>
+    <a class="ym-link" href="field-notes/index.html"><span class="ym-text"><span class="ym-t">Field Notes</span><span class="ym-d">Quick tips from the road</span></span><span class="ym-arrow" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></a>
+    <a class="ym-link" href="why-is-av-so-expensive.html"><span class="ym-text"><span class="ym-t">Why Is AV So Expensive?</span><span class="ym-d">The long answer, in plain English</span></span><span class="ym-arrow" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></a>
+  </div>
+  <div class="ym-group">
+    <div class="ym-label">About us</div>
+    <a class="ym-link" href="our-story.html"><span class="ym-text"><span class="ym-t">Our Story</span><span class="ym-d">The old way vs. Your AV Department</span></span><span class="ym-arrow" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></a>
+    <a class="ym-link" href="how-we-get-paid.html"><span class="ym-text"><span class="ym-t">How We Get Paid</span><span class="ym-d">No cost to you. Here's how it works.</span></span><span class="ym-arrow" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></a>
+    <a class="ym-link" href="#contact"><span class="ym-text"><span class="ym-t">Contact</span><span class="ym-d">Get in touch with Michael</span></span><span class="ym-arrow" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></a>
+  </div>
+  <div class="ym-group">
+    <div class="ym-label">Free extras</div>
+    <a class="ym-link" href="just-the-audio/index.html"><span class="ym-text"><span class="ym-t">Just the Audio</span><span class="ym-d">Free tool: turn video into MP3</span></span><span class="ym-arrow" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></a>
+    <a class="ym-link" href="playlists-events.html"><span class="ym-text"><span class="ym-t">Playlists: Events</span><span class="ym-d">Music for your events</span></span><span class="ym-arrow" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></a>
+    <a class="ym-link" href="playlists-meeting-planner-wellness.html"><span class="ym-text"><span class="ym-t">Playlists: Planner Wellness</span><span class="ym-d">Music for the planner</span></span><span class="ym-arrow" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></a>
+  </div>
+</nav>
 </div>
 
 <main id="top">
@@ -1043,5 +1154,24 @@
 })();
 </script>
 <!-- YAVD-LOGO-LIGHTS:END -->
+
+<!-- YAVD-MENU:START (menu stagger + close on backdrop click) -->
+<script>
+(function(){
+  var drawer = document.getElementById('mobileDrawer');
+  var btn = document.getElementById('hamburgerBtn');
+  if (!drawer || !btn) return;
+  drawer.querySelectorAll('a.ym-link').forEach(function(a, i){
+    a.style.transitionDelay = (0.06 + i * 0.03).toFixed(2) + 's';
+  });
+  drawer.addEventListener('click', function(e){
+    if (e.target === drawer && drawer.classList.contains('open')) btn.click();
+  });
+  new MutationObserver(function(){
+    drawer.setAttribute('aria-hidden', drawer.classList.contains('open') ? 'false' : 'true');
+  }).observe(drawer, { attributes:true, attributeFilter:['class'] });
+})();
+</script>
+<!-- YAVD-MENU:END -->
 </body>
 </html>

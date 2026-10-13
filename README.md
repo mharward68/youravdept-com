@@ -63,6 +63,22 @@ under `library/` and `field-notes/` use `../` prefixes for the root-level links.
 - Editing one page's `:root` or site map means editing all of them. There is no
   shared stylesheet.
 
+## Header and menu
+
+The header shows only the logo, five links (Why It's Free, What We Do, How It
+Works, Who We Help, Help! Fix My AV Budget.) and the menu button, which is always
+visible. Below 1024px wide the five links move into the menu. The old header CTA
+button is hidden with CSS, not deleted.
+
+Everything else lives in the menu: a navy panel that slides in from the right,
+with the page's own CTA card at the top, then Free guides and tips, About us and
+Free extras. The current page is highlighted in teal. Hidden (noindex) pages and
+Onyva pages are not in the menu; they stay in the site map easter egg.
+
+The menu CSS and its small script sit between `YAVD-MENU:START` and
+`YAVD-MENU:END` markers on all twenty pages that have the header. Changing the
+menu means changing all twenty, same as the site map.
+
 ## Hero chrome logo and flare lights (reversible)
 
 The homepage hero logo is an inline SVG. The emblem has a chrome finish (mirror-style
@@ -93,9 +109,8 @@ deploy. The download buttons and the welcome emails pick it up automatically.
 
 ## Field Notes
 
-Ungated, branded tips. Linked from the header nav and mobile menu on every page
-that has a header (not the footer), and from the site map. The header switches
-to the menu button below 1300px wide so the seven nav links never wrap ("Help! Fix My AV Budget." sits after Who We Help and goes to `fix-my-av-budget.html`). Each note has exactly one CTA, a navy block
+Ungated, branded tips. Linked from the menu on every page that has a header
+(not the footer), and from the site map. Each note has exactly one CTA, a navy block
 reading "If you ___, why don't you book a call and see if we can ___ your AV
 process. It's free...the call and the services!" with a "How is it free?" link to
 `index.html#why-free`. Tags live on each listing card (`data-tags`, slugged) and
