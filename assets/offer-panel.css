@@ -93,6 +93,50 @@
 }
 .yavd-op-body p:last-child { margin-bottom: 0; }
 
+/* ---------- eyebrow, bullets and formatting (contract 1.2.0) ---------- */
+
+.yavd-op-eyebrow {
+  margin: 0 34px 8px 0; padding: 0;
+  font-family: var(--op-head); font-weight: 700;
+  font-size: 12px; line-height: 1.4; letter-spacing: .2em;
+  text-transform: uppercase; color: var(--op-teal);
+}
+.yavd-op-body ul { margin: 0 0 10px; padding: 0 0 0 1.25em; list-style: disc; }
+.yavd-op-body li {
+  margin: 0 0 6px; padding: 0 0 0 .2em;
+  font-family: var(--op-body); font-size: 16px; line-height: 1.5; color: var(--op-navy);
+}
+.yavd-op-body li::marker { color: var(--op-teal); }
+.yavd-op-body ul:last-child { margin-bottom: 0; }
+
+/* Formatting classes from /shared/offer-format.js. Shared with the admin
+   editor (.oa-rich) so what Michael types looks like what visitors see. */
+.yavd-op .yf-b, .oa-rich .yf-b { font-weight: bolder; }
+.yavd-op .yf-i, .oa-rich .yf-i { font-style: italic; }
+.yavd-op .yf-u, .oa-rich .yf-u { text-decoration: underline; text-underline-offset: .15em; }
+.yavd-op .yf-s, .oa-rich .yf-s { text-decoration: line-through; text-decoration-thickness: .08em; }
+.yavd-op .yf-u.yf-s, .oa-rich .yf-u.yf-s { text-decoration: underline line-through; }
+.yavd-op .yf-font-heading, .oa-rich .yf-font-heading { font-family: Montserrat, "Proxima Nova", Arial, sans-serif; }
+.yavd-op .yf-font-body, .oa-rich .yf-font-body { font-family: Inter, "Open Sans", Arial, sans-serif; }
+.yavd-op .yf-size-xs, .oa-rich .yf-size-xs { font-size: .75em; }
+.yavd-op .yf-size-s, .oa-rich .yf-size-s { font-size: .875em; }
+.yavd-op .yf-size-l, .oa-rich .yf-size-l { font-size: 1.25em; }
+.yavd-op .yf-size-xl, .oa-rich .yf-size-xl { font-size: 1.6em; line-height: 1.2; }
+.yavd-op .yf-size-xxl, .oa-rich .yf-size-xxl { font-size: 2em; line-height: 1.15; }
+.yavd-op .yf-color-navy, .oa-rich .yf-color-navy { color: #152B4A; }
+.yavd-op .yf-color-teal, .oa-rich .yf-color-teal { color: #2AA4A2; }
+.yavd-op .yf-color-tealdark, .oa-rich .yf-color-tealdark { color: #1F7F7D; }
+.yavd-op .yf-color-gray, .oa-rich .yf-color-gray { color: #4A5B73; }
+.yavd-op .yf-color-white, .oa-rich .yf-color-white { color: #FFFFFF; }
+.yavd-op [class*="yf-hl-"], .oa-rich [class*="yf-hl-"] {
+  padding: .05em .25em; border-radius: .2em;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+}
+.yavd-op .yf-hl-teal, .oa-rich .yf-hl-teal { background: #D4EFEE; }
+.yavd-op .yf-hl-navytint, .oa-rich .yf-hl-navytint { background: #E3E8EF; }
+.yavd-op .yf-hl-navy, .oa-rich .yf-hl-navy { background: #152B4A; }
+.yavd-op .yf-hl-teal2, .oa-rich .yf-hl-teal2 { background: #2AA4A2; }
+
 /* ---------- form ---------- */
 
 .yavd-op-form { margin: 0; }

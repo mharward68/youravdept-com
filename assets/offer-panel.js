@@ -5,7 +5,8 @@
  *
  * Security: every piece of offer text is placed with textContent or as an
  * attribute value set through the DOM. Nothing from the offer is ever parsed
- * as HTML. The button link (form off) is limited to https/http or a same-site
+ * as HTML. Formatting (contract 1.2.0) comes from /shared/offer-format.js:
+ * fixed class names on spans built with createElement, never markup. The button link (form off) is limited to https/http or a same-site
  * path.
  *
  * Shared names (form fields, labels, subject line, 7-day memory, 1.5 s delay)
@@ -23,6 +24,7 @@
   'use strict';
 
   var CONTRACT_URL = '/shared/offer-contract.js';
+  var FORMAT_URL = '/shared/offer-format.js';     // contract 1.2.0: eyebrow and formatting
   var SUBMIT_URL = '/offers-form.html';   // Netlify accepts the post here; edge functions skip this path
   var STATS_URL = '/api/offers/stats';     // Session 1.9 counts (route set in netlify/functions/offers-stats.mjs)
   var WIDE = { message: 1, heard_from: 1, option_choice: 1 };
@@ -50,21 +52,6 @@
     if (cls) n.className = cls;
     if (text) n.textContent = text;
     return n;
-  }
-
-  /** Plain text to paragraphs: blank lines split paragraphs, single line breaks become <br>. */
-  function textBlock(text) {
-    var wrap = el('div', 'yavd-op-body');
-    str(text).replace(/\r\n?/g, '\n').split(/\n{2,}/).forEach(function (para) {
-      if (!para.trim()) return;
-      var p = el('p');
-      para.split('\n').forEach(function (line, i) {
-        if (i) p.appendChild(document.createElement('br'));
-        p.appendChild(document.createTextNode(line));
-      });
-      wrap.appendChild(p);
-    });
-    return wrap;
   }
 
   function safeUrl(u) {
@@ -95,7 +82,7 @@
     } catch (e) { /* old browser: no count */ }
   }
 
-  function start(C) {
+  function start(C, F) {
     var data = readPayload(C.INJECT.dataElementId);
     if (!data) return;
     var offer = data.offer;
@@ -124,12 +111,21 @@
     closeBtn.setAttribute('aria-label', 'Close');
     closeBtn.appendChild(document.createTextNode('\u00d7'));
 
+    var plainHeadline = F.plainFromMarkup(str(offer.headline)).trim();
     var content = el('div');
     if (isTest) content.appendChild(el('span', 'yavd-op-test', 'Preview: submissions are marked as tests'));
-    var h = el('h2', 'yavd-op-headline', str(offer.headline) || str(offer.name));
+    if (F.plainFromMarkup(str(offer.eyebrow)).trim()) {
+      var eb = el('p', 'yavd-op-eyebrow');
+      F.renderInline(document, eb, str(offer.eyebrow));
+      content.appendChild(eb);
+    }
+    var h = el('h2', 'yavd-op-headline');
+    if (plainHeadline) F.renderInline(document, h, str(offer.headline));
+    else h.textContent = str(offer.name);
     h.id = uid + '-h';
     content.appendChild(h);
-    var body = textBlock(offer.body);
+    var body = el('div', 'yavd-op-body');
+    F.renderBlocks(document, body, str(offer.body));
     body.id = uid + '-b';
     content.appendChild(body);
 
@@ -143,9 +139,9 @@
     var tab = el('button', 'yavd-op-tab');
     tab.type = 'button';
     tab.hidden = true;
-    tab.setAttribute('aria-label', 'Open offer: ' + (str(offer.headline) || str(offer.name)));
+    tab.setAttribute('aria-label', 'Open offer: ' + (plainHeadline || str(offer.name)));
     tab.appendChild(el('span', 'yavd-op-tab-dot'));
-    tab.appendChild(el('span', 'yavd-op-tab-text', str(offer.headline) || 'See the offer'));
+    tab.appendChild(el('span', 'yavd-op-tab-text', plainHeadline || 'See the offer'));
     root.appendChild(tab);
 
     /* ----- form, or a plain button ----- */
@@ -394,7 +390,7 @@
   }
 
   function boot() {
-    import(CONTRACT_URL).then(start).catch(function (err) {
+    Promise.all([import(CONTRACT_URL), import(FORMAT_URL)]).then(function (m) { start(m[0], m[1]); }).catch(function (err) {
       if (window.console) console.warn('offer-panel: not shown', err && err.message);
     });
   }

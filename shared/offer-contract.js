@@ -5,6 +5,11 @@
  * not change an existing shape is not.
  * 1.1.0 (2026-10-10, approved by Michael after Session 1.4): added
  * ROUTES.apiRestore. Additive; no existing shape changed.
+ * 1.2.0 (2026-10-12, Michael's request): added the "eyebrow" field (short
+ * line above the headline) to OFFER_KEYS and PUBLIC_OFFER_KEYS, and
+ * eyebrow, headline and body may now carry formatting tags defined in
+ * /shared/offer-format.js. Additive: an offer saved before 1.2.0 has no
+ * eyebrow and no tags and shows exactly as before.
  *
  * Pure ES module, no imports, no secrets. It is loaded by:
  *   - Netlify Functions   (netlify/functions/*.mjs, Node)
@@ -14,7 +19,7 @@
  * nothing in it is private.
  */
 
-export const CONTRACT_VERSION = '1.1.0';
+export const CONTRACT_VERSION = '1.2.0';
 
 /* ---------- ADDRESSES ---------- */
 
@@ -64,8 +69,9 @@ export const DEFAULT_END_TIME   = '23:59';   // 11:59 PM Eastern
  * @property {string}  slug        required when audience is "link"; "" otherwise
  * @property {string}  page        canonical page path, e.g. "/booth-proof.html"
  * @property {'link'|'everyone'} audience
- * @property {string}  headline    plain text
- * @property {string}  body        plain text, line breaks kept
+ * @property {string}  eyebrow     short line above the headline (1.2.0); formatting tags allowed
+ * @property {string}  headline    plain text with formatting tags (offer-format.js)
+ * @property {string}  body        plain text with formatting tags, line breaks kept
  * @property {OfferForm} form
  * @property {string|null} buttonUrl  used only when form.enabled is false
  * @property {string}  startsAt    ISO time with offset, entered as Eastern
@@ -78,7 +84,7 @@ export const DEFAULT_END_TIME   = '23:59';   // 11:59 PM Eastern
  */
 
 export const OFFER_KEYS = Object.freeze([
-  'id', 'name', 'slug', 'page', 'audience', 'headline', 'body', 'form',
+  'id', 'name', 'slug', 'page', 'audience', 'eyebrow', 'headline', 'body', 'form',
   'buttonUrl', 'startsAt', 'endsAt', 'draft', 'previewKey', 'rerunOf',
   'createdAt', 'updatedAt'
 ]);
@@ -91,7 +97,7 @@ export const FORM_KEYS = Object.freeze([
 export function emptyOffer() {
   return {
     id: '', name: '', slug: '', page: '', audience: 'everyone',
-    headline: '', body: '',
+    eyebrow: '', headline: '', body: '',
     form: {
       enabled: true, fields: ['name', 'email'], required: ['name', 'email'],
       buttonLabel: 'Send', optionChoices: [], extraLabels: {},
@@ -259,7 +265,7 @@ export const INJECT = Object.freeze({
   js: '/assets/offer-panel.js'
 });
 export const PUBLIC_OFFER_KEYS = Object.freeze([
-  'id', 'name', 'slug', 'headline', 'body', 'form', 'buttonUrl'
+  'id', 'name', 'slug', 'eyebrow', 'headline', 'body', 'form', 'buttonUrl'
 ]);
 
 /**
@@ -269,7 +275,7 @@ export const PUBLIC_OFFER_KEYS = Object.freeze([
  */
 export function publicPayload(offer, isTest) {
   const pub = {};
-  for (const k of PUBLIC_OFFER_KEYS) pub[k] = offer[k];
+  for (const k of PUBLIC_OFFER_KEYS) pub[k] = offer[k] === undefined ? '' : offer[k];   // offers saved before 1.2.0 have no eyebrow
   return { v: CONTRACT_VERSION, isTest: !!isTest, offer: pub };
 }
 export function payloadToScriptJson(payload) {

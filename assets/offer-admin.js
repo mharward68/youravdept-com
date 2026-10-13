@@ -19,6 +19,8 @@ import {
   FIELD_NAMES, FIELD_LABELS, SLUG_MIN, SLUG_MAX, isValidSlug,
   DEFAULT_START_TIME, DEFAULT_END_TIME, INJECT, normalizePagePath
 } from '/shared/offer-contract.js';
+import { plainFromMarkup, renderInline, renderBlocks } from '/shared/offer-format.js';
+import { RichField } from '/assets/offer-rich.js';
 
 const $ = (id) => document.getElementById(id);
 const el = {
@@ -493,7 +495,7 @@ const ed = {
   guard: $('oa-ed-guard'), guardText: $('oa-ed-guard-text'), keep: $('oa-ed-keep'), discard: $('oa-ed-discard'),
   banner: $('oa-ed-banner'), summary: $('oa-ed-summary'), form: $('oa-ed-form'),
   page: $('f-page'), pageRetry: $('f-page-retry'), name: $('f-name'), slugWrap: $('f-slug-wrap'), slug: $('f-slug'),
-  headline: $('f-headline'), body: $('f-body'), formOn: $('f-form-on'), formYes: $('f-form-yes'), formNo: $('f-form-no'),
+  formOn: $('f-form-on'), formYes: $('f-form-yes'), formNo: $('f-form-no'),
   fields: $('f-fields'), choicesWrap: $('f-choices-wrap'), choices: $('f-choices'), btn: $('f-btn'), thanks: $('f-thanks'),
   btn2: $('f-btn2'), url: $('f-url'),
   startD: $('f-start-d'), startT: $('f-start-t'), endD: $('f-end-d'), endT: $('f-end-t'),
@@ -504,6 +506,20 @@ const ed = {
   pvUrl: $('oa-pv-url'), pvOpen: $('oa-pv-open'), pvCopy: $('oa-pv-copy'),
   vBack: $('oa-v-back'), vH: $('oa-v-h'), vList: $('oa-v-list')
 };
+
+/* Contract 1.2.0: eyebrow, headline and copy are formatted text boxes. */
+const RICH = {
+  eyebrow: { label: 'Eyebrow', kind: 'eyebrow', multiline: false, max: 60, placeholder: 'e.g. 2027 FOUNDING RATE' },
+  headline: { label: 'Headline', kind: 'headline', multiline: false, max: 150, placeholder: 'The one line they must read' },
+  body: { label: 'Offer copy', kind: 'body', multiline: true, max: 3000, bullets: true, placeholder: 'What they get, the price and why to act now' }
+};
+for (const [key, o] of Object.entries(RICH)) {
+  const f = new RichField({ id: `f-${key}`, ...o });
+  f.el.setAttribute('aria-labelledby', `f-${key}-l`);
+  ed.form.querySelector(`[data-rich="${key}"]`).replaceWith(f.wrap);
+  $(`f-${key}-l`).addEventListener('click', () => f.focus());
+  ed[key] = f;
+}
 
 /** What the editor is working on.
  *  record:  the saved offer as the server last returned it (null = not saved yet)
@@ -676,7 +692,7 @@ function collect() {
   const rec = {
     name: ed.name.value, page: ed.page.value, audience,
     slug: audience === 'link' ? ed.slug.value.trim() : '',
-    headline: ed.headline.value, body: ed.body.value,
+    eyebrow: ed.eyebrow.value, headline: ed.headline.value, body: ed.body.value,
     form: {
       enabled, fields, required,
       buttonLabel: enabled ? ed.btn.value.trim() : ed.btn2.value.trim(),
@@ -700,6 +716,7 @@ function fill(o) {
   ed.name.value = o.name || '';
   for (const r of ed.form.querySelectorAll('input[name="audience"]')) r.checked = r.value === (o.audience || 'everyone');
   ed.slug.value = o.slug || '';
+  ed.eyebrow.value = o.eyebrow || '';
   ed.headline.value = o.headline || '';
   ed.body.value = o.body || '';
   const f = o.form || emptyOffer().form;
@@ -884,14 +901,17 @@ function drawPreview() {
   const scroll = m('div', 'yavd-op-scroll');
   const content = m('div');
   content.append(m('span', 'yavd-op-test', 'Preview: submissions are marked as tests'));
-  content.append(m('h2', 'yavd-op-headline', o.headline.trim() || o.name.trim() || 'Your headline'));
+  if (plainFromMarkup(o.eyebrow).trim()) {
+    const eb = m('p', 'yavd-op-eyebrow');
+    renderInline(doc, eb, o.eyebrow);
+    content.append(eb);
+  }
+  const h2 = m('h2', 'yavd-op-headline');
+  if (plainFromMarkup(o.headline).trim()) renderInline(doc, h2, o.headline);
+  else h2.textContent = o.name.trim() || 'Your headline';
+  content.append(h2);
   const body = m('div', 'yavd-op-body');
-  o.body.replace(/\r\n?/g, '\n').split(/\n{2,}/).forEach((para) => {
-    if (!para.trim()) return;
-    const p = m('p');
-    para.split('\n').forEach((line, i) => { if (i) p.append(doc.createElement('br')); p.append(doc.createTextNode(line)); });
-    body.append(p);
-  });
+  renderBlocks(doc, body, o.body);
   content.append(body);
 
   if (o.form.enabled) {
@@ -936,7 +956,7 @@ function clearErrors() {
 /** Server keys to the input that should be marked and focused. */
 function inputFor(key) {
   const map = {
-    name: ed.name, page: ed.page, slug: ed.slug, headline: ed.headline, body: ed.body,
+    name: ed.name, page: ed.page, slug: ed.slug, eyebrow: ed.eyebrow.el, headline: ed.headline.el, body: ed.body.el,
     startsAt: ed.startD, endsAt: ed.endD, buttonUrl: ed.url, 'form.buttonLabel': ed.formOn.checked ? ed.btn : ed.btn2,
     'form.thanks': ed.thanks, 'form.optionChoices': ed.choices, 'form.fields': ed.fields.querySelector('[data-show]'),
     'form.required': ed.fields.querySelector('[data-req]'), audience: ed.form.querySelector('input[name="audience"]'),
@@ -991,6 +1011,7 @@ function resetEditor() {
 function wipeEditor() {
   resetEditor();
   ed.form.reset();
+  for (const k of Object.keys(RICH)) ed[k].value = '';
   for (const n of ed.fields.querySelectorAll('[data-extra]')) n.value = '';
   ed.h.textContent = 'New offer';
   ed.status.hidden = true;
@@ -1151,8 +1172,9 @@ async function save(asDraft) {
     headerFor();
     render();
     const st = offerStatus(saved, now());
-    const what = { draft: 'Saved as a draft. Visitors do not see it.', upcoming: `Scheduled. It starts ${words(saved.startsAt)}.`,
-      running: 'Saved. It is running now; visitors see it within about a minute.', expired: 'Saved. Its stop date has passed, so it is in Expired.' }[st];
+    // Only the matching message is built: a draft may have no dates (words() would throw). Fixed 2026-10-12.
+    const what = { draft: () => 'Saved as a draft. Visitors do not see it.', upcoming: () => `Scheduled. It starts ${words(saved.startsAt)}.`,
+      running: () => 'Saved. It is running now; visitors see it within about a minute.', expired: () => 'Saved. Its stop date has passed, so it is in Expired.' }[st]();
     toast(what);
     if (Array.isArray(body.notes) && body.notes.length) setBanner(body.notes.join(' '), true);
     ed.saving.textContent = body.created ? 'Created.' : 'Saved.';
@@ -1193,14 +1215,18 @@ async function reloadCurrent() {
 /* inputs kept across an expired sign-in */
 function grabInputs() {
   const v = {};
+  for (const k of Object.keys(RICH)) v[`rich:${k}`] = ed[k].value;
   for (const n of ed.form.querySelectorAll('input, textarea, select')) {
+    if (n.closest('.oa-rtb')) continue;   // formatting toolbars follow their text box
     const k = n.id || `${n.name}:${n.value}:${n.dataset.show || n.dataset.req || n.dataset.extra || ''}`;
     if (n.type === 'checkbox' || n.type === 'radio') v[k] = n.checked; else v[k] = n.value;
   }
   return v;
 }
 function putInputs(v) {
+  for (const k of Object.keys(RICH)) if (`rich:${k}` in v) ed[k].value = v[`rich:${k}`];
   for (const n of ed.form.querySelectorAll('input, textarea, select')) {
+    if (n.closest('.oa-rtb')) continue;   // formatting toolbars follow their text box
     const k = n.id || `${n.name}:${n.value}:${n.dataset.show || n.dataset.req || n.dataset.extra || ''}`;
     if (!(k in v)) continue;
     if (n.type === 'checkbox' || n.type === 'radio') n.checked = v[k]; else n.value = v[k];

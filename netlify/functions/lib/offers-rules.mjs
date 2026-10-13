@@ -21,11 +21,13 @@ import {
   RESERVED_FIELD_NAMES, TIME_ZONE, emptyOffer, isValidSlug, normalizePagePath,
   offerStatus, rangesOverlap, SLUG_MIN, SLUG_MAX
 } from '../../../shared/offer-contract.js';
+import { normalizeMarkup, plainFromMarkup } from '../../../shared/offer-format.js';
 
 /* ---------- limits (server-side; the editor shows the same ones) ---------- */
 
 export const LIMITS = Object.freeze({
   name: 120,
+  eyebrow: 60,
   headline: 150,
   body: 3000,
   buttonLabel: 40,
@@ -36,6 +38,11 @@ export const LIMITS = Object.freeze({
   buttonUrl: 500,
   page: 200
 });
+
+/** Formatting tags make the stored text longer than what a visitor reads.
+ *  The limits above count the words a visitor reads; this caps the stored
+ *  text (words plus tags) at this many times the limit. */
+export const MARKUP_FACTOR = 6;
 
 /** Pages an offer may never sit on. */
 export const BLOCKED_PAGES = Object.freeze(['/offer-admin.html', '/offers-form.html', '/admin.html', '/site-map.html']);   // admin and site map added 2026-10-12
@@ -171,10 +178,27 @@ export function prepareOffer(input, { offers, now = new Date() }) {
     return value;
   };
 
+  // Formatted fields (contract 1.2.0): plain text plus the formatting tags in
+  // shared/offer-format.js. Stored in canonical form; anything that is not a
+  // known tag stays ordinary text. Limits count the words a visitor reads.
+  const formatted = (key, max, { multiline = false } = {}) => {
+    const raw = input[key] === undefined ? (base[key] ?? '') : input[key];
+    if (raw !== undefined && raw !== null && typeof raw !== 'string') { fail(key, 'Must be text.'); return ''; }
+    const { value, stripped } = plainText(raw ?? '', { multiline });
+    if (stripped) notes.push(`HTML was removed from ${key}. Use the formatting buttons instead.`);
+    const markup = normalizeMarkup(value);
+    const words = plainFromMarkup(markup);
+    if (!words.trim()) return '';
+    if (words.length > max) fail(key, `Keep it to ${max} characters (now ${words.length}).`);
+    else if (markup.length > max * MARKUP_FACTOR) fail(key, 'Too much formatting in this field. Clear some of it and try again.');
+    return markup;
+  };
+
   out.name = text('name', LIMITS.name);
   if (!out.name) fail('name', 'Give the offer a name.');
-  out.headline = text('headline', LIMITS.headline);
-  out.body = text('body', LIMITS.body, { multiline: true });
+  out.eyebrow = formatted('eyebrow', LIMITS.eyebrow);
+  out.headline = formatted('headline', LIMITS.headline);
+  out.body = formatted('body', LIMITS.body, { multiline: true });
 
   // Draft flag
   const draftRaw = input.draft === undefined ? base.draft : input.draft;

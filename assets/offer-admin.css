@@ -208,3 +208,27 @@ button{font:inherit}
   .oa-ed-actions .oa-btn{flex:1 1 auto;justify-content:center}
   .oa-push{margin-left:0}
 }
+
+/* ---------- formatted text boxes (contract 1.2.0, assets/offer-rich.js) ---------- */
+.oa-rich-help{margin:0 0 12px}
+.oa-rich-wrap{border:1px solid #AEB9C7;border-radius:6px;background:#fff;min-width:0}
+.oa-rich-wrap:focus-within{border-color:var(--oa-teal);outline:3px solid rgba(42,164,162,.35);outline-offset:0}
+.oa-rich-wrap:has([aria-invalid=true]){border-color:var(--oa-red)}
+.oa-rtb{display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:5px 6px;border-bottom:1px solid var(--oa-rule);background:var(--oa-bg);border-radius:6px 6px 0 0}
+.oa-ed-form .oa-rtb-sel{flex:0 1 auto;width:auto;max-width:8.5em;min-height:30px;padding:3px 24px 3px 7px;font-size:13px;border-color:var(--oa-rule)}
+.oa-rtb-btn{appearance:none;min-width:30px;height:30px;padding:0 7px;border:1px solid var(--oa-rule);border-radius:5px;background:#fff;color:var(--oa-navy);font:600 13px/1 var(--oa-body);cursor:pointer}
+.oa-rtb-btn:hover{border-color:var(--oa-teal);background:var(--oa-tint)}
+.oa-rtb-btn.is-on{background:var(--oa-navy);border-color:var(--oa-navy);color:#fff}
+.oa-rtb-btn.is-b{font-weight:800}
+.oa-rtb-btn.is-i{font-style:italic;font-family:Georgia,serif}
+.oa-rtb-btn.is-u{text-decoration:underline}
+.oa-rtb-btn.is-s{text-decoration:line-through}
+.oa-rtb-sep{width:1px;height:20px;background:var(--oa-rule);margin:0 2px}
+.oa-rtb::after{content:"Formats: " attr(data-scope);margin-left:auto;font-size:11.5px;color:var(--oa-muted);white-space:nowrap;padding-left:6px}
+.oa-rich{display:block;min-height:40px;padding:9px 11px;color:var(--oa-navy);white-space:pre-wrap;overflow-wrap:anywhere;outline:none;cursor:text}
+.oa-rich[data-kind=eyebrow]{font:700 12px/1.6 var(--oa-head);letter-spacing:.2em;text-transform:uppercase;color:var(--oa-teal-d)}
+.oa-rich[data-kind=headline]{font:800 20px/1.25 var(--oa-head)}
+.oa-rich[data-kind=body]{font:400 15px/1.55 var(--oa-body);min-height:170px;max-height:420px;overflow-y:auto}
+.oa-rich.is-empty::before{content:attr(data-placeholder);color:#8C99AB;font-weight:400;letter-spacing:normal;text-transform:none;font-family:var(--oa-body);font-size:14px;pointer-events:none}
+.oa-rich-wrap + .oa-count-note,.oa-rich-wrap .oa-count-note{padding:0 8px 4px}
+@media (max-width:560px){ .oa-rtb::after{display:none} }
