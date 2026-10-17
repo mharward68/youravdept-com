@@ -1,5 +1,5 @@
 // Offline support. Bump VERSION on every release so installed copies pick up the new files.
-const VERSION = 'v2.1.2';
+const VERSION = 'v2.2.0';
 const CACHE = 'just-the-audio-' + VERSION;
 const FILES = [
   './', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png',

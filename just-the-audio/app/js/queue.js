@@ -4,7 +4,7 @@ export const STATUS = Object.freeze({
   FAILED: 'failed', SKIPPED: 'skipped',
 });
 
-export const MAX_BYTES = 2 * 1024 * 1024 * 1024; // about 2 GB per file, by design
+export const MAX_BYTES = 2.5 * 1024 * 1024 * 1024; // about 2.5 GB per file, by design
 
 /** MP4, MOV and M4A are the same family of file, and the engine reads all three. */
 export function isSupported(file) {
@@ -17,7 +17,7 @@ export function isSupported(file) {
 export function rejectReason(file) {
   if (!isSupported(file)) return 'Not an MP4, MOV or M4A. This app only converts those three file types.';
   if (file.size === 0) return 'This file is empty.';
-  if (file.size > MAX_BYTES) return 'This file is over 2 GB, which is more than this app can handle.';
+  if (file.size > MAX_BYTES) return 'This file is over 2.5 GB, which is more than this app can handle.';
   return null;
 }
 

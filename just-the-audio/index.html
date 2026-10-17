@@ -935,7 +935,7 @@
               <button type="button" class="btn btn-primary" id="jtaInstall" style="display:none;">Install Just the Audio</button>
               <a href="app/" class="btn btn-primary" id="jtaOpen">Use It in Your Browser</a>
               <p class="form-note" id="jtaNote">To install it as an app, open this page in Chrome or Edge on a Windows or Mac computer.</p>
-              <p class="form-note">Handles files up to about 2 GB each. Saves standard 192 kbps MP3 files.</p>
+              <p class="form-note">Handles files up to about 2.5 GB each. Saves standard 192 kbps MP3 files.</p>
             </div>
           </div>
         </div>
@@ -1023,7 +1023,7 @@
       </div>
 
       <div class="article-copy" style="margin-top:36px;">
-        <p><b>What it will not take:</b> other file types such as WAV, WMV or AVI, files larger than about 2 GB, and copy-protected video. If a file cannot be converted, the tool says why.</p>
+        <p><b>What it will not take:</b> other file types such as WAV, WMV or AVI, files larger than about 2.5 GB, and copy-protected video. If a file cannot be converted, the tool says why.</p>
       </div>
     </div>
   </section>
@@ -1372,6 +1372,24 @@
 
 })();
 </script>
+<!-- YAVD-MENU:START (menu stagger + close on backdrop click) -->
+<script>
+(function(){
+  var drawer = document.getElementById('mobileDrawer');
+  var btn = document.getElementById('hamburgerBtn');
+  if (!drawer || !btn) return;
+  drawer.querySelectorAll('a.ym-link').forEach(function(a, i){
+    a.style.transitionDelay = (0.06 + i * 0.03).toFixed(2) + 's';
+  });
+  drawer.addEventListener('click', function(e){
+    if (e.target === drawer && drawer.classList.contains('open')) btn.click();
+  });
+  new MutationObserver(function(){
+    drawer.setAttribute('aria-hidden', drawer.classList.contains('open') ? 'false' : 'true');
+  }).observe(drawer, { attributes:true, attributeFilter:['class'] });
+})();
+</script>
+<!-- YAVD-MENU:END -->
 <script>
 // Just the Audio: install button, usage count, offline support.
 (function(){
@@ -1411,23 +1429,5 @@
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('/just-the-audio/sw.js', { scope:'/just-the-audio/' }).catch(function(){});
 })();
 </script>
-<!-- YAVD-MENU:START (menu stagger + close on backdrop click) -->
-<script>
-(function(){
-  var drawer = document.getElementById('mobileDrawer');
-  var btn = document.getElementById('hamburgerBtn');
-  if (!drawer || !btn) return;
-  drawer.querySelectorAll('a.ym-link').forEach(function(a, i){
-    a.style.transitionDelay = (0.06 + i * 0.03).toFixed(2) + 's';
-  });
-  drawer.addEventListener('click', function(e){
-    if (e.target === drawer && drawer.classList.contains('open')) btn.click();
-  });
-  new MutationObserver(function(){
-    drawer.setAttribute('aria-hidden', drawer.classList.contains('open') ? 'false' : 'true');
-  }).observe(drawer, { attributes:true, attributeFilter:['class'] });
-})();
-</script>
-<!-- YAVD-MENU:END -->
 </body>
 </html>
