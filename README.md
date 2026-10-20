@@ -16,6 +16,7 @@ self-contained HTML file with its CSS, JS, and images inlined.
 | `fix-my-av-budget.html` | Help! Fix My AV Budget landing page. In the header nav and mobile menu on every page. Buttons open a booking modal for `https://calendar.app.google/nyswcGtXNqdS149r8` (its own booking page, not the Strategic Review one) | yes |
 | `just-the-audio/index.html` | Just the Audio landing page: a free tool that turns MP4, MOV and M4A recordings into MP3. Built from `library/av365.html` by `tools/build-landing.py` in the `19_mp4-mp3_converter` project; edit it there, not here | yes |
 | `just-the-audio/app/` | Just the Audio itself (installable, works offline). Multi-file on purpose: it runs under a strict content security policy set in `netlify.toml`, so nothing can be inlined | noindex |
+| `zipdrop.html` | ZipDrop by Your AV Department: free zip tool (drop files or folders, get a `DATE-TIME-NAME.zip`). Standalone single file, all work done in the visitor's browser, nothing uploaded. Linked in the menu under Free extras and in the site map | yes |
 | `just-the-audio-activity.html` | Private Just the Audio activity page for Michael: live visits, installs and files converted. Asks once per browser for the key in JUST_THE_AUDIO_STATS_KEY. Source in the `19_mp4-mp3_converter` project, `mp3-mp4_app/site-pages/` | noindex |
 | `library/index.html` | The Library | yes |
 | `library/the-levers-of-labor.html` | The Levers of Labor, free guide | yes |
@@ -49,7 +50,7 @@ buttons will 404.
 
 The noindex pages carry no nav or footer links. They are reached by the site
 map easter egg: click the footer copyright line 5 times within 2 seconds.
-All twenty pages that carry the site map modal list the same 29 entries, in
+All twenty pages that carry the site map modal list the same 30 entries, in
 alphabetical order (punctuation ignored). Every page on the site belongs in it. The pages
 under `library/` and `field-notes/` use `../` prefixes for the root-level links.
 
