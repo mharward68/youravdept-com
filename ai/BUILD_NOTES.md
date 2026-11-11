@@ -6,7 +6,7 @@ Only what a future session would waste time rediscovering.
 - Site: static HTML at the repo root, plus library/ and field-notes/. No build step. Every page inlines its own CSS and JS (no shared stylesheet). Brand tokens repeat in each page's :root.
 - Netlify config: _redirects (pretty URLs as 200 rewrites, a few 301s), _headers (library PDFs). No root netlify.toml before 1.2. .netlify/netlify.toml is the CLI's generated copy: never edit it.
 - Functions: netlify/functions/submission-created.mjs (existing, Resend guide mailer, runs on every form).
-- Offers module: shared/offer-contract.js (frozen contract). Popup: assets/offer-panel.css and assets/offer-panel.js (public, published by both deploy scripts). Sign-in: netlify/functions/lib/offers-auth.mjs (requireAdmin, handleLogin). Field checks and rules: lib/offers-rules.mjs. Storage, history, restore: lib/offers-store.mjs. Counts: netlify/functions/offers-stats.mjs + lib/offers-stats.mjs. Pictures: lib/offer-image.mjs (sniffImage, checkImage, newImageId, IMAGE_MESSAGES; Phase 3), test pictures in netlify/tests/fixtures/. Picture storage: lib/offer-images-store.mjs (putImage, getImage, headImage, listImages, deleteImage; store "offer-images"). Edge: netlify/edge-functions/offer-link.js and offer-page.js (thin), logic in netlify/edge-lib/offer-edge.js. Tests: netlify/tests/*.test.mjs (run each file by path). ai/ holds the scope, plan, run sheet and these notes.
+- Offers module: shared/offer-contract.js (frozen contract). Popup: assets/offer-panel.css and assets/offer-panel.js (public, published by both deploy scripts). Sign-in: netlify/functions/lib/offers-auth.mjs (requireAdmin, handleLogin). Field checks and rules: lib/offers-rules.mjs. Storage, history, restore: lib/offers-store.mjs. Counts: netlify/functions/offers-stats.mjs + lib/offers-stats.mjs. Pictures: lib/offer-image.mjs (sniffImage, checkImage, newImageId, IMAGE_MESSAGES; Phase 3), test pictures in netlify/tests/fixtures/. Picture storage: lib/offer-images-store.mjs (putImage, getImage, headImage, listImages, deleteImage; store "offer-images"). Picture routes: offer-image-upload.mjs (POST /api/offers/image) and offer-image.mjs (GET /api/offers/image/:id). Edge: netlify/edge-functions/offer-link.js and offer-page.js (thin), logic in netlify/edge-lib/offer-edge.js. Tests: netlify/tests/*.test.mjs (run each file by path). ai/ holds the scope, plan, run sheet and these notes.
 - Deploy: deploy.ps1 (production) and deploy-preview.ps1 (TEST address https://offers--your-av-dept.netlify.app) both copy the folder to %TEMP% minus one shared exclude list, then run netlify deploy with --functions netlify\functions. Live since 2026-10-10 12:23 ET.
 - Repo: github.com/mharward68/youravdept-com, branch main. Netlify site id 7b58fbd4-394f-4091-bc6d-29b4e3b6ff79.
 
@@ -121,6 +121,12 @@ Only what a future session would waste time rediscovering.
 ## Session 3.3 findings (picture store)
 - @netlify/blobs 11.1.1: the TypeScript overload for get/getWithMetadata with type arrayBuffer omits `| null`, but a missing key still returns null. Always null-check.
 - Blobs metadata comes back as JSON, so store numbers as numbers and still coerce with Number() on read (lib/offer-images-store.mjs cleanMeta).
+
+## Session 3.4 findings (picture routes)
+- Upload is offer-image-upload.mjs (POST /api/offers/image), view is offer-image.mjs (GET/HEAD /api/offers/image/:id). Both configs set `method`, so a wrong method never reaches them on Netlify.
+- Functions may import the test switch from netlify/edge-lib/offer-edge.js (wantsForcedFailure): one header name and one list of test contexts for edge and functions. Do not copy the list.
+- Testing "body not read": a ReadableStream pulls once as soon as it is built. Pass { highWaterMark: 0 } as the second argument or the test sees a read that the handler never made.
+- Node's Request accepts a content-length header in tests, so the declared-size refusal can be tested without sending the bytes.
 
 ## Just the Audio (added 2026-10-11)
 - A free tool that turns MP4, MOV and M4A recordings into MP3 in the visitor's own browser. Called "MP4 to MP3 Converter" during the build; the project folder and repo keep that name.

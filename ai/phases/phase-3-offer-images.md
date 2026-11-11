@@ -1,5 +1,5 @@
 # Phase 3: Offer Images (one image per offer: upload, popup display, cleanup)
-Status: IN PROGRESS. Sessions 3.1 to 3.3 done 2026-11-11 (contract 1.3.0 frozen; picture checker; picture store). Next: 3.4.
+Status: IN PROGRESS. Sessions 3.1 to 3.4 done 2026-11-11 (contract 1.3.0 frozen; picture checker; picture store; upload and view routes). Next: 3.5.
 
 ## What shapes this plan
 - Read: the scope, ai/CONTEXT.md, ai/BUILD_NOTES.md, ai/DECISIONS.md, the Phase 2 plan and run sheet (format and numbering), and the code this phase touches: shared/offer-contract.js (1.2.0), lib/offers-rules.mjs, lib/offers-store.mjs, lib/offers-auth.mjs, offers.mjs, offers-export.mjs, netlify/edge-lib/offer-edge.js, assets/offer-panel.js and .css, assets/offer-admin.js (drawPreview, save), netlify.toml, _headers.
