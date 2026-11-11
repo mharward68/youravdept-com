@@ -78,8 +78,8 @@ Needs Michael:
 ## The sessions
 Tags: CONTINUE (green) next session extends what this one just wrote, same helper. CLEAR (red) different area or heavy output, fresh helper, no stop. APPROVE (blue) the run stops for you.
 
-- [ ] 3.1  Freeze the contract (1.3.0) · S · ~5 min · **CLEAR** (next is pure byte-reading code)
-- [ ] 3.2  Read and check an image · M · ~5 min · **CLEAR** (next is storage, unrelated)
+- [x] 3.1  Freeze the contract (1.3.0) · S · ~5 min · **CLEAR** (next is pure byte-reading code)
+- [x] 3.2  Read and check an image · M · ~5 min · **CLEAR** (next is storage, unrelated)
 - [ ] 3.3  The image store · S · ~5 min · **CONTINUE** (3.4 imports exactly this)
 - [ ] 3.4  Upload and view routes · M · ~5 min · **CLEAR** (next is offer rules; long test output)
 - [ ] 3.5  The image on an offer · M · ~5 min · **CONTINUE** (3.6 reads the references this defines)

@@ -1,5 +1,5 @@
 # Phase 3: Offer Images (one image per offer: upload, popup display, cleanup)
-Status: IN PROGRESS. Session 3.1 done 2026-11-11 (contract 1.3.0 frozen). Next: 3.2.
+Status: IN PROGRESS. Sessions 3.1 and 3.2 done 2026-11-11 (contract 1.3.0 frozen; picture checker). Next: 3.3.
 
 ## What shapes this plan
 - Read: the scope, ai/CONTEXT.md, ai/BUILD_NOTES.md, ai/DECISIONS.md, the Phase 2 plan and run sheet (format and numbering), and the code this phase touches: shared/offer-contract.js (1.2.0), lib/offers-rules.mjs, lib/offers-store.mjs, lib/offers-auth.mjs, offers.mjs, offers-export.mjs, netlify/edge-lib/offer-edge.js, assets/offer-panel.js and .css, assets/offer-admin.js (drawPreview, save), netlify.toml, _headers.
@@ -112,6 +112,7 @@ Server messages the editor will show (set here so 3.5, 3.9 and 3.10 agree):
   - [ ] Tests: each good type; SVG text; GIF; a renamed .exe/PDF; HTML with a JPEG name; truncated JPEG, PNG and WebP; zero-length; over cap; too big and too small in pixels; a JPEG with a comment segment before the SOF; type claimed by name or header is ignored.
 - Inputs needed from Michael: None.
 - DONE WHEN: `node --test netlify/tests/offer-image.test.mjs` passes (output pasted), run three times in a row; every refusal case shows its message.
+- Result 2026-11-11: DONE. 34 of 34, three runs in a row. Fixtures made with headless Edge (no Pillow on this PC). Two pixel-limit messages added (DECISIONS).
 - Needs my eyes: nothing.
 - Risk and fallback: WebP VP8X edge cases. If a valid file is refused, the fixture that failed goes into the test and the parser is fixed; if still stuck after three tries, stop (three strikes).
 - Backup point: no.
