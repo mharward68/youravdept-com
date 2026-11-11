@@ -215,13 +215,13 @@ Server messages the editor will show (set here so 3.5, 3.9 and 3.10 agree):
 - Objectives: user experience (no jump, stacks on phone, popup still works if the picture fails); accessibility (alt text, image never behind text, keyboard and Escape unchanged, focus order unchanged); efficiency (explicit width and height, one request, browser-cached); security (the address is built from the contract's imageUrl and a pattern-checked id, set with setAttribute, no innerHTML).
 - Files modified: assets/offer-panel.js, assets/offer-panel.css (including the carried Phase 1 item: the phone-width preview badge under the close button, one CSS line). Created: netlify/tests/offer-panel-image.test.mjs (Playwright), a review page of screenshots.
 - Tasks:
-  - [ ] Markup: `div.yavd-op-media > img.yavd-op-img` placed per offer.image.placement. Dialog gets `is-img-top`, `is-img-left` or `is-img-right`. Side placements: dialog widens to 720 px above 560 px wide and puts the picture in a column of about 38 percent; at 560 px and below everything stacks with the picture on top. Top banner is full width, height set by width and height attributes (aspect-ratio in CSS), image fits (cover is never used so nothing is cut).
-  - [ ] On the img `error` event: remove the media block and the placement class, so the popup is the normal text popup.
-  - [ ] No image (`null`) renders exactly as today (compare the DOM to the 1.2.0 output).
-  - [ ] Write the final markup and class names into BUILD_NOTES so 3.9 can match them in the editor preview.
-  - [ ] Carried item: the preview badge on phone width, one CSS line.
-  - [ ] Playwright tests on a copy of booth-proof.html built with injectOffer(): 3 placements x desktop (1280) and phone (390); no layout shift (the dialog height before and after the image loads is the same within 1 px); broken image address collapses cleanly; Escape and Tab order unchanged; no console errors.
-  - [ ] Build the review page: one self-contained HTML page that steps through the six screenshots with Back and Next, arrow keys and dots, and publish it as an artifact.
+  - [x] Markup: `div.yavd-op-media > img.yavd-op-img` placed per offer.image.placement. Dialog gets `is-img-top`, `is-img-left` or `is-img-right`. Side placements: dialog widens to 720 px above 560 px wide and puts the picture in a column of about 38 percent; at 560 px and below everything stacks with the picture on top. Top banner is full width, height set by width and height attributes (aspect-ratio in CSS), image fits (cover is never used so nothing is cut).
+  - [x] On the img `error` event: remove the media block and the placement class, so the popup is the normal text popup.
+  - [x] No image (`null`) renders exactly as today (compare the DOM to the 1.2.0 output).
+  - [x] Write the final markup and class names into BUILD_NOTES so 3.9 can match them in the editor preview.
+  - [x] Carried item: the preview badge on phone width, one CSS line.
+  - [x] Playwright tests on a copy of booth-proof.html built with injectOffer(): 3 placements x desktop (1280) and phone (390); no layout shift (the dialog height before and after the image loads is the same within 1 px); broken image address collapses cleanly; Escape and Tab order unchanged; no console errors.
+  - [x] Build the review page: one self-contained HTML page that steps through the six screenshots with Back and Next, arrow keys and dots, and publish it as an artifact.
 - Inputs needed from Michael: None.
 - DONE WHEN: `node --test netlify/tests/offer-panel-image.test.mjs` passes (output pasted); the existing offer-edge tests pass; six screenshots exist and the review page is published.
 - Needs my eyes: step through the review page: do the three placements look right, is a 720 px side layout acceptable, does the phone stack read well.

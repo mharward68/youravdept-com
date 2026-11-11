@@ -137,6 +137,32 @@
 .yavd-op .yf-hl-navy, .oa-rich .yf-hl-navy { background: #152B4A; }
 .yavd-op .yf-hl-teal2, .oa-rich .yf-hl-teal2 { background: #2AA4A2; }
 
+/* ---------- picture (Session 3.8, contract 1.3.0) ----------
+   Markup: .yavd-op-dialog.is-img-<top|left|right> > .yavd-op-scroll >
+   .yavd-op-media > img.yavd-op-img, then the text. The img carries width and
+   height, so the browser holds its space before it loads (no jump). The
+   picture is never cropped: object-fit is contain, never cover. */
+.yavd-op-media { margin: 0; padding: 0; line-height: 0; }
+.yavd-op-img {
+  display: block; width: 100%; height: auto; max-width: none; margin: 0; padding: 0; border: 0;
+  object-fit: contain; background: #F3F5F8;
+}
+/* top banner: full width, edge to edge under the teal rule */
+.yavd-op-dialog.is-img-top .yavd-op-media { margin: -30px -30px 22px; }
+.yavd-op-dialog.is-img-top .yavd-op-img { max-height: min(320px, 38vh); }
+/* left or right of the text: a wider dialog, picture column of about 38% */
+@media (min-width: 561px) {
+  .yavd-op-dialog.is-img-left, .yavd-op-dialog.is-img-right { max-width: 720px; }
+  .yavd-op-dialog.is-img-left .yavd-op-scroll, .yavd-op-dialog.is-img-right .yavd-op-scroll {
+    display: grid; grid-template-columns: 38% minmax(0, 1fr); gap: 26px; align-items: start;
+  }
+  .yavd-op-dialog.is-img-right .yavd-op-scroll { grid-template-columns: minmax(0, 1fr) 38%; }
+  .yavd-op-dialog.is-img-right .yavd-op-media { order: 2; }
+  .yavd-op-dialog.is-img-left .yavd-op-img, .yavd-op-dialog.is-img-right .yavd-op-img { border-radius: 8px; }
+  /* the picture sits under the close button's corner only on the right: keep clear */
+  .yavd-op-dialog.is-img-right .yavd-op-media { margin-top: 30px; }
+}
+
 /* ---------- form ---------- */
 
 .yavd-op-form { margin: 0; }
@@ -258,6 +284,10 @@ html.yavd-op-lock, html.yavd-op-lock body { overflow: hidden !important; }
   }
   .yavd-op-scroll { padding: 24px 20px calc(20px + env(safe-area-inset-bottom)); }
   .yavd-op-headline { font-size: 22px; }
+  .yavd-op-test { margin-right: 40px; }   /* preview badge clears the close button */
+  /* every placement stacks with the picture on top, edge to edge */
+  .yavd-op-dialog[class*="is-img-"] .yavd-op-media { margin: -24px -20px 18px; }
+  .yavd-op-dialog[class*="is-img-"] .yavd-op-img { max-height: 34vh; }
   .yavd-op-grid { grid-template-columns: 1fr; gap: 10px; }
   .yavd-op-tab { bottom: calc(12px + env(safe-area-inset-bottom)); }
 }

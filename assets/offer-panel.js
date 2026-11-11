@@ -19,6 +19,16 @@
  * Counts (Session 1.9): the first open on each page view and each successful
  * submission are also sent to /api/offers/stats. Previews (isTest) are never
  * sent. Fire and forget: a failed count never shows the visitor anything.
+ *
+ * Picture (Session 3.8, contract 1.3.0): offer.image { id, alt, placement,
+ * width, height } or null. The address comes from the contract's imageUrl()
+ * with an id that must match IMAGE.idPattern; it is set with setAttribute.
+ * Markup: div.yavd-op-media > img.yavd-op-img, first child of .yavd-op-scroll,
+ * and the dialog gets is-img-top, is-img-left or is-img-right. width and
+ * height are set so the space is held before the picture loads (no jump).
+ * If the picture fails to load, the block and the class are removed and the
+ * popup is the plain text popup. A visitor who closed the offer recently
+ * only downloads the picture if they reopen it.
  */
 (function () {
   'use strict';
@@ -59,6 +69,18 @@
     if (/^https?:\/\/[^\s]+$/i.test(u)) return u;
     if (/^\/(?!\/)[^\s\\]*$/.test(u)) return u;
     return null;
+  }
+
+  /** null, or { src, alt, placement, width, height } safe to render. */
+  function readImage(C, image) {
+    if (!image || typeof image !== 'object') return null;
+    if (!C.IMAGE || typeof C.imageUrl !== 'function') return null;   // old cached contract: no picture
+    var id = str(image.id);
+    if (!C.IMAGE.idPattern.test(id)) return null;
+    var w = image.width, h = image.height;
+    if (!(Number.isInteger(w) && Number.isInteger(h) && w > 0 && h > 0)) return null;
+    var placement = C.IMAGE.placements.indexOf(image.placement) !== -1 ? image.placement : C.IMAGE.defaultPlacement;
+    return { src: C.imageUrl(id), alt: str(image.alt), placement: placement, width: w, height: h };
   }
 
   function storageGet(key) { try { return window.localStorage.getItem(key); } catch (e) { return null; } }
@@ -130,6 +152,33 @@
     content.appendChild(body);
 
     var scroller = el('div', 'yavd-op-scroll');
+
+    /* ----- picture (Session 3.8) ----- */
+    var pic = readImage(C, offer.image);
+    var media = null, img = null, imgClass = '';
+    if (pic) {
+      imgClass = 'is-img-' + pic.placement;
+      dialog.classList.add(imgClass);
+      media = el('div', 'yavd-op-media');
+      img = document.createElement('img');
+      img.className = 'yavd-op-img';
+      img.setAttribute('alt', pic.alt);
+      img.setAttribute('width', String(pic.width));
+      img.setAttribute('height', String(pic.height));
+      img.setAttribute('decoding', 'async');
+      img.addEventListener('error', dropImage);
+      media.appendChild(img);
+      scroller.appendChild(media);
+    }
+    function loadImage() {
+      if (img && !img.getAttribute('src')) img.setAttribute('src', pic.src);
+    }
+    function dropImage() {
+      if (media && media.parentNode) media.parentNode.removeChild(media);
+      if (imgClass) dialog.classList.remove(imgClass);
+      media = null; img = null; imgClass = '';
+    }
+
     scroller.appendChild(content);
     dialog.appendChild(closeBtn);
     dialog.appendChild(scroller);
@@ -296,6 +345,7 @@
     }
 
     function showThanks() {
+      dropImage();   // the thank-you is short: no picture beside it
       while (content.firstChild) content.removeChild(content.firstChild);
       var t = el('div', 'yavd-op-thanks');
       t.tabIndex = -1;
@@ -326,6 +376,7 @@
     function open() {
       if (isOpen) return;
       isOpen = true;
+      loadImage();
       lastFocus = document.activeElement;
       tab.hidden = true;
       backdrop.hidden = false;
@@ -385,6 +436,7 @@
     if (recentlyClosed) {
       tab.hidden = false;
     } else {
+      loadImage();   // fetch during the open delay so it is ready when the popup shows
       setTimeout(open, C.VISITOR.openDelayMs);
     }
   }
