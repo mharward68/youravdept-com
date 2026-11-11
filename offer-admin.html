@@ -143,6 +143,45 @@
           </div>
         </fieldset>
 
+        <!-- Session 3.9 (contract 1.3.0): one optional picture. Picked, checked
+             and shrunk in this browser; held here until saving (3.10). -->
+        <fieldset class="oa-fs" id="f-img-fs">
+          <legend>Image <span class="oa-hint-inline">(optional)</span></legend>
+          <input type="file" id="f-img-file" class="oa-sr" accept="image/jpeg,image/png,image/webp" tabindex="-1" aria-hidden="true">
+          <div id="f-img-none">
+            <button type="button" class="oa-btn oa-btn-sm" id="f-img-add">Add image</button>
+            <p class="oa-hint">JPG, PNG or WebP. It is shrunk in your browser to 1600 pixels on the longest side and under 400 KB before it is sent.</p>
+          </div>
+          <div id="f-img-yes" hidden>
+            <div class="oa-img-row">
+              <div class="oa-img-thumb-wrap"><img id="f-img-thumb" class="oa-img-thumb" alt=""></div>
+              <div class="oa-img-info">
+                <b id="f-img-name" class="oa-img-name"></b>
+                <span id="f-img-size" class="oa-hint oa-img-size"></span>
+                <div class="oa-row">
+                  <button type="button" class="oa-btn oa-btn-sm" id="f-img-replace">Replace</button>
+                  <button type="button" class="oa-btn oa-btn-sm oa-btn-danger" id="f-img-remove">Remove</button>
+                </div>
+              </div>
+            </div>
+            <div class="oa-f">
+              <label for="f-img-alt">Describe the picture <span class="oa-hint-inline">(required with a picture; read aloud to people who cannot see it)</span></label>
+              <input id="f-img-alt" type="text" maxlength="125" data-count="125" data-count-always="1" placeholder="e.g. A conference stage lit in teal with two screens">
+              <p class="oa-ferr" data-err="image.alt"></p>
+            </div>
+            <div class="oa-f" role="radiogroup" aria-labelledby="f-img-place-l">
+              <span class="oa-label" id="f-img-place-l">Where the picture sits</span>
+              <label class="oa-choice"><input type="radio" name="imgPlacement" value="top" checked> <span><b>Top banner</b> across the popup</span></label>
+              <label class="oa-choice"><input type="radio" name="imgPlacement" value="left"> <span><b>Left of text</b> (stacks on top on phones)</span></label>
+              <label class="oa-choice"><input type="radio" name="imgPlacement" value="right"> <span><b>Right of text</b> (stacks on top on phones)</span></label>
+              <p class="oa-ferr" data-err="image.placement"></p>
+            </div>
+          </div>
+          <p class="oa-img-busy" id="f-img-busy" aria-live="polite"></p>
+          <p class="oa-img-msg" id="f-img-msg" role="alert"></p>
+          <p class="oa-ferr" data-err="image.id"></p>
+        </fieldset>
+
         <fieldset class="oa-fs">
           <legend>Form</legend>
           <label class="oa-switch"><input type="checkbox" id="f-form-on"> <span>Show a form in the popup</span></label>

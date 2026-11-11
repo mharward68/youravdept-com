@@ -1,5 +1,5 @@
 # Phase 3: Offer Images (one image per offer: upload, popup display, cleanup)
-Status: IN PROGRESS. Sessions 3.1 to 3.5 done 2026-11-11 (contract 1.3.0 frozen; picture checker; picture store; upload and view routes; image on an offer). Next: 3.6.
+Status: IN PROGRESS. Sessions 3.1 to 3.9 done 2026-11-11 (contract 1.3.0 frozen; picture checker; store; routes; image on an offer; cleanup; export; popup picture, approved by Michael; editor image block). Next: 3.10.
 
 ## What shapes this plan
 - Read: the scope, ai/CONTEXT.md, ai/BUILD_NOTES.md, ai/DECISIONS.md, the Phase 2 plan and run sheet (format and numbering), and the code this phase touches: shared/offer-contract.js (1.2.0), lib/offers-rules.mjs, lib/offers-store.mjs, lib/offers-auth.mjs, offers.mjs, offers-export.mjs, netlify/edge-lib/offer-edge.js, assets/offer-panel.js and .css, assets/offer-admin.js (drawPreview, save), netlify.toml, _headers.
@@ -235,13 +235,13 @@ Server messages the editor will show (set here so 3.5, 3.9 and 3.10 agree):
 - Objectives: user experience (plain buttons, file name, size and thumbnail, clear error text); security (type checked by the file's own signature before decoding, SVG refused, alt text set with textContent); efficiency (shrink to 1600 px, aim under 400 KB, cap 600 KB); privacy (re-encoding removes camera location).
 - Files modified: offer-admin.html, assets/offer-admin.js, assets/offer-admin.css. Created: netlify/tests/offer-admin-image.test.mjs (Playwright).
 - Tasks:
-  - [ ] FIRST: a tiny spike. Show a blob: address in the sandboxed preview iframe (allow-same-origin, no scripts). If it does not render, use a data: address and note it in BUILD_NOTES.
-  - [ ] New "Image" block under Popup copy: Add image, then file name, size, thumbnail, Replace, Remove, alt text field with a 125 counter, placement choice (Top banner default, Left of text, Right of text).
-  - [ ] Shrink in the browser: decode with createImageBitmap, longest side 1600, re-encode as WebP (JPEG if WebP is unsupported), lower quality step by step until under 400 KB, refuse if still over 600 KB. Wrong type (including SVG and GIF, checked from the first bytes) refused with the message above. A phone HEIC picture gets "Use a JPG, PNG or WebP picture."
-  - [ ] Extend the sandbox preview (drawPreview) to draw the same markup as the real popup (from 3.8's BUILD_NOTES entry), reading the picture from the unsaved state.
-  - [ ] Dashboard card: small thumbnail from /api/offers/image/<id> when an offer has a picture (should-have in the scope).
-  - [ ] Field slots for image.alt, image.placement, image.id in offer-admin.html and an entry in inputFor() (BUILD_NOTES 1.8).
-  - [ ] Tests (Playwright, local harness with the real handlers and in-memory stores): picking a JPEG, PNG and WebP; a 4000 px photo ends at 1600 px and under 600 KB; SVG, GIF and a renamed text file refused; alt counter; placement changes the preview in both Desktop and Phone modes; Remove clears; no console errors other than expected 4xx.
+  - [x] FIRST: a tiny spike. Show a blob: address in the sandboxed preview iframe (allow-same-origin, no scripts). If it does not render, use a data: address and note it in BUILD_NOTES.
+  - [x] New "Image" block under Popup copy: Add image, then file name, size, thumbnail, Replace, Remove, alt text field with a 125 counter, placement choice (Top banner default, Left of text, Right of text).
+  - [x] Shrink in the browser: decode with createImageBitmap, longest side 1600, re-encode as WebP (JPEG if WebP is unsupported), lower quality step by step until under 400 KB, refuse if still over 600 KB. Wrong type (including SVG and GIF, checked from the first bytes) refused with the message above. A phone HEIC picture gets "Use a JPG, PNG or WebP picture."
+  - [x] Extend the sandbox preview (drawPreview) to draw the same markup as the real popup (from 3.8's BUILD_NOTES entry), reading the picture from the unsaved state.
+  - [x] Dashboard card: small thumbnail from /api/offers/image/<id> when an offer has a picture (should-have in the scope).
+  - [x] Field slots for image.alt, image.placement, image.id in offer-admin.html and an entry in inputFor() (BUILD_NOTES 1.8).
+  - [x] Tests (Playwright, local harness with the real handlers and in-memory stores): picking a JPEG, PNG and WebP; a 4000 px photo ends at 1600 px and under 600 KB; SVG, GIF and a renamed text file refused; alt counter; placement changes the preview in both Desktop and Phone modes; Remove clears; no console errors other than expected 4xx.
 - Inputs needed from Michael: None.
 - DONE WHEN: `node --test netlify/tests/offer-admin-image.test.mjs` passes (output pasted); a screenshot of the editor with a picture attached and one of the preview in each placement are saved.
 - Needs my eyes: nothing yet (you review the editor on TEST in 3.11).

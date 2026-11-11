@@ -1,6 +1,7 @@
 // YAVD Offers Module: admin dashboard (Session 1.7) and offer editor,
 // rerun, live preview and saved versions (Session 1.8), views and leads
-// counts on each card (Session 1.9)
+// counts on each card (Session 1.9), the Image block, its preview and the
+// card thumbnail (Session 3.9)
 //
 // Sign-in state: the cookie is HttpOnly and scoped to /api/offers, so this
 // page cannot see it. It asks GET /api/offers: 200 = signed in, 401 = show
@@ -17,7 +18,7 @@
 import {
   ROUTES, TIME_ZONE, OFFER_LINK_PREFIX, PREVIEW_PARAM, offerStatus, emptyOffer,
   FIELD_NAMES, FIELD_LABELS, SLUG_MIN, SLUG_MAX, isValidSlug,
-  DEFAULT_START_TIME, DEFAULT_END_TIME, INJECT, normalizePagePath
+  DEFAULT_START_TIME, DEFAULT_END_TIME, INJECT, normalizePagePath, IMAGE, imageUrl
 } from '/shared/offer-contract.js';
 import { plainFromMarkup, renderInline, renderBlocks } from '/shared/offer-format.js';
 import { RichField } from '/assets/offer-rich.js';
@@ -220,6 +221,18 @@ function card(o, status, t) {
   c.dataset.status = status;
 
   const top = make('div', 'oa-card-top');
+  // Session 3.9: small picture when the offer has one. Decorative (the name
+  // follows it), cached by the browser; a missing picture just disappears.
+  const im = o.image;
+  if (im && typeof im.id === 'string' && IMAGE.idPattern.test(im.id)) {
+    const th = make('img', 'oa-card-thumb');
+    th.alt = '';
+    th.loading = 'lazy';
+    th.decoding = 'async';
+    th.addEventListener('error', () => th.remove());
+    th.setAttribute('src', imageUrl(im.id));
+    top.append(th);
+  }
   top.append(make('h3', null, o.name || '(no name)'), make('span', 'oa-pill', status));
   c.append(top);
   c.append(make('div', 'oa-when', whenLine(o, status, t)));
@@ -504,7 +517,11 @@ const ed = {
   del: $('oa-del'), delGuard: $('oa-del-guard'), delNo: $('oa-del-no'), delYes: $('oa-del-yes'),
   pvFrame: $('oa-pv-frame'), pv: $('oa-pv'), pvNone: $('oa-pv-link-none'), pvYes: $('oa-pv-link-yes'),
   pvUrl: $('oa-pv-url'), pvOpen: $('oa-pv-open'), pvCopy: $('oa-pv-copy'),
-  vBack: $('oa-v-back'), vH: $('oa-v-h'), vList: $('oa-v-list')
+  vBack: $('oa-v-back'), vH: $('oa-v-h'), vList: $('oa-v-list'),
+  imgFile: $('f-img-file'), imgAdd: $('f-img-add'), imgNone: $('f-img-none'), imgYes: $('f-img-yes'),
+  imgThumb: $('f-img-thumb'), imgName: $('f-img-name'), imgSize: $('f-img-size'),
+  imgReplace: $('f-img-replace'), imgRemove: $('f-img-remove'), imgAlt: $('f-img-alt'),
+  imgBusy: $('f-img-busy'), imgMsg: $('f-img-msg')
 };
 
 /* Contract 1.2.0: eyebrow, headline and copy are formatted text boxes. */
@@ -737,6 +754,7 @@ function fill(o) {
   const e = isoToInputs(o.endsAt);
   ed.startD.value = s.date; ed.startT.value = s.time || DEFAULT_START_TIME;
   ed.endD.value = e.date; ed.endT.value = e.time || DEFAULT_END_TIME;
+  fillImage(o.image);
   syncAll();
 }
 
@@ -777,7 +795,7 @@ function counters() {
     }
     const max = +n.dataset.count;
     const len = n.value.length;
-    note.textContent = len > max * 0.8 ? `${len} / ${max}` : '';
+    note.textContent = n.dataset.countAlways || len > max * 0.8 ? `${len} / ${max}` : '';
     note.classList.toggle('is-over', len > max);
   }
 }
@@ -899,6 +917,22 @@ function drawPreview() {
   const dialog = m('div', 'yavd-op-dialog');
   const close = m('div', 'yavd-op-close', '\u00d7');
   const scroll = m('div', 'yavd-op-scroll');
+  // Session 3.9: the same picture markup as offer-panel.js (BUILD_NOTES 3.8).
+  // The unsaved picture is a blob: address; the iframe is same-origin, so it loads.
+  const pv = previewImage();
+  if (pv) {
+    dialog.classList.add(`is-img-${pv.placement}`);
+    const media = m('div', 'yavd-op-media');
+    const img = doc.createElement('img');
+    img.className = 'yavd-op-img';
+    img.setAttribute('alt', pv.alt);
+    img.setAttribute('width', String(pv.width));
+    img.setAttribute('height', String(pv.height));
+    img.setAttribute('decoding', 'async');
+    img.setAttribute('src', pv.src);
+    media.append(img);
+    scroll.append(media);
+  }
   const content = m('div');
   content.append(m('span', 'yavd-op-test', 'Preview: submissions are marked as tests'));
   if (plainFromMarkup(o.eyebrow).trim()) {
@@ -944,6 +978,214 @@ function drawPreview() {
   doc.body.replaceChildren(page, root);
 }
 
+/* =====================================================================
+   Session 3.9: Image block (contract 1.3.0)
+   Pick, check, shrink, describe, place, replace and remove one picture.
+   The picture is held in this page (pic) until saving; Session 3.10
+   uploads it on save. Nothing is sent to the server from here.
+   ===================================================================== */
+
+// The editor's copies of the server's wording (IMAGE_MESSAGES in
+// netlify/functions/lib/offer-image.mjs). Keep them the same.
+const IMG_MSG = {
+  wrongType: 'Use a JPG, PNG or WebP picture.',
+  tooLarge: 'That picture is still over 600 KB after shrinking. Try a smaller or simpler one.',
+  tooSmall: `That picture is too small. Use one at least ${IMAGE.minSideServer} pixels on each side.`,
+  unreadable: 'That picture could not be opened. Try another JPG, PNG or WebP picture.',
+  hugeFile: 'That file is over 40 MB, too large to open here. Use a smaller picture.'
+};
+const IMG_MAX_FILE = 40 * 1024 * 1024;                       // never decode anything larger
+const IMG_QUALITIES = [0.86, 0.8, 0.74, 0.68, 0.6, 0.52, 0.44, 0.36];
+const TYPE_WORD = { 'image/jpeg': 'JPG', 'image/png': 'PNG', 'image/webp': 'WebP' };
+
+/** The picture the editor holds, or null.
+ *  saved: { id, src: imageUrl(id), width, height, bytes, type }
+ *  new:   { blob, src: blob: address, width, height, bytes, type, name, origBytes }
+ *  Alt text and placement live in their inputs. */
+let pic = null;
+let picToken = 0;          // a newer pick, a remove or another offer makes older shrinks stale
+let webpOk = null;         // can this browser encode WebP? (checked once)
+
+/** JPEG, PNG or WebP from the file's own first bytes, else ''. */
+function sniffType(b) {
+  if (b.length >= 3 && b[0] === 0xFF && b[1] === 0xD8 && b[2] === 0xFF) return 'image/jpeg';
+  if (b.length >= 8 && [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A].every((x, i) => b[i] === x)) return 'image/png';
+  if (b.length >= 12 && b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46
+    && b[8] === 0x57 && b[9] === 0x45 && b[10] === 0x42 && b[11] === 0x50) return 'image/webp';
+  return '';
+}
+async function headBytes(blob) { return new Uint8Array(await blob.slice(0, 16).arrayBuffer()); }
+
+function sizeWords(n) {
+  return n >= 1024 * 1024 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`;
+}
+
+function placementValue() {
+  return (ed.form.querySelector('input[name="imgPlacement"]:checked') || {}).value || IMAGE.defaultPlacement;
+}
+function setPlacement(v) {
+  const want = IMAGE.placements.includes(v) ? v : IMAGE.defaultPlacement;
+  for (const r of ed.form.querySelectorAll('input[name="imgPlacement"]')) r.checked = r.value === want;
+}
+
+function setImgBusy(text) {
+  ed.imgBusy.textContent = text || '';
+  for (const b of [ed.imgAdd, ed.imgReplace, ed.imgRemove]) b.disabled = !!text;
+}
+
+function setPic(next) {
+  if (pic && pic.blob) URL.revokeObjectURL(pic.src);
+  pic = next;
+  drawImageBlock();
+  renderPreview();
+}
+
+function drawImageBlock() {
+  ed.imgNone.hidden = !!pic;
+  ed.imgYes.hidden = !pic;
+  if (!pic) {
+    ed.imgThumb.removeAttribute('src');
+    ed.imgName.textContent = '';
+    ed.imgSize.textContent = '';
+    return;
+  }
+  ed.imgThumb.setAttribute('src', pic.src);
+  const facts = [`${pic.width} \u00d7 ${pic.height} px`];
+  if (pic.bytes) facts.push(sizeWords(pic.bytes));
+  if (TYPE_WORD[pic.type]) facts.push(TYPE_WORD[pic.type]);
+  if (pic.blob) {
+    ed.imgName.textContent = pic.name || 'New picture';
+    ed.imgSize.textContent = `${sizeWords(pic.origBytes)} file, shrunk to ${facts.join(', ')}. Not saved yet.`;
+  } else {
+    ed.imgName.textContent = 'Saved picture';
+    ed.imgSize.textContent = facts.join(', ');
+  }
+}
+
+/** From a saved offer's image (or null). Called by fill() and wipeEditor(). */
+function fillImage(image) {
+  picToken++;
+  setImgBusy('');
+  ed.imgMsg.textContent = '';
+  const ok = !!image && typeof image === 'object' && typeof image.id === 'string' && IMAGE.idPattern.test(image.id)
+    && Number.isInteger(image.width) && image.width > 0 && Number.isInteger(image.height) && image.height > 0;
+  ed.imgAlt.value = ok && typeof image.alt === 'string' ? image.alt : '';
+  setPlacement(ok ? image.placement : IMAGE.defaultPlacement);
+  setPic(ok ? { id: image.id, src: imageUrl(image.id), width: image.width, height: image.height,
+    bytes: Number(image.bytes) || 0, type: typeof image.type === 'string' ? image.type : '' } : null);
+}
+
+/** What drawPreview shows: the held picture with the current alt and placement. */
+function previewImage() {
+  if (!pic) return null;
+  return { src: pic.src, alt: ed.imgAlt.value.trim(), placement: placementValue(), width: pic.width, height: pic.height };
+}
+
+const imgError = (msg) => Object.assign(new Error(msg), { userMessage: msg });
+const toBlob = (canvas, type, q) => new Promise((resolve) => canvas.toBlob(resolve, type, q));
+
+async function canEncodeWebp() {
+  if (webpOk === null) {
+    const c = document.createElement('canvas');
+    c.width = c.height = 2;
+    const b = await toBlob(c, 'image/webp', 0.8);
+    webpOk = !!b && b.type === 'image/webp';
+  }
+  return webpOk;
+}
+
+/**
+ * Decode, shrink the longest side to IMAGE.maxSideBrowser, re-encode as WebP
+ * (JPEG where WebP cannot be written), stepping the quality down until the
+ * file is under IMAGE.targetBytes. Re-encoding drops camera data such as
+ * location. Refuses a result over IMAGE.maxBytes.
+ */
+async function shrinkPicture(file) {
+  let bmp;
+  try { bmp = await createImageBitmap(file, { imageOrientation: 'from-image' }); }
+  catch { throw imgError(IMG_MSG.unreadable); }
+  try {
+    const min = IMAGE.minSideServer;
+    if (bmp.width < min || bmp.height < min) throw imgError(IMG_MSG.tooSmall);
+    const scale = Math.min(1, IMAGE.maxSideBrowser / Math.max(bmp.width, bmp.height));
+    const w = Math.round(bmp.width * scale);
+    const h = Math.round(bmp.height * scale);
+    if (w < min || h < min) throw imgError(IMG_MSG.tooSmall);
+    const type = (await canEncodeWebp()) ? 'image/webp' : 'image/jpeg';
+    const c = document.createElement('canvas');
+    c.width = w;
+    c.height = h;
+    const g = c.getContext('2d');
+    g.imageSmoothingEnabled = true;
+    g.imageSmoothingQuality = 'high';
+    if (type === 'image/jpeg') { g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, w, h); }   // JPEG has no transparency
+    g.drawImage(bmp, 0, 0, w, h);
+    let best = null;
+    for (const q of IMG_QUALITIES) {
+      const b = await toBlob(c, type, q);
+      if (!b) break;
+      if (!best || b.size < best.size) best = b;
+      if (b.size <= IMAGE.targetBytes) break;
+    }
+    c.width = c.height = 0;   // free the canvas memory now
+    if (!best || sniffType(await headBytes(best)) !== type) throw imgError(IMG_MSG.unreadable);
+    if (best.size > IMAGE.maxBytes) throw imgError(IMG_MSG.tooLarge);
+    return { blob: best, width: w, height: h };
+  } finally {
+    bmp.close();
+  }
+}
+
+async function pickPicture(file) {
+  const token = ++picToken;
+  ed.imgMsg.textContent = '';
+  if (!file) return;
+  const stop = (msg) => {
+    if (token !== picToken) return;
+    setImgBusy('');
+    ed.imgMsg.textContent = msg;
+  };
+  let type = '';
+  try { type = sniffType(await headBytes(file)); } catch { return stop(IMG_MSG.unreadable); }
+  if (!type) return stop(IMG_MSG.wrongType);             // SVG, GIF, HEIC, renamed files...
+  if (file.size > IMG_MAX_FILE) return stop(IMG_MSG.hugeFile);
+  setImgBusy('Shrinking the picture\u2026');
+  let out;
+  try { out = await shrinkPicture(file); } catch (err) { return stop((err && err.userMessage) || IMG_MSG.unreadable); }
+  if (token !== picToken) return;                          // replaced, removed or another offer meanwhile
+  setImgBusy('');
+  const first = !pic;
+  setPic({ blob: out.blob, src: URL.createObjectURL(out.blob), width: out.width, height: out.height,
+    bytes: out.blob.size, type: out.blob.type, name: file.name, origBytes: file.size });
+  counters();
+  if (first && !ed.imgAlt.value.trim()) ed.imgAlt.focus(); else ed.imgReplace.focus();
+}
+
+function removePicture() {
+  picToken++;
+  setImgBusy('');
+  ed.imgMsg.textContent = '';
+  ed.imgAlt.value = '';
+  setPlacement(IMAGE.defaultPlacement);
+  for (const k of ['image.alt', 'image.placement', 'image.id']) {
+    const slot = ed.form.querySelector(`[data-err="${k}"]`);
+    slot.textContent = '';
+    delete slot.dataset.server;
+  }
+  setPic(null);
+  counters();
+  ed.imgAdd.focus();
+}
+
+ed.imgAdd.addEventListener('click', () => ed.imgFile.click());
+ed.imgReplace.addEventListener('click', () => ed.imgFile.click());
+ed.imgRemove.addEventListener('click', removePicture);
+ed.imgFile.addEventListener('change', () => {
+  const file = ed.imgFile.files && ed.imgFile.files[0];
+  ed.imgFile.value = '';   // picking the same file again still fires change
+  pickPicture(file);
+});
+
 /* ---------- field messages ---------- */
 
 function clearErrors() {
@@ -960,7 +1202,9 @@ function inputFor(key) {
     startsAt: ed.startD, endsAt: ed.endD, buttonUrl: ed.url, 'form.buttonLabel': ed.formOn.checked ? ed.btn : ed.btn2,
     'form.thanks': ed.thanks, 'form.optionChoices': ed.choices, 'form.fields': ed.fields.querySelector('[data-show]'),
     'form.required': ed.fields.querySelector('[data-req]'), audience: ed.form.querySelector('input[name="audience"]'),
-    'form.enabled': ed.formOn, form: ed.formOn
+    'form.enabled': ed.formOn, form: ed.formOn,
+    'image.alt': ed.imgAlt, 'image.placement': ed.form.querySelector('input[name="imgPlacement"]'),
+    'image.id': pic ? ed.imgReplace : ed.imgAdd
   };
   const m = /^form\.extraLabels\.(extra_[123])$/.exec(key);
   if (m) return ed.fields.querySelector(`[data-extra="${m[1]}"]`);
@@ -1022,6 +1266,7 @@ function wipeEditor() {
   setBanner('');
   clearErrors();
   ed.saving.textContent = '';
+  fillImage(null);
   const doc = ed.pv.contentDocument;
   if (doc && doc.body) doc.body.replaceChildren();
 }
@@ -1217,7 +1462,7 @@ function grabInputs() {
   const v = {};
   for (const k of Object.keys(RICH)) v[`rich:${k}`] = ed[k].value;
   for (const n of ed.form.querySelectorAll('input, textarea, select')) {
-    if (n.closest('.oa-rtb')) continue;   // formatting toolbars follow their text box
+    if (n.closest('.oa-rtb') || n.type === 'file') continue;   // toolbars follow their text box; the picture is not an input value
     const k = n.id || `${n.name}:${n.value}:${n.dataset.show || n.dataset.req || n.dataset.extra || ''}`;
     if (n.type === 'checkbox' || n.type === 'radio') v[k] = n.checked; else v[k] = n.value;
   }
@@ -1226,7 +1471,7 @@ function grabInputs() {
 function putInputs(v) {
   for (const k of Object.keys(RICH)) if (`rich:${k}` in v) ed[k].value = v[`rich:${k}`];
   for (const n of ed.form.querySelectorAll('input, textarea, select')) {
-    if (n.closest('.oa-rtb')) continue;   // formatting toolbars follow their text box
+    if (n.closest('.oa-rtb') || n.type === 'file') continue;   // a file input's value cannot be set back
     const k = n.id || `${n.name}:${n.value}:${n.dataset.show || n.dataset.req || n.dataset.extra || ''}`;
     if (!(k in v)) continue;
     if (n.type === 'checkbox' || n.type === 'radio') n.checked = v[k]; else n.value = v[k];
