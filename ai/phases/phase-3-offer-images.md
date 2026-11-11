@@ -197,11 +197,11 @@ Server messages the editor will show (set here so 3.5, 3.9 and 3.10 agree):
 - Objectives: stability (a full backup in one file; never a failed export because of size); security (signed in only, as today; the file still holds preview keys, so keep it private); efficiency (only current offers' pictures, no duplicates).
 - Files modified: netlify/functions/offers-export.mjs. Created: netlify/tests/offers-export.test.mjs.
 - Tasks:
-  - [ ] File gains `images: [{ id, type, bytes, width, height, dataBase64 }]` for every picture referenced by a current offer (deduplicated), and `imagesOmitted: [ids]` (empty when all fit).
-  - [ ] Size guard: stop adding pictures when the finished JSON would pass 4.5 MB (the platform limit for one function response is about 6 MB; the margin covers base64 growth and headers). Pictures that did not fit are listed in `imagesOmitted`, and `GET /api/offers/export?images=rest` returns a second file with just those pictures. The page text says so plainly (3.10 shows the message).
-  - [ ] A picture that cannot be read is listed in `imagesMissing` and the export still succeeds.
-  - [ ] File name for the second part: yavd-offers-<live|test>-images-<stamp>.json.
-  - [ ] Tests: no images, one image (round trip: decoded bytes equal the stored bytes), a duplicate reference, eight 590 KB pictures spill to part 2, missing picture reported, signed out 401, old offers unchanged.
+  - [x] File gains `images: [{ id, type, bytes, width, height, dataBase64 }]` for every picture referenced by a current offer (deduplicated), and `imagesOmitted: [ids]` (empty when all fit).
+  - [x] Size guard: stop adding pictures when the finished JSON would pass 4.5 MB (the platform limit for one function response is about 6 MB; the margin covers base64 growth and headers). Pictures that did not fit are listed in `imagesOmitted`, and `GET /api/offers/export?images=rest` returns a second file with just those pictures (extended in 3.7: if part 2 is also full it names part 3, `?images=rest&part=3`, and so on; each file says `parts` and `next`). The page text says so plainly (3.10 shows the message).
+  - [x] A picture that cannot be read is listed in `imagesMissing` and the export still succeeds.
+  - [x] File name for the second part: yavd-offers-<live|test>-images-<stamp>.json.
+  - [x] Tests: no images, one image (round trip: decoded bytes equal the stored bytes), a duplicate reference, eight 590 KB pictures spill to part 2, missing picture reported, signed out 401, old offers unchanged.
 - Inputs needed from Michael: None.
 - DONE WHEN: `node --test netlify/tests/offers-export.test.mjs` passes (output pasted), including the spill case.
 - Needs my eyes: nothing.
