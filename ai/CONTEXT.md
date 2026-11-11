@@ -20,7 +20,7 @@ Updated: 2026-11-11 08:40 ET, Session 3.1 (Freeze the contract), Phase 3 Offer I
 ## Open items
 1. offers-stats.test.mjs "twenty parallel views all land" fails on Michael's PC (Node 24.19.0): 13 of 20 counted, the rest answered busy. It fails identically with the 1.2.0 contract, so it predates Phase 3. No lost counts (stored equals counted); the retry limit gives up under 20-way contention. Backlog: decide whether to raise the retry count or loosen the test. Not Phase 3 work.
 2. Phase 1 backlog unchanged: 1.2b alert email, README, untrack .netlify/, test store tidy, later list.
-3. Working tree holds many uncommitted non-Phase-3 changes (pages, _redirects, netlify.toml, zipdrop, utm-builder, rfp-review). The commit block below stages only Session 3.1 files.
+3. RESOLVED 2026-11-11 after 3.1: GitHub main had 12 commits this PC lacked (Production Partners, header menu, first ZipDrop) and this PC had uncommitted live site work. Every page was compared with youravdept.com: live matched this PC. Committed the live work (b3b3a6b), merged GitHub keeping this PC's files (0fdafe4, tree unchanged), carried GitHub's README header and menu notes over (3590497). Backup tag before: pre-site-merge-20261111. Only .netlify/ remains uncommitted (backlog).
 
 ## Estimate vs actual
 Estimated S, ~5 min of Michael's time. Actual S (about 15 min build); Michael's time about 5 min (paste the commit block).

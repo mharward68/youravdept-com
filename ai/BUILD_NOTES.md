@@ -110,6 +110,7 @@ Only what a future session would waste time rediscovering.
 - The Claude sessions now have a shell on Michael's PC (Git Bash and PowerShell), but no Python: use node or the Edit tool for scripted edits.
 - prepareOffer builds the saved offer with `for (const k of OFFER_KEYS) offer[k] = out[k]`, so any new OFFER_KEYS entry appears as undefined (dropped by JSON) until the rules set it. Key-list tests on objects (offer-format) still pass; key-list tests on JSON responses (offers-rules) do not.
 - In shared/offer-contract.js, IMAGE must stay below HISTORY_KEEP: it reads it at module load (const, temporal dead zone).
+- The live site is deployed from this PC's folder, so this folder is the truth, and GitHub main can fall behind or fork (other machines and cloud sessions push there too). Before any deploy, `git fetch` and check `git rev-list --count HEAD..origin/main` is 0. If they fork, compare each page with the live site (curl https://youravdept.com/<page>, NOT www, which 301s) before choosing a side. Live pages differ from the files only by the injected GA4 tag and Netlify's tidied links.
 - offers-stats "twenty parallel views" fails on this PC before and after 3.1 (13 of 20 counted). Do not chase it inside Phase 3; it is in the CONTEXT backlog.
 
 ## Just the Audio (added 2026-10-11)
