@@ -10,6 +10,12 @@
  * eyebrow, headline and body may now carry formatting tags defined in
  * /shared/offer-format.js. Additive: an offer saved before 1.2.0 has no
  * eyebrow and no tags and shows exactly as before.
+ * 1.3.0 (2026-11-11, Phase 3 Offer Images, approved scope section 9): added
+ * one optional picture per offer: the "image" field (after "body") in
+ * OFFER_KEYS and PUBLIC_OFFER_KEYS, ROUTES.apiImage and ROUTES.image,
+ * STORES.images, IMAGE, IMAGE_KEYS, PUBLIC_IMAGE_KEYS and imageUrl().
+ * Additive: an offer saved before 1.3.0 has no image key and publicPayload()
+ * gives it image: null, so it shows exactly as before.
  *
  * Pure ES module, no imports, no secrets. It is loaded by:
  *   - Netlify Functions   (netlify/functions/*.mjs, Node)
@@ -19,7 +25,7 @@
  * nothing in it is private.
  */
 
-export const CONTRACT_VERSION = '1.2.0';
+export const CONTRACT_VERSION = '1.3.0';
 
 /* ---------- ADDRESSES ---------- */
 
@@ -33,7 +39,9 @@ export const ROUTES = Object.freeze({
   apiDelete:   '/api/offers/delete',      // POST {id}  drafts only
   apiExport:   '/api/offers/export',      // GET all offers as one JSON file
   apiPages:    '/api/offers/pages',       // GET list of site pages for the dropdown
-  apiRestore:  '/api/offers/restore'      // GET saved versions, newest first; POST {key} puts one back
+  apiRestore:  '/api/offers/restore',     // GET saved versions, newest first; POST {key} puts one back
+  apiImage:    '/api/offers/image',       // POST raw image bytes, signed in -> 201 { id, width, height, type, bytes }  (1.3.0)
+  image:       '/api/offers/image/:id'    // GET, public, the picture itself  (1.3.0)
 });
 
 export const OFFER_LINK_PREFIX = '/offer/';
@@ -72,6 +80,7 @@ export const DEFAULT_END_TIME   = '23:59';   // 11:59 PM Eastern
  * @property {string}  eyebrow     short line above the headline (1.2.0); formatting tags allowed
  * @property {string}  headline    plain text with formatting tags (offer-format.js)
  * @property {string}  body        plain text with formatting tags, line breaks kept
+ * @property {null|OfferImage} image  one optional picture (1.3.0); absent on older offers, read as null
  * @property {OfferForm} form
  * @property {string|null} buttonUrl  used only when form.enabled is false
  * @property {string}  startsAt    ISO time with offset, entered as Eastern
@@ -81,10 +90,19 @@ export const DEFAULT_END_TIME   = '23:59';   // 11:59 PM Eastern
  * @property {string|null} rerunOf
  * @property {string}  createdAt   ISO
  * @property {string}  updatedAt   ISO
+ *
+ * @typedef {Object} OfferImage  (1.3.0) every fact except alt and placement is decided by the server
+ * @property {string} id         IMAGE.idPattern, the key in STORES.images
+ * @property {string} alt        plain text, required, up to IMAGE.altMax
+ * @property {'top'|'left'|'right'} placement
+ * @property {number} width      pixels, read from the stored bytes
+ * @property {number} height     pixels, read from the stored bytes
+ * @property {'image/jpeg'|'image/png'|'image/webp'} type
+ * @property {number} bytes      stored size
  */
 
 export const OFFER_KEYS = Object.freeze([
-  'id', 'name', 'slug', 'page', 'audience', 'eyebrow', 'headline', 'body', 'form',
+  'id', 'name', 'slug', 'page', 'audience', 'eyebrow', 'headline', 'body', 'image', 'form',
   'buttonUrl', 'startsAt', 'endsAt', 'draft', 'previewKey', 'rerunOf',
   'createdAt', 'updatedAt'
 ]);
@@ -97,7 +115,7 @@ export const FORM_KEYS = Object.freeze([
 export function emptyOffer() {
   return {
     id: '', name: '', slug: '', page: '', audience: 'everyone',
-    eyebrow: '', headline: '', body: '',
+    eyebrow: '', headline: '', body: '', image: null,
     form: {
       enabled: true, fields: ['name', 'email'], required: ['name', 'email'],
       buttonLabel: 'Send', optionChoices: [], extraLabels: {},
@@ -210,7 +228,7 @@ export function alertSubject(offerName, isTest) {
 
 /* ---------- STORAGE (Netlify Blobs) ---------- */
 
-export const STORES = Object.freeze({ offers: 'offers', stats: 'offer-stats' });
+export const STORES = Object.freeze({ offers: 'offers', stats: 'offer-stats', images: 'offer-images' });   // images: 1.3.0
 export const KEYS = Object.freeze({
   all: 'all',                                  // every offer, one JSON array
   history: (isoTime) => `history/${isoTime}`,  // previous versions
@@ -219,6 +237,32 @@ export const KEYS = Object.freeze({
 });
 export const HISTORY_KEEP = 20;
 export const CACHE_SECONDS = 60;               // edge lookups cached up to a minute
+
+/* ---------- OFFER IMAGES (1.3.0) ---------- */
+
+/**
+ * One picture per offer. Blob record in store STORES.images
+ * ("-test" on every non-production deploy, storeName rule), key = image id:
+ *   bytes = the file; metadata = { type, bytes, width, height, uploadedAt (ISO) }
+ * Type, width and height come from the stored bytes, never from the browser.
+ */
+export const IMAGE = Object.freeze({
+  mimeTypes: Object.freeze(['image/jpeg', 'image/png', 'image/webp']),
+  placements: Object.freeze(['top', 'left', 'right']),
+  defaultPlacement: 'top',
+  idPattern: /^[0-9a-f]{32}$/,        // random, never reused
+  altMax: 125,                        // alt text is required whenever an image is attached
+  maxBytes: 600 * 1024,               // hard cap, enforced by the server
+  targetBytes: 400 * 1024,            // the browser aims for this
+  maxSideBrowser: 1600,               // browser shrinks the longest side to this
+  maxSideServer: 4096,                // server sanity limit
+  minSideServer: 16,
+  graceHours: 24,                     // a picture younger than this is never cleaned up
+  keepVersions: HISTORY_KEEP          // saved versions whose pictures are kept (20)
+});
+export const IMAGE_KEYS = Object.freeze(['id', 'alt', 'placement', 'width', 'height', 'type', 'bytes']);
+export const PUBLIC_IMAGE_KEYS = Object.freeze(['id', 'alt', 'placement', 'width', 'height']);
+export const imageUrl = (id) => `/api/offers/image/${id}`;
 
 /**
  * Site-wide Blobs stores are shared by every deploy, including preview
@@ -265,7 +309,7 @@ export const INJECT = Object.freeze({
   js: '/assets/offer-panel.js'
 });
 export const PUBLIC_OFFER_KEYS = Object.freeze([
-  'id', 'name', 'slug', 'eyebrow', 'headline', 'body', 'form', 'buttonUrl'
+  'id', 'name', 'slug', 'eyebrow', 'headline', 'body', 'image', 'form', 'buttonUrl'
 ]);
 
 /**
@@ -275,8 +319,18 @@ export const PUBLIC_OFFER_KEYS = Object.freeze([
  */
 export function publicPayload(offer, isTest) {
   const pub = {};
-  for (const k of PUBLIC_OFFER_KEYS) pub[k] = offer[k] === undefined ? '' : offer[k];   // offers saved before 1.2.0 have no eyebrow
+  for (const k of PUBLIC_OFFER_KEYS) {
+    if (k === 'image') { pub.image = publicImage(offer.image); continue; }   // 1.3.0: null, never ""
+    pub[k] = offer[k] === undefined ? '' : offer[k];   // offers saved before 1.2.0 have no eyebrow
+  }
   return { v: CONTRACT_VERSION, isTest: !!isTest, offer: pub };
+}
+/** null when the offer has no picture, otherwise PUBLIC_IMAGE_KEYS only (never type or bytes). */
+function publicImage(image) {
+  if (!image || typeof image !== 'object') return null;
+  const out = {};
+  for (const k of PUBLIC_IMAGE_KEYS) out[k] = image[k];
+  return out;
 }
 export function payloadToScriptJson(payload) {
   return JSON.stringify(payload).replace(/</g, '\\u003c');

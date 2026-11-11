@@ -131,3 +131,8 @@ Dated, append-only. What was chosen, why, and what was rejected.
 - Editor: formatted boxes (assets/offer-rich.js) with a toolbar; selected text is formatted, or the whole field when nothing is selected. Paste is plain text. Own undo (Ctrl+Z / Ctrl+Y).
 - Limits count the words a visitor reads (eyebrow 60, headline 150, copy 3000); stored text with tags is capped at 6x.
 - Fixed in passing: saving a new draft with no dates threw in the "Saved" message (words() on an empty date); the save itself had succeeded.
+
+## 2026-11-11: Session 3.1, contract 1.3.0 frozen (Phase 3 Offer Images)
+- Contract 1.3.0, additive, exactly as written in ai/phases/phase-3-offer-images.md (approved scope section 9): image field after body, two image routes under /api/offers/image, store offer-images, IMAGE constants, IMAGE_KEYS, PUBLIC_IMAGE_KEYS, imageUrl(). Frozen until phase close; any change is a plan revision for Michael.
+- publicPayload special-cases image: null when absent (never the empty-string fill other keys get), otherwise the five public keys only. Why: old offers must read as "no picture", and type and size stay private. Rejected: filling "" like other keys (the popup would treat "" as a value).
+- Existing tests adjusted instead of app code: offers-rules key list excludes image until 3.5 sets it. Rejected: touching offers-rules.mjs in 3.1 (outside the session's files, Hard limit).

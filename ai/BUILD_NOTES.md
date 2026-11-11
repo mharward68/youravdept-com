@@ -106,6 +106,12 @@ Only what a future session would waste time rediscovering.
 - On Node 24, `node --test` piped to PowerShell prints the spec reporter ("i pass 10"), not "# pass 10". Scripts that parse the summary must pass --test-reporter=tap.
 - git status always shows .netlify/ changes after a deploy (CLI-generated files tracked by mistake, backlog). Clean-tree checks must ignore " .netlify/".
 
+## Session 3.1 findings (offer images, contract 1.3.0)
+- The Claude sessions now have a shell on Michael's PC (Git Bash and PowerShell), but no Python: use node or the Edit tool for scripted edits.
+- prepareOffer builds the saved offer with `for (const k of OFFER_KEYS) offer[k] = out[k]`, so any new OFFER_KEYS entry appears as undefined (dropped by JSON) until the rules set it. Key-list tests on objects (offer-format) still pass; key-list tests on JSON responses (offers-rules) do not.
+- In shared/offer-contract.js, IMAGE must stay below HISTORY_KEEP: it reads it at module load (const, temporal dead zone).
+- offers-stats "twenty parallel views" fails on this PC before and after 3.1 (13 of 20 counted). Do not chase it inside Phase 3; it is in the CONTEXT backlog.
+
 ## Just the Audio (added 2026-10-11)
 - A free tool that turns MP4, MOV and M4A recordings into MP3 in the visitor's own browser. Called "MP4 to MP3 Converter" during the build; the project folder and repo keep that name.
 - Lives in just-the-audio/ (landing page index.html, manifest, sw.js, icons) and just-the-audio/app/ (the tool). Source of truth is the separate project C:\01_AppDevelopment\19_mp4-mp3_converter (repo mharward68/mp4-mp3_converter): change it there, run its tests, then copy its mp3-mp4_app\public folder over just-the-audio here. Its ai/ folder has the full notes.

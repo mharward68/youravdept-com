@@ -59,7 +59,7 @@ test('brand palette only', () => {
 });
 
 test('contract 1.2.0: eyebrow is an offer key and a public key', () => {
-  assert.equal(C.CONTRACT_VERSION, '1.2.0');
+  assert.ok(['1.2.0', '1.3.0'].includes(C.CONTRACT_VERSION), 'eyebrow arrived in 1.2.0; the exact version is checked in offer-contract-images.test.mjs');
   assert.ok(C.OFFER_KEYS.includes('eyebrow'));
   assert.ok(C.PUBLIC_OFFER_KEYS.includes('eyebrow'));
   assert.equal(C.emptyOffer().eyebrow, '');

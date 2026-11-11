@@ -116,7 +116,8 @@ test('injectOffer: before </body>, once, escaped, public keys only', () => {
   const parsed = JSON.parse(json);
   assert.equal(parsed.isTest, true);
   assert.equal(parsed.offer.headline, evil.headline);
-  assert.deepEqual(Object.keys(parsed.offer).sort(), ['body', 'buttonUrl', 'eyebrow', 'form', 'headline', 'id', 'name', 'slug']);
+  assert.deepEqual(Object.keys(parsed.offer).sort(), ['body', 'buttonUrl', 'eyebrow', 'form', 'headline', 'id', 'image', 'name', 'slug']);
+  assert.strictEqual(parsed.offer.image, null, 'offer with no picture: image is null (contract 1.3.0)');
   assert.equal(injectOffer(out, evil, true), out, 'never twice');
   assert.ok(injectOffer('<p>no body tag</p>', evil, false).startsWith('<p>no body tag</p><link'));
 });
