@@ -21,6 +21,8 @@
 /booth-proof-apply /booth-proof-apply.html 200
 /booth-proof-pilot /booth-proof-pilot.html 200
 /booth-proof-dates /booth-proof-dates.html 200
+/rfp-review /rfp-review.html 200
+/utm-builder /utm-builder.html 200
 /just-the-audio-activity /just-the-audio-activity.html 200
 
 # playlist pages renamed; forced (!) so the 301 wins if an old file is still present
@@ -29,3 +31,8 @@
 /meeting-planner-wellness-playlists        /playlists-meeting-planner-wellness.html   301!
 /meeting-planner-wellness-playlists.html   /playlists-meeting-planner-wellness.html   301!
 /production-partners /production-partners.html 200
+
+# ZipDrop free tool
+/zipdrop           /zipdrop-app/          301!
+/zipdrop/*         /zipdrop-app/          301!
+/zipdrop.html      /zipdrop-app/          301!

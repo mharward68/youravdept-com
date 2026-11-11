@@ -104,3 +104,10 @@
   from = "/site-map"
   to = "/site-map.html"
   status = 200
+
+# UTM link builder (2026-10-27): private tool, never in search.
+[[headers]]
+  for = "/utm-builder*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Cache-Control = "no-store"

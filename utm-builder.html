@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UTM Link Builder | Your AV Department</title>
+<meta name="description" content="Private tool: builds tagged links so Google Analytics shows which post or email sent each visit.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Montserrat:wght@700;800&display=swap">
+<style>
+:root{--navy:#152B4A;--teal:#2AA4A2;--ink:#152B4A;--muted:#5B6B80;--line:#D9E0E8;--soft:#F4F7FA;--warn:#8A5A00;--warnbg:#FFF6E0}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:#fff;color:var(--ink);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.5}
+a{color:var(--navy)}
+:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+header{background:var(--navy);color:#fff;padding:20px 16px}
+header .in{max-width:880px;margin:0 auto}
+header .brand{font-family:'Montserrat',sans-serif;font-weight:700;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal)}
+header h1{font-family:'Montserrat',sans-serif;font-weight:800;font-size:28px;line-height:1.15;margin:6px 0 4px}
+header p{margin:0;color:#D5DEE9;font-size:15px}
+main{max-width:880px;margin:0 auto;padding:24px 16px 64px}
+.card{border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:20px;background:#fff}
+h2{font-family:'Montserrat',sans-serif;font-weight:700;font-size:18px;margin:0 0 12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.full{grid-column:1/-1}
+@media(max-width:640px){.grid{grid-template-columns:1fr}header h1{font-size:23px}}
+label{display:block;font-weight:600;font-size:14px;margin-bottom:4px}
+.hint{font-size:13px;color:var(--muted);margin:4px 0 0}
+select,input[type=text],input[type=url]{width:100%;font:inherit;color:var(--ink);padding:10px 12px;border:1px solid #AAB6C4;border-radius:8px;background:#fff;min-height:44px}
+.row{display:flex;gap:8px;align-items:stretch}
+.row>*{flex:1}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+button{font:inherit;font-weight:600;cursor:pointer;border-radius:8px;min-height:44px;padding:8px 16px;border:1px solid var(--navy);background:#fff;color:var(--navy)}
+button:hover{background:var(--soft)}
+button.primary{background:var(--navy);color:#fff}
+button.primary:hover{background:#0F2038}
+button.chip{min-height:36px;padding:4px 12px;font-size:14px;font-weight:600;border-color:var(--teal);color:var(--navy);border-radius:999px}
+.out{background:var(--soft);border:1px solid var(--line);border-left:4px solid var(--teal);border-radius:8px;padding:14px;word-break:break-all;font-family:ui-monospace,Consolas,monospace;font-size:14px;min-height:56px}
+.out.empty{color:var(--muted);font-family:'Inter',sans-serif;word-break:normal}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
+.status{font-size:14px;color:#0B6B69;font-weight:600}
+.notes{margin:12px 0 0;padding:0;list-style:none}
+.notes li{background:var(--warnbg);color:var(--warn);border-radius:8px;padding:8px 12px;margin-top:8px;font-size:14px}
+.parts{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}
+.parts th,.parts td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.parts th{width:34%;color:var(--muted);font-weight:600}
+.parts td{font-family:ui-monospace,Consolas,monospace;word-break:break-all}
+.hist{list-style:none;margin:0;padding:0}
+.hist li{border-top:1px solid var(--line);padding:12px 0;display:grid;grid-template-columns:1fr auto;gap:8px 12px}
+.hist li:first-child{border-top:0}
+.hist .meta{font-size:13px;color:var(--muted)}
+.hist .u{font-family:ui-monospace,Consolas,monospace;font-size:13px;word-break:break-all}
+.hist button{min-height:36px;padding:2px 12px;font-size:14px}
+.guide dt{font-weight:600;margin-top:10px}
+.guide dd{margin:2px 0 0;color:var(--muted);font-size:15px}
+.guide code{background:var(--soft);padding:1px 5px;border-radius:4px;font-size:14px}
+.sr{position:absolute;left:-9999px}
+</style>
+</head>
+<body>
+<header>
+<div class="in">
+<div class="brand">Your AV Department</div>
+<h1>UTM Link Builder</h1>
+<p>Tag a link once, and Google Analytics shows which post, email or message sent each visit.</p>
+</div>
+</header>
+
+<main>
+<form id="f" class="card" autocomplete="off" novalidate>
+<h2>1. Build the link</h2>
+<div class="grid">
+<div class="full">
+<label for="dest">Where should the link go?</label>
+<select id="dest"></select>
+<input type="url" id="custom" placeholder="https://..." hidden aria-label="Custom destination address" style="margin-top:8px">
+<p class="hint" id="destHint">Pick a page from the site, or choose Other to paste any address.</p>
+</div>
+
+<div>
+<label for="source">Source (where the link is posted)</label>
+<select id="source"></select>
+<input type="text" id="sourceOther" placeholder="type a source" hidden aria-label="Custom source" style="margin-top:8px">
+</div>
+<div>
+<label for="medium">Medium (the kind of channel)</label>
+<select id="medium"></select>
+<input type="text" id="mediumOther" placeholder="type a medium" hidden aria-label="Custom medium" style="margin-top:8px">
+</div>
+
+<div class="full">
+<label for="campaign">Campaign name (the post, email or series)</label>
+<input type="text" id="campaign" placeholder="example: rfp-review-nov-launch" maxlength="80">
+<div class="chips" aria-label="Campaign helpers">
+<button type="button" class="chip" id="addMonth">+ month</button>
+<button type="button" class="chip" id="addDate">+ today's date</button>
+</div>
+<p class="hint">Spaces and capitals are fixed for you. Use the same name every time you link to the same post, so GA4 groups the visits.</p>
+</div>
+
+<div class="full">
+<label for="content">Content (optional: which version or placement)</label>
+<select id="content"></select>
+<input type="text" id="contentOther" placeholder="type a content label" hidden aria-label="Custom content label" style="margin-top:8px">
+<p class="hint">Useful when one campaign has more than one link, such as a post link and a first comment link.</p>
+</div>
+</div>
+</form>
+
+<section class="card" aria-labelledby="h2out">
+<h2 id="h2out">2. Your tagged link</h2>
+<div class="out empty" id="out" aria-live="polite">Fill in the destination, source, medium and campaign to see the link.</div>
+<ul class="notes" id="notes"></ul>
+<div class="actions">
+<button type="button" class="primary" id="copy" disabled>Copy link</button>
+<button type="button" id="open" disabled>Open link in new tab</button>
+<span class="status" id="status" role="status"></span>
+</div>
+<table class="parts" id="parts" hidden>
+<tbody></tbody>
+</table>
+</section>
+
+<section class="card" aria-labelledby="h2hist">
+<h2 id="h2hist">3. Recent links</h2>
+<p class="hint" style="margin-top:0">Saved only in this browser. Each link you copy is added here.</p>
+<ul class="hist" id="hist"></ul>
+<div class="actions"><button type="button" id="clear">Clear history</button></div>
+</section>
+
+<section class="card guide" aria-labelledby="h2guide">
+<h2 id="h2guide">How these show up in Google Analytics</h2>
+<dl>
+<dt>Source <code>utm_source</code></dt>
+<dd>Where the link lives: linkedin, email, qr. This is the "who sent them" column.</dd>
+<dt>Medium <code>utm_medium</code></dt>
+<dd>The kind of channel. GA4 sorts visits into channel groups using this word, so <code>social</code> lands in Organic Social and <code>email</code> lands in Email. Stick to the dropdown values and your channels stay clean.</dd>
+<dt>Campaign <code>utm_campaign</code></dt>
+<dd>The post or series name. This is what lets a report say which post sent the visits.</dd>
+<dt>Content <code>utm_content</code></dt>
+<dd>Optional. Separates two links inside one campaign.</dd>
+<dt>Good habits</dt>
+<dd>Tag links you share outside your own site. Never tag links between pages on youravdept.com, because that restarts the visit and hides where it really came from. Allow up to 48 hours for new tagged visits to appear in GA4 reports.</dd>
+</dl>
+</section>
+</main>
+
+<script>
+(function(){
+'use strict';
+
+var ORIGIN='https://youravdept.com';
+var PAGES=[
+ ['Home','/'],
+ ['Free 5-Day RFP Review','/rfp-review'],
+ ['Help! Fix My AV Budget','/fix-my-av-budget'],
+ ['How We Get Paid','/how-we-get-paid'],
+ ['Why Is AV So Expensive','/why-is-av-so-expensive'],
+ ['Our Story','/our-story'],
+ ['Library (all guides)','/library/'],
+ ['Guide: The Levers of Labor','/library/the-levers-of-labor'],
+ ['Guide: AV365','/library/av365'],
+ ['Guide: 12 AV Concessions','/library/12-av-concessions'],
+ ['Field Notes','/field-notes/'],
+ ['Booth Proof','/booth-proof'],
+ ['Production Partners','/production-partners']
+];
+var SOURCES=[['LinkedIn','linkedin'],['Email (my own send)','email'],['QR code or printed piece','qr'],['Conference or event','event'],['Partner or referral','partner']];
+var MEDIUMS=[['social (posts, comments, messages on a social site)','social'],['email','email'],['offline (print, QR, signage)','offline'],['referral (a link on someone else\'s site)','referral']];
+var CONTENTS=[['None',''],['post','post'],['first-comment','first-comment'],['inmail','inmail'],['connection-message','connection-message'],['dm','dm'],['signature','signature'],['carousel','carousel'],['article','article']];
+var KEY='yavd-utm-history-v1';
+var MAX=40;
+
+function $(id){return document.getElementById(id)}
+function fill(sel,list,withOther){
+  list.forEach(function(p){var o=document.createElement('option');o.textContent=p[0];o.value=p[1];sel.appendChild(o)});
+  if(withOther){var o=document.createElement('option');o.textContent='Other (type your own)';o.value='__other';sel.appendChild(o)}
+}
+fill($('dest'),PAGES,true);
+fill($('source'),SOURCES,true);
+fill($('medium'),MEDIUMS,true);
+fill($('content'),CONTENTS,true);
+
+// Defaults for the most common job: a LinkedIn post.
+$('source').value='linkedin';
+$('medium').value='social';
+
+function clean(v){
+  return String(v||'').trim().toLowerCase().replace(/[\s.]+/g,'-').replace(/[^a-z0-9_-]/g,'').replace(/-{2,}/g,'-').replace(/^-+|-+$/g,'');
+}
+function val(selId,otherId){
+  var s=$(selId).value;
+  return s==='__other'?clean($(otherId).value):s;
+}
+function toggleOther(selId,otherId){
+  var on=$(selId).value==='__other';
+  $(otherId).hidden=!on;
+}
+
+var lastUrl='';
+
+function build(){
+  var notes=[];
+  var base;
+  if($('dest').value==='__other'){
+    base=$('custom').value.trim();
+  }else{
+    base=ORIGIN+$('dest').value;
+  }
+  var src=val('source','sourceOther');
+  var med=val('medium','mediumOther');
+  var camp=clean($('campaign').value);
+  var cont=val('content','contentOther');
+  var out=$('out');
+  var parts=$('parts');
+  lastUrl='';
+  $('copy').disabled=true;$('open').disabled=true;
+  parts.hidden=true;
+
+  var missing=[];
+  if(!base)missing.push('destination');
+  if(!src)missing.push('source');
+  if(!med)missing.push('medium');
+  if(!camp)missing.push('campaign name');
+  if(missing.length){
+    out.className='out empty';
+    out.textContent='Still needed: '+missing.join(', ')+'.';
+    $('notes').innerHTML='';
+    return;
+  }
+
+  var u;
+  try{
+    if(!/^https?:\/\//i.test(base)){base='https://'+base;notes.push('Added https:// to the destination.')}
+    u=new URL(base);
+  }catch(e){
+    out.className='out empty';
+    out.textContent='That destination does not look like a web address.';
+    $('notes').innerHTML='';
+    return;
+  }
+
+  var had=['utm_source','utm_medium','utm_campaign','utm_content','utm_term'].filter(function(k){return u.searchParams.has(k)});
+  if(had.length)notes.push('The address already had UTM tags ('+had.join(', ')+'). They were replaced with the ones above.');
+  had.forEach(function(k){u.searchParams.delete(k)});
+
+  u.searchParams.set('utm_source',src);
+  u.searchParams.set('utm_medium',med);
+  u.searchParams.set('utm_campaign',camp);
+  if(cont)u.searchParams.set('utm_content',cont);
+
+  var host=u.hostname.replace(/^www\./,'');
+  if(host!=='youravdept.com')notes.push('This address is not on youravdept.com. GA4 for youravdept.com will only see the visit if the destination site has your tag installed.');
+  if(src==='linkedin'&&med!=='social')notes.push('LinkedIn links are normally medium = social. Other values can land in the wrong channel in GA4.');
+  if(med==='email'&&src==='linkedin')notes.push('Source is linkedin but medium is email. That mix is usually a mistake.');
+  if(camp.length>60)notes.push('Long campaign names are hard to read in GA4 tables. Consider shortening.');
+
+  lastUrl=u.toString();
+  out.className='out';
+  out.textContent=lastUrl;
+  $('copy').disabled=false;$('open').disabled=false;
+
+  $('notes').innerHTML='';
+  notes.forEach(function(n){var li=document.createElement('li');li.textContent=n;$('notes').appendChild(li)});
+
+  var tb=parts.querySelector('tbody');tb.innerHTML='';
+  [['Page',u.origin+u.pathname],['utm_source',src],['utm_medium',med],['utm_campaign',camp],['utm_content',cont||'(not used)']].forEach(function(r){
+    var tr=document.createElement('tr');var th=document.createElement('th');var td=document.createElement('td');
+    th.textContent=r[0];td.textContent=r[1];tr.appendChild(th);tr.appendChild(td);tb.appendChild(tr);
+  });
+  parts.hidden=false;
+}
+
+// History (browser storage only, wrapped because it can be blocked)
+function loadHist(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')||[]}catch(e){return[]}}
+function saveHist(a){try{localStorage.setItem(KEY,JSON.stringify(a.slice(0,MAX)))}catch(e){}}
+function addHist(url){
+  var a=loadHist().filter(function(x){return x.u!==url});
+  a.unshift({u:url,t:Date.now()});
+  saveHist(a);renderHist();
+}
+function describe(url){
+  try{var u=new URL(url);return u.searchParams.get('utm_campaign')+'  |  '+u.searchParams.get('utm_source')+' / '+u.searchParams.get('utm_medium')}catch(e){return''}
+}
+function renderHist(){
+  var ul=$('hist');ul.innerHTML='';
+  var a=loadHist();
+  if(!a.length){var li=document.createElement('li');li.style.display='block';li.textContent='Nothing yet.';li.className='meta';ul.appendChild(li);return}
+  a.forEach(function(x){
+    var li=document.createElement('li');
+    var d=document.createElement('div');
+    var m=document.createElement('div');m.className='meta';
+    m.textContent=describe(x.u)+'  |  '+new Date(x.t).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+    var u=document.createElement('div');u.className='u';u.textContent=x.u;
+    d.appendChild(m);d.appendChild(u);
+    var b=document.createElement('button');b.type='button';b.textContent='Copy';
+    b.addEventListener('click',function(){copyText(x.u,'Copied from history.')});
+    li.appendChild(d);li.appendChild(b);ul.appendChild(li);
+  });
+}
+
+function say(msg){
+  var s=$('status');s.textContent=msg;
+  clearTimeout(say.t);say.t=setTimeout(function(){s.textContent=''},3500);
+}
+function copyText(text,msg){
+  function fallback(){
+    var ta=document.createElement('textarea');ta.value=text;ta.setAttribute('readonly','');ta.className='sr';
+    document.body.appendChild(ta);ta.select();
+    var ok=false;try{ok=document.execCommand('copy')}catch(e){}
+    document.body.removeChild(ta);
+    say(ok?msg:'Copy failed. Select the link above and copy it by hand.');
+  }
+  if(navigator.clipboard&&window.isSecureContext){
+    navigator.clipboard.writeText(text).then(function(){say(msg)},fallback);
+  }else fallback();
+}
+
+$('copy').addEventListener('click',function(){
+  if(!lastUrl)return;
+  copyText(lastUrl,'Copied.');
+  addHist(lastUrl);
+});
+$('open').addEventListener('click',function(){
+  if(lastUrl)window.open(lastUrl,'_blank','noopener');
+});
+$('clear').addEventListener('click',function(){
+  if(!loadHist().length)return;
+  if(window.confirm('Clear the saved link history in this browser?')){saveHist([]);renderHist()}
+});
+
+function suffix(add){
+  var v=clean($('campaign').value);
+  if(!v){$('campaign').focus();return}
+  if(v.indexOf(add)===-1)v=v+'-'+add;
+  $('campaign').value=v;build();
+}
+$('addMonth').addEventListener('click',function(){
+  var d=new Date();suffix(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'));
+});
+$('addDate').addEventListener('click',function(){
+  var d=new Date();suffix(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'));
+});
+
+['dest','source','medium','content'].forEach(function(id){
+  $(id).addEventListener('change',function(){
+    if(id==='dest'){$('custom').hidden=$('dest').value!=='__other'}
+    if(id==='source')toggleOther('source','sourceOther');
+    if(id==='medium')toggleOther('medium','mediumOther');
+    if(id==='content')toggleOther('content','contentOther');
+    build();
+  });
+});
+['custom','sourceOther','mediumOther','contentOther','campaign'].forEach(function(id){
+  $(id).addEventListener('input',build);
+});
+$('campaign').addEventListener('blur',function(){var v=clean(this.value);if(v!==this.value){this.value=v;build()}});
+$('f').addEventListener('submit',function(e){e.preventDefault()});
+
+renderHist();
+build();
+})();
+</script>
+</body>
+</html>

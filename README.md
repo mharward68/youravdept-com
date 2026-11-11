@@ -16,6 +16,7 @@ self-contained HTML file with its CSS, JS, and images inlined.
 | `fix-my-av-budget.html` | Help! Fix My AV Budget landing page. In the header nav and mobile menu on every page. Buttons open a booking modal for `https://calendar.app.google/nyswcGtXNqdS149r8` (its own booking page, not the Strategic Review one) | yes |
 | `just-the-audio/index.html` | Just the Audio landing page: a free tool that turns MP4, MOV and M4A recordings into MP3. Built from `library/av365.html` by `tools/build-landing.py` in the `19_mp4-mp3_converter` project; edit it there, not here | yes |
 | `just-the-audio/app/` | Just the Audio itself (installable, works offline). Multi-file on purpose: it runs under a strict content security policy set in `netlify.toml`, so nothing can be inlined | noindex |
+| `zipdrop-app/index.html` | ZipDrop by Your AV Department: free zip tool (drop files or folders, get a `DATE-TIME-NAME.zip`, always a normal download). Installable app (PWA, works offline) with `zipdrop-app/manifest.webmanifest`, `zipdrop-app/sw.js` and `zipdrop-app/icons/`. All work is done in the visitor's browser, nothing is uploaded. Linked in the menu under Free extras. `/zipdrop`, `/zipdrop/` and `zipdrop.html` redirect here (the app is NOT at `/zipdrop/` because a folder and a page with the same name make Netlify loop). After changing `index.html`, bump `VERSION` in `sw.js` so installed copies update. `zipdrop.html` and `zipdrop/index.html` are only redirect stubs | yes |
 | `just-the-audio-activity.html` | Private Just the Audio activity page for Michael: live visits, installs and files converted. Asks once per browser for the key in JUST_THE_AUDIO_STATS_KEY. Source in the `19_mp4-mp3_converter` project, `mp3-mp4_app/site-pages/` | noindex |
 | `library/index.html` | The Library | yes |
 | `library/the-levers-of-labor.html` | The Levers of Labor, free guide | yes |
@@ -42,6 +43,7 @@ self-contained HTML file with its CSS, JS, and images inlined.
 | `booth-proof-apply.html` | Booth Proof pilot application: short summary plus the intake form (Netlify form `booth-proof-pilot`, no `guide` field so no auto email). Standalone page | noindex |
 | `admin.html` | Admin panel: sign-in, then Offers portal and Site map buttons. Opened by 5 clicks on the footer copyright line | noindex |
 | `site-map.html` | Signed-in site map with Copy link and Take down. Built from the deployed pages | noindex |
+| `utm-builder.html` | UTM link builder for Michael: pick a page, source, medium and campaign, get a tagged link to copy (history kept in the browser only). Standalone page, no GA tag so his own use is not counted. Served at `/utm-builder` (rule in `_redirects`, noindex and no-store headers in `netlify.toml`) | noindex |
 
 The `.vcf` files must deploy alongside the HTML or the "Save to Contacts"
 buttons will 404.
