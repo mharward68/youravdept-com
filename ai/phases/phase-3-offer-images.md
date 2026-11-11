@@ -1,5 +1,5 @@
 # Phase 3: Offer Images (one image per offer: upload, popup display, cleanup)
-Status: IN PROGRESS. Sessions 3.1 and 3.2 done 2026-11-11 (contract 1.3.0 frozen; picture checker). Next: 3.3.
+Status: IN PROGRESS. Sessions 3.1 to 3.3 done 2026-11-11 (contract 1.3.0 frozen; picture checker; picture store). Next: 3.4.
 
 ## What shapes this plan
 - Read: the scope, ai/CONTEXT.md, ai/BUILD_NOTES.md, ai/DECISIONS.md, the Phase 2 plan and run sheet (format and numbering), and the code this phase touches: shared/offer-contract.js (1.2.0), lib/offers-rules.mjs, lib/offers-store.mjs, lib/offers-auth.mjs, offers.mjs, offers-export.mjs, netlify/edge-lib/offer-edge.js, assets/offer-panel.js and .css, assets/offer-admin.js (drawPreview, save), netlify.toml, _headers.
@@ -124,11 +124,11 @@ Server messages the editor will show (set here so 3.5, 3.9 and 3.10 agree):
 - Objectives: stability (test deploys never touch live pictures; a failed storage call is a clean error); scalability (one blob per picture, key = id, no index to outgrow).
 - Files created: netlify/functions/lib/offer-images-store.mjs, netlify/tests/offer-images-store.test.mjs.
 - Tasks:
-  - [ ] imagesStore(deployContext) using storeName(STORES.images, ctx), strong consistency, with a test factory like the offers store has (_setImagesStoreFactoryForTests).
-  - [ ] putImage(store, bytes, info, now): new id, bytes plus metadata { type, bytes, width, height, uploadedAt }, onlyIfNew.
-  - [ ] getImage(store, id) returns { bytes, meta } or null; headImage(store, id) returns meta or null (metadata only); listImages(store) returns ids; deleteImage(store, id).
-  - [ ] ImageStoreError with a status, like StoreError.
-  - [ ] Tests with an in-memory store: round trip, unknown id is null, bad id shape refused before any storage call, base name on production and "-test" otherwise, storage throwing becomes ImageStoreError.
+  - [x] imagesStore(deployContext) using storeName(STORES.images, ctx), strong consistency, with a test factory like the offers store has (_setImagesStoreFactoryForTests).
+  - [x] putImage(store, bytes, info, now): new id, bytes plus metadata { type, bytes, width, height, uploadedAt }, onlyIfNew.
+  - [x] getImage(store, id) returns { bytes, meta } or null; headImage(store, id) returns meta or null (metadata only); listImages(store) returns ids; deleteImage(store, id).
+  - [x] ImageStoreError with a status, like StoreError.
+  - [x] Tests with an in-memory store: round trip, unknown id is null, bad id shape refused before any storage call, base name on production and "-test" otherwise, storage throwing becomes ImageStoreError.
 - Inputs needed from Michael: None.
 - DONE WHEN: `node --test netlify/tests/offer-images-store.test.mjs` passes (output pasted).
 - Needs my eyes: nothing.

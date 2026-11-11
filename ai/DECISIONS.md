@@ -142,3 +142,7 @@ Dated, append-only. What was chosen, why, and what was rejected.
 - Cut-off files are refused: a picture must end the way its format ends (JPEG end marker, PNG IEND, WebP RIFF length). Why: a truncated upload would otherwise be stored and show as a broken picture. Rejected: headers-only acceptance.
 - Two editor messages added to the plan's five (the frozen contract holds no messages, so it is unchanged): tooSmall "That picture is too small. Use one at least 16 pixels on each side." and tooManyPixels "That picture is over 4096 pixels on a side. Use a smaller one." Status codes: 413 too large, 415 wrong type (also empty or unreadable), 422 pixel limits. All seven live in IMAGE_MESSAGES so 3.4, 3.5, 3.9 and 3.10 share one copy.
 - Test pictures made by headless Edge's canvas encoder instead of Pillow (not installed here). Same intent as plan assumption 8: a one-time tool, no repo dependency. The 700 KB case is made inside the test by padding a real JPEG (the byte cap is checked before parsing), so no large fixture is committed.
+
+## 2026-11-11: Session 3.3, picture store
+- getImage reads bytes and details in one getWithMetadata call instead of the plan's get plus getMetadata. Why: one request per popup picture, and bytes and details can never come from two different versions. Rejected: two calls.
+- A stored picture whose details are unusable, or whose byte count does not match, reads as missing (the view route will 404). Why: never serve bytes under a type the server cannot vouch for. Rejected: guessing the type from the bytes on read.

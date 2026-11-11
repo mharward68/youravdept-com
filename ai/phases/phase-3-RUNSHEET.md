@@ -80,7 +80,7 @@ Tags: CONTINUE (green) next session extends what this one just wrote, same helpe
 
 - [x] 3.1  Freeze the contract (1.3.0) · S · ~5 min · **CLEAR** (next is pure byte-reading code)
 - [x] 3.2  Read and check an image · M · ~5 min · **CLEAR** (next is storage, unrelated)
-- [ ] 3.3  The image store · S · ~5 min · **CONTINUE** (3.4 imports exactly this)
+- [x] 3.3  The image store · S · ~5 min · **CONTINUE** (3.4 imports exactly this)
 - [ ] 3.4  Upload and view routes · M · ~5 min · **CLEAR** (next is offer rules; long test output)
 - [ ] 3.5  The image on an offer · M · ~5 min · **CONTINUE** (3.6 reads the references this defines)
 - [ ] 3.6  Automatic cleanup · M · ~5 min · **CLEAR** (heavy output; next is the export)
