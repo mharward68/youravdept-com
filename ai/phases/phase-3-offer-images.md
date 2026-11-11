@@ -179,11 +179,11 @@ Server messages the editor will show (set here so 3.5, 3.9 and 3.10 agree):
 - Objectives: stability (a referenced or recent picture is never deleted; cleanup failure never fails a save; Delete draft then Restore still comes back whole); efficiency (reads at most 20 saved versions and one list); scalability (no ceiling, one list call).
 - Files created: netlify/functions/lib/offer-images-cleanup.mjs, netlify/tests/offer-images-cleanup.test.mjs. Modified: netlify/functions/offers.mjs (one best-effort call after a successful save).
 - Tasks:
-  - [ ] usedImageIds(offersStore): ids in the current offers plus ids in the newest 20 saved versions (listHistory, same order rule as trimHistory).
-  - [ ] cleanupImages(imagesStore, offersStore, now): lists pictures, for each unused one reads its uploadedAt metadata, deletes only if older than 24 hours. Returns { kept, deleted, errors }.
-  - [ ] Hook: after a successful save in offers.mjs, `await cleanupImages(...)` inside try/catch; a failure is logged with console.error and ignored (the trimHistory pattern). Restore and delete do not trigger it.
-  - [ ] If the images list or any read fails, delete nothing.
-  - [ ] Tests: used by a current offer is kept; used only by a saved version is kept; unused and older than 24 hours is deleted; unused but 23 hours old is kept; replace an image then wait past the grace period then save: old one goes; delete a draft with an image, restore it, picture still there; cleanup throwing does not fail the save; unreadable history means nothing is deleted; the 21st version drops out and its picture becomes deletable.
+  - [x] usedImageIds(offersStore): ids in the current offers plus ids in the newest 20 saved versions (listHistory, same order rule as trimHistory).
+  - [x] cleanupImages(imagesStore, offersStore, now): lists pictures, for each unused one reads its uploadedAt metadata, deletes only if older than 24 hours. Returns { kept, deleted, errors }.
+  - [x] Hook: after a successful save in offers.mjs, `await cleanupImages(...)` inside try/catch; a failure is logged with console.error and ignored (the trimHistory pattern). Restore and delete do not trigger it.
+  - [x] If the images list or any read fails, delete nothing.
+  - [x] Tests: used by a current offer is kept; used only by a saved version is kept; unused and older than 24 hours is deleted; unused but 23 hours old is kept; replace an image: the old one is kept while a saved version refers to it and goes once that version is the 21st (corrected in 3.6: the scope keeps a picture while any of the newest 20 versions refers to it, so grace alone never frees it); delete a draft with an image, restore it, picture still there; cleanup throwing does not fail the save; unreadable history means nothing is deleted; the 21st version drops out and its picture becomes deletable.
 - Inputs needed from Michael: None.
 - DONE WHEN: `node --test netlify/tests/offer-images-cleanup.test.mjs` passes (output pasted); a test with the grace check removed fails (proves it is real); all other test files still pass.
 - Needs my eyes: nothing.

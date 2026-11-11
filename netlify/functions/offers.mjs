@@ -9,11 +9,14 @@
 //      problems -> 400 field messages | 404 gone | 409 clash or stale | 503 storage
 // Session 3.5: body.image = null removes the picture, absent keeps it, or
 //      { id, alt, placement }: the picture's facts come from the picture store.
+// Session 3.6: after a successful save, unused pictures older than 24 hours are
+//      removed (lib/offer-images-cleanup.mjs). Best effort: never fails a save.
 import { CONTRACT_VERSION } from '../../shared/offer-contract.js';
 import { requireAdmin, json } from './lib/offers-auth.mjs';
 import { prepareOffer, readJson, withStatus } from './lib/offers-rules.mjs';
 import { StoreError, changeOffers, loadOffers, offersStore, offersStoreName } from './lib/offers-store.mjs';
 import { ImageStoreError, headImage, imagesStore, isImageId } from './lib/offer-images-store.mjs';
+import { cleanupImages } from './lib/offer-images-cleanup.mjs';
 
 export default async (req, context) => {
   const refused = requireAdmin(req, { methods: ['GET', 'POST'] });
@@ -50,6 +53,7 @@ export default async (req, context) => {
       return json({ error: p.error, ...(p.fields ? { fields: p.fields } : {}) }, p.status);
     }
     const p = outcome.result;
+    await cleanUpAfterSave(store, deployContext);
     const [offer] = withStatus([p.offer]);
     return json({ ok: true, created: p.created, offer, notes: p.notes }, p.created ? 201 : 200);
   } catch (err) {
@@ -61,6 +65,19 @@ export default async (req, context) => {
 };
 
 const IMAGE_UNAVAILABLE = 'Picture storage is unavailable right now, so nothing was saved. Try again in a minute.';
+
+/**
+ * Session 3.6: removes unused pictures past the grace period. Same pattern as
+ * trimHistory: any failure is logged and ignored, the save has already happened.
+ */
+async function cleanUpAfterSave(store, deployContext) {
+  try {
+    const r = await cleanupImages(imagesStore(deployContext), store, new Date());
+    if (r.errors.length) console.error('offers: picture cleanup skipped or partial (harmless, retried on next save)', r.errors.join('; '));
+  } catch (err) {
+    console.error('offers: picture cleanup failed (harmless, retried on next save)', err?.message);
+  }
+}
 
 /**
  * Session 3.5: the stored facts (type, bytes, width, height) of the one

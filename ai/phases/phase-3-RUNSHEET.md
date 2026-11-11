@@ -83,7 +83,7 @@ Tags: CONTINUE (green) next session extends what this one just wrote, same helpe
 - [x] 3.3  The image store · S · ~5 min · **CONTINUE** (3.4 imports exactly this)
 - [x] 3.4  Upload and view routes · M · ~5 min · **CLEAR** (next is offer rules; long test output)
 - [x] 3.5  The image on an offer · M · ~5 min · **CONTINUE** (3.6 reads the references this defines)
-- [ ] 3.6  Automatic cleanup · M · ~5 min · **CLEAR** (heavy output; next is the export)
+- [x] 3.6  Automatic cleanup · M · ~5 min · **CLEAR** (heavy output; next is the export)
 - [ ] 3.7  Export with pictures · M · ~5 min · **CLEAR** (next is the popup)
 - [ ] 3.8  The popup shows the image · M · ~10 min · **APPROVE** (your look at three placements on desktop and phone)
 - [ ] 3.9  Editor image block · L · ~5 min · **CONTINUE** (3.10 extends this editor state)
