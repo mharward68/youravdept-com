@@ -1,5 +1,5 @@
 # Phase 3: Offer Images (one image per offer: upload, popup display, cleanup)
-Status: IN PROGRESS. Sessions 3.1 to 3.4 done 2026-11-11 (contract 1.3.0 frozen; picture checker; picture store; upload and view routes). Next: 3.5.
+Status: IN PROGRESS. Sessions 3.1 to 3.5 done 2026-11-11 (contract 1.3.0 frozen; picture checker; picture store; upload and view routes; image on an offer). Next: 3.6.
 
 ## What shapes this plan
 - Read: the scope, ai/CONTEXT.md, ai/BUILD_NOTES.md, ai/DECISIONS.md, the Phase 2 plan and run sheet (format and numbering), and the code this phase touches: shared/offer-contract.js (1.2.0), lib/offers-rules.mjs, lib/offers-store.mjs, lib/offers-auth.mjs, offers.mjs, offers-export.mjs, netlify/edge-lib/offer-edge.js, assets/offer-panel.js and .css, assets/offer-admin.js (drawPreview, save), netlify.toml, _headers.
@@ -159,7 +159,7 @@ Server messages the editor will show (set here so 3.5, 3.9 and 3.10 agree):
 - Objectives: security (the browser's width, height, type and size are ignored; alt text is plain text; a picture must exist in the store); stability (an offer saved before 1.3.0 behaves exactly as before; rerun keeps the picture; storage trouble stops the save with nothing written).
 - Files modified: netlify/functions/lib/offers-rules.mjs, netlify/functions/offers.mjs, netlify/tests/offers-rules.test.mjs. Created: netlify/tests/offers-image-save.test.mjs.
 - Tasks:
-  - [ ] prepareOffer reads input.image: null or absent keeps the stored value (null for old offers); an object is checked: placement in IMAGE.placements (default top), alt through plainText, required, up to 125; id matches the pattern.
+  - [ ] prepareOffer reads input.image: absent keeps the stored value (null for old offers); null removes it (corrected in 3.5: the original text said "null or absent keeps", which contradicted the remove task); an object is checked: placement in IMAGE.placements (default top), alt through plainText, required, up to 125; id matches the pattern.
   - [ ] Facts come from ctx.images (a map id to stored metadata, supplied by offers.mjs). The same id as the stored image reuses the stored facts. An id that is not in the map fails with the "gone" message. Output object has IMAGE_KEYS in order.
   - [ ] offers.mjs: before changeOffers, look up the one wanted id with headImage (skipped when it equals the stored offer's image). A storage error answers 503 "nothing was saved".
   - [ ] Sending `image: null` removes the picture from the offer (the picture itself is left for cleanup).

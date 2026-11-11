@@ -156,9 +156,9 @@ test('offer text is stored as plain text: HTML removed, line breaks kept, extra 
   assert.ok(!('isAdmin' in b.offer));
   assert.notEqual(b.offer.previewKey, 'attacker-chosen');
   assert.equal(b.offer.previewKey.length, C.PREVIEW_KEY_LENGTH);
-  // Until Session 3.5 teaches prepareOffer about pictures, image is undefined on save and JSON drops it.
-  // 3.5 removes the 'image' exclusion here, so this goes back to the full key list.
-  assert.deepEqual(Object.keys(b.offer).filter((k) => k !== 'status'), C.OFFER_KEYS.filter((k) => k !== 'image'));
+  // Session 3.5: image is a contract key on every save (null when there is no picture).
+  assert.deepEqual(Object.keys(b.offer).filter((k) => k !== 'status'), C.OFFER_KEYS);
+  assert.equal(b.offer.image, null);
 });
 
 test('drafts may be incomplete; scheduling needs page, headline and dates', async () => {

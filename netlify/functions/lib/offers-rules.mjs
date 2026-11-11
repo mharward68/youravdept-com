@@ -17,11 +17,12 @@
 
 import { randomBytes, randomUUID } from 'node:crypto';
 import {
-  AUDIENCES, FIELD_NAMES, FORM_KEYS, OFFER_KEYS, PREVIEW_KEY_LENGTH,
+  AUDIENCES, FIELD_NAMES, FORM_KEYS, IMAGE, IMAGE_KEYS, OFFER_KEYS, PREVIEW_KEY_LENGTH,
   RESERVED_FIELD_NAMES, TIME_ZONE, emptyOffer, isValidSlug, normalizePagePath,
   offerStatus, rangesOverlap, SLUG_MIN, SLUG_MAX
 } from '../../../shared/offer-contract.js';
 import { normalizeMarkup, plainFromMarkup } from '../../../shared/offer-format.js';
+import { IMAGE_MESSAGES } from './offer-image.mjs';
 
 /* ---------- limits (server-side; the editor shows the same ones) ---------- */
 
@@ -142,10 +143,13 @@ export function cleanButtonUrl(input) {
  * @param {object} ctx
  * @param {object[]} ctx.offers  every stored offer
  * @param {Date}   [ctx.now]
+ * @param {Map<string,object>|object} [ctx.images]  picture id -> stored metadata
+ *        ({ type, bytes, width, height }) for the picture this save asks for,
+ *        looked up by offers.mjs. Not needed when the picture is unchanged.
  * @returns {{ok:true, offer:object, created:boolean, notes:string[]}
  *          | {ok:false, status:number, error:string, fields?:object}}
  */
-export function prepareOffer(input, { offers, now = new Date() }) {
+export function prepareOffer(input, { offers, now = new Date(), images = new Map() }) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) {
     return { ok: false, status: 400, error: 'Send the offer as a JSON object.' };
   }
@@ -199,6 +203,10 @@ export function prepareOffer(input, { offers, now = new Date() }) {
   out.eyebrow = formatted('eyebrow', LIMITS.eyebrow);
   out.headline = formatted('headline', LIMITS.headline);
   out.body = formatted('body', LIMITS.body, { multiline: true });
+
+  // Picture (contract 1.3.0). Absent keeps the stored one, null removes it.
+  out.image = prepareImage(input.image === undefined ? (base.image ?? null) : input.image,
+    stored?.image ?? null, images, fail, notes);
 
   // Draft flag
   const draftRaw = input.draft === undefined ? base.draft : input.draft;
@@ -288,6 +296,44 @@ export function prepareOffer(input, { offers, now = new Date() }) {
   const offer = {};
   for (const k of OFFER_KEYS) offer[k] = out[k];
   return { ok: true, offer, created: !stored, notes: [...new Set(notes)] };
+}
+
+/**
+ * The picture on an offer. Every fact about the file (width, height, type,
+ * size) comes from storage, never from the browser: the stored offer's own
+ * picture when the id is unchanged, otherwise `images` (offers.mjs looked it
+ * up in the picture store). An id storage does not know is "gone".
+ */
+function prepareImage(raw, storedImage, images, fail, notes) {
+  if (raw === null) return null;
+  if (typeof raw !== 'object' || Array.isArray(raw)) { fail('image.id', IMAGE_MESSAGES.gone); return null; }
+
+  const id = typeof raw.id === 'string' ? raw.id : '';
+  if (!IMAGE.idPattern.test(id)) { fail('image.id', IMAGE_MESSAGES.gone); return null; }
+
+  let placement = raw.placement;
+  if (placement === undefined || placement === null || placement === '') placement = IMAGE.defaultPlacement;
+  if (!IMAGE.placements.includes(placement)) { fail('image.placement', 'Choose Top, Left or Right.'); placement = IMAGE.defaultPlacement; }
+
+  let alt = '';
+  if (raw.alt !== undefined && raw.alt !== null && typeof raw.alt !== 'string') fail('image.alt', 'Must be text.');
+  else {
+    const t = plainText(raw.alt ?? '', { multiline: false });
+    if (t.stripped) notes.push('HTML was removed from image.alt. Picture descriptions are plain text.');
+    alt = t.value;
+    if (!alt) fail('image.alt', IMAGE_MESSAGES.noAlt);
+    else if (alt.length > IMAGE.altMax) fail('image.alt', `Keep it to ${IMAGE.altMax} characters (now ${alt.length}).`);
+  }
+
+  const facts = storedImage && storedImage.id === id
+    ? storedImage
+    : (images instanceof Map ? images.get(id) : images?.[id]);
+  if (!facts) { fail('image.id', IMAGE_MESSAGES.gone); return null; }
+
+  const all = { id, alt, placement, width: facts.width, height: facts.height, type: facts.type, bytes: facts.bytes };
+  const out = {};
+  for (const k of IMAGE_KEYS) out[k] = all[k];
+  return out;
 }
 
 function prepareForm(raw, fail, notes) {

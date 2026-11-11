@@ -128,6 +128,11 @@ Only what a future session would waste time rediscovering.
 - Testing "body not read": a ReadableStream pulls once as soon as it is built. Pass { highWaterMark: 0 } as the second argument or the test sees a read that the handler never made.
 - Node's Request accepts a content-length header in tests, so the declared-size refusal can be tested without sending the bytes.
 
+## Session 3.5 findings (image on an offer)
+- prepareOffer stays pure and synchronous: offers.mjs looks up the one wanted picture (headImage) BEFORE changeOffers and passes ctx.images. Do not move the lookup inside the changeOffers callback (it is sync and may retry).
+- `image` absent keeps the stored picture; `image: null` removes it. The editor (3.9, 3.10) must send null to remove, and may send the whole stored image object back unchanged (facts are ignored, the same id costs no lookup).
+- No Python on this PC (the `python` command is the Store stub). Use node or the edit tools for scripted edits.
+
 ## Just the Audio (added 2026-10-11)
 - A free tool that turns MP4, MOV and M4A recordings into MP3 in the visitor's own browser. Called "MP4 to MP3 Converter" during the build; the project folder and repo keep that name.
 - Lives in just-the-audio/ (landing page index.html, manifest, sw.js, icons) and just-the-audio/app/ (the tool). Source of truth is the separate project C:\01_AppDevelopment\19_mp4-mp3_converter (repo mharward68/mp4-mp3_converter): change it there, run its tests, then copy its mp3-mp4_app\public folder over just-the-audio here. Its ai/ folder has the full notes.
