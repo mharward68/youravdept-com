@@ -26,7 +26,8 @@
 //       date, and PowerShell 5.1 mangles quotes and non-ASCII in native output).
 //   node netlify/tests/session-3.11-helper.mjs same <before-json> <id> <after-json>
 //       Compares one offer before and after a no-change save: every key equal
-//       except updatedAt and status (a missing image counts as null).
+//       except updatedAt and status (a missing image counts as null, a
+//       missing eyebrow as "": keys added by later contracts).
 
 import { createHash, randomBytes } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -190,6 +191,11 @@ function body(file, id, extraFile, outFile) {
   return { id: out.id, updatedAt: out.updatedAt, keys: Object.keys(out).length, extra: Object.keys(extra) };
 }
 
+// Keys added by later contracts. An offer saved before them has no such key;
+// its next save writes the empty value, which every reader treats the same
+// (seen on TEST in 3.11: a 1.6 offer gained eyebrow "").
+const FILLED_ON_SAVE = { image: null, eyebrow: '' };
+
 function same(beforeFile, id, afterFile) {
   const a = findOffer(beforeFile, id);
   const b = findOffer(afterFile, id);
@@ -198,8 +204,8 @@ function same(beforeFile, id, afterFile) {
   const diffs = [];
   for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) {
     if (skip.has(k)) continue;
-    const av = k === 'image' ? (a[k] ?? null) : a[k];
-    const bv = k === 'image' ? (b[k] ?? null) : b[k];
+    const av = k in FILLED_ON_SAVE ? (a[k] ?? FILLED_ON_SAVE[k]) : a[k];
+    const bv = k in FILLED_ON_SAVE ? (b[k] ?? FILLED_ON_SAVE[k]) : b[k];
     if (JSON.stringify(av) !== JSON.stringify(bv)) diffs.push(k);
   }
   return { same: diffs.length === 0, diffs, updatedAtMoved: a.updatedAt !== b.updatedAt };

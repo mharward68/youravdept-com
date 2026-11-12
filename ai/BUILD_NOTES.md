@@ -172,6 +172,8 @@ Only what a future session would waste time rediscovering.
 - With x-yavd-test-store-fail on a page request, the edge cannot read offers at all: a link answers 302 to /, an ordinary page passes through. To prove "the page survives a missing picture", fail only the picture route and fetch the page normally.
 - Export part 1 carries no "next" key (only parts 2+ do). Part 2 is always /api/offers/export?images=rest.
 - Rehearse a TEST script locally first: session-3.11-verify.ps1 -Target http://localhost:<port> against a small Node server wrapping the real handlers (copy the server in offer-admin-image.test.mjs, add /offer/<slug> with decideLink + injectOffer + x-yavd-offer). The clipboard password can be fed by a hidden STA powershell running Set-Clipboard after a delay. It caught a script bug before Michael ran anything.
+- Offers saved before contract 1.2.0 have no eyebrow key; their next save writes eyebrow "". Any before/after compare must treat a missing eyebrow as "" (and a missing image as null).
+- Netlify drops content-length on picture responses; do not check it.
 - Background helper agents survive /clear. Before running a session, ListAgents: a leftover agent on the same session writes the same files.
 
 ## Just the Audio (added 2026-10-11)
