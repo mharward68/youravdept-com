@@ -146,3 +146,17 @@ Dated, append-only. What was chosen, why, and what was rejected.
 ## 2026-11-11: Session 3.3, picture store
 - getImage reads bytes and details in one getWithMetadata call instead of the plan's get plus getMetadata. Why: one request per popup picture, and bytes and details can never come from two different versions. Rejected: two calls.
 - A stored picture whose details are unusable, or whose byte count does not match, reads as missing (the view route will 404). Why: never serve bytes under a type the server cannot vouch for. Rejected: guessing the type from the bytes on read.
+
+## 2026-11-12: Sessions 3.4 to 3.11b, recorded at the Phase 3 close
+- Picture routes sit under /api/offers/image (POST signed in, GET/HEAD public by :id) so the page edge function never runs for them. Served pictures carry nosniff, noindex, a sandbox CSP and a one-year immutable cache (ids are random and never reused). Any failure on the public route is a quiet 404, never a 500, so a broken picture only collapses the popup's picture slot.
+- Cleanup runs after a successful save only (not delete, restore or upload) and deletes nothing on any doubt. Why: restore must find its picture; a missed cleanup costs a few hundred KB, a wrong one loses a picture. Rejected: a scheduled cleanup job (another moving part for about 50 offers a year).
+- Export embeds current pictures up to 4.5 MB of JSON per file and names the rest for a second download (EXPORT_MAX_BYTES). Proven on TEST in 3.11: part 1 4.2 MB in 1.3 s, all eight 590 KB pictures byte-exact across two parts. Rejected: one file (Netlify's ~6 MB function response limit).
+- The editor uploads just before the offer save, never on pick. Why: an upload left unsaved for 24 hours is cleaned up, and a refused save must not upload twice.
+- 3.11b (Michael's TEST review): an editor Cancel button plus Escape, both through leaveEditor() and the existing unsaved-changes guard. Rejected: Escape meaning "Keep editing" over the guard (it does nothing there).
+
+## 2026-11-12: Session 3.12, go live and Phase 3 closed
+- Published 2026-11-12 09:00 ET after Michael's go. Backup first: export of the live offers (Claude outputs/yavd-offers-LIVE-export-20261112-0859-pre-images.json) and tag pre-images-live-20261112-0859, both taken by the go-live script before deploy.ps1. Live verdict 10 of 10 PASS; live offers identical before and after.
+- The pre-publish export is taken by the script through /api/offers/export (same endpoint as the Export button), not by hand. Why: one fewer step for Michael, and the export lands at a known path the verdict can check.
+- Go-live scripts are rehearsed against a local stand-in before they touch live (now a BUILD_NOTES rule). Why: in 3.12 two unrehearsed runs stopped before publishing (a Tee wrapper killed the Netlify CLI; a case-only variable clash), costing Michael two extra password copies. The rehearsal then caught nothing new and the live run passed first time.
+- Two earlier pre-publish exports (0853, 0854) and tag pre-images-live-20261112-0853 from the stopped runs are kept. They are identical to the 0859 export in content and harmless.
+- README left unchanged (Michael did not ask for the paragraph).

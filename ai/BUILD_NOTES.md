@@ -5,14 +5,15 @@ Only what a future session would waste time rediscovering.
 ## MAP
 - Site: static HTML at the repo root, plus library/ and field-notes/. No build step. Every page inlines its own CSS and JS (no shared stylesheet). Brand tokens repeat in each page's :root.
 - Netlify config: _redirects (pretty URLs as 200 rewrites, a few 301s), _headers (library PDFs). No root netlify.toml before 1.2. .netlify/netlify.toml is the CLI's generated copy: never edit it.
-- Functions: netlify/functions/submission-created.mjs (existing, Resend guide mailer, runs on every form).
+- Functions: netlify/functions/submission-created.mjs (existing, Resend guide mailer, runs on every form); offers*.mjs and offer-image*.mjs (Offers module, below); site-links, site-pages, site-takedown.mjs + lib/site-admin.mjs with edge function page-takedown.js (site admin); just-the-audio-count/-stats.mjs (Just the Audio, below).
 - Offers module: shared/offer-contract.js (frozen contract). Popup: assets/offer-panel.css and assets/offer-panel.js (public, published by both deploy scripts). Sign-in: netlify/functions/lib/offers-auth.mjs (requireAdmin, handleLogin). Field checks and rules: lib/offers-rules.mjs. Storage, history, restore: lib/offers-store.mjs. Counts: netlify/functions/offers-stats.mjs + lib/offers-stats.mjs. Pictures: lib/offer-image.mjs (sniffImage, checkImage, newImageId, IMAGE_MESSAGES; Phase 3), test pictures in netlify/tests/fixtures/. Picture storage: lib/offer-images-store.mjs (putImage, getImage, headImage, listImages, deleteImage; store "offer-images"). Picture cleanup: lib/offer-images-cleanup.mjs (usedImageIds, cleanupImages; run best effort after each save in offers.mjs). Export (offers plus current pictures, parts): netlify/functions/offers-export.mjs (EXPORT_MAX_BYTES). Picture routes: offer-image-upload.mjs (POST /api/offers/image) and offer-image.mjs (GET /api/offers/image/:id). Edge: netlify/edge-functions/offer-link.js and offer-page.js (thin), logic in netlify/edge-lib/offer-edge.js. Popup picture test (Playwright): netlify/tests/offer-panel-image.test.mjs, screenshots in ai/review/3.8/. Editor picture test (Playwright, real handlers, in-memory Blobs): netlify/tests/offer-admin-image.test.mjs, screenshots in ai/review/3.9/. Tests: netlify/tests/*.test.mjs (run each file by path). ai/ holds the scope, plan, run sheet and these notes.
-- Deploy: deploy.ps1 (production) and deploy-preview.ps1 (TEST address https://offers--your-av-dept.netlify.app) both copy the folder to %TEMP% minus one shared exclude list, then run netlify deploy with --functions netlify\functions. Live since 2026-10-10 12:23 ET.
+- Deploy: deploy.ps1 (production) and deploy-preview.ps1 (TEST address https://offers--your-av-dept.netlify.app) both copy the folder to %TEMP% minus one shared exclude list, then run netlify deploy with --functions netlify\functions. Offers live since 2026-10-10 12:23 ET; offer pictures (contract 1.3.0) live since 2026-11-12 09:00 ET.
 - Repo: github.com/mharward68/youravdept-com, branch main. Netlify site id 7b58fbd4-394f-4091-bc6d-29b4e3b6ff79.
 
 ## Deploying
 - Test on deploy-preview.ps1 first; deploy.ps1 publishes youravdept.com. Rollback: Netlify > Deploys > previous production deploy > Publish deploy. Offer rollback: set it to draft.
 - Anything in the folder that is not excluded becomes a public file. Excluded: Claude outputs, claude, docs, .git, .netlify, node_modules, ai, netlify, deploy*.ps1, README.md, .gitignore, netlify.toml, package*.json, *.docx, *.patch, *.gs. netlify.toml also 404s /ai/* and /netlify/* as a second lock. shared/ must stay published (the popup imports it).
+- The live site is deployed from this PC's folder, so this folder is the truth, and GitHub main can fall behind or fork (other machines and cloud sessions push there too). Before any deploy, `git fetch` and check `git rev-list --count HEAD..origin/main` is 0. If they fork, compare each page with the live site (curl https://youravdept.com/<page>, NOT www, which 301s) before choosing a side. Live pages differ from the files only by the injected GA4 tag and Netlify's tidied links.
 
 ## Forms
 - submission-created.mjs runs on every Netlify form submission. It skips forms with no "guide" field. Never add a "guide" field to the offers form.
@@ -106,75 +107,49 @@ Only what a future session would waste time rediscovering.
 - On Node 24, `node --test` piped to PowerShell prints the spec reporter ("i pass 10"), not "# pass 10". Scripts that parse the summary must pass --test-reporter=tap.
 - git status always shows .netlify/ changes after a deploy (CLI-generated files tracked by mistake, backlog). Clean-tree checks must ignore " .netlify/".
 
-## Session 3.1 findings (offer images, contract 1.3.0)
-- The Claude sessions now have a shell on Michael's PC (Git Bash and PowerShell), but no Python: use node or the Edit tool for scripted edits.
-- prepareOffer builds the saved offer with `for (const k of OFFER_KEYS) offer[k] = out[k]`, so any new OFFER_KEYS entry appears as undefined (dropped by JSON) until the rules set it. Key-list tests on objects (offer-format) still pass; key-list tests on JSON responses (offers-rules) do not.
+## Offer pictures: data and server (Phase 3, contract 1.3.0)
+- prepareOffer builds the saved offer with `for (const k of OFFER_KEYS) offer[k] = out[k]`, so any new OFFER_KEYS entry is undefined (dropped by JSON) until the rules set it. Key-list tests on objects (offer-format) still pass; key-list tests on JSON responses (offers-rules) do not.
 - In shared/offer-contract.js, IMAGE must stay below HISTORY_KEEP: it reads it at module load (const, temporal dead zone).
-- The live site is deployed from this PC's folder, so this folder is the truth, and GitHub main can fall behind or fork (other machines and cloud sessions push there too). Before any deploy, `git fetch` and check `git rev-list --count HEAD..origin/main` is 0. If they fork, compare each page with the live site (curl https://youravdept.com/<page>, NOT www, which 301s) before choosing a side. Live pages differ from the files only by the injected GA4 tag and Netlify's tidied links.
-- offers-stats "twenty parallel views" fails on this PC before and after 3.1 (13 of 20 counted). Do not chase it inside Phase 3; it is in the CONTEXT backlog.
-
-## Session 3.2 findings (reading pictures)
-- No Python or Pillow on this PC. Test pictures are made with headless Edge: a local HTML page draws on a canvas, writes canvas.toDataURL(type, quality) into a <pre>, and `msedge.exe --headless=new --disable-gpu --virtual-time-budget=5000 --dump-dom file:///...` prints it (Edge: C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe). Add --allow-file-access-from-files to load local images back and check they decode.
-- Edge (Chromium) always writes WebP in the extended form (VP8X + ICCP + VP8 or VP8L), even opaque. Quality 1.0 gives lossless (VP8L). Simple VP8 and VP8L files were made by rewrapping the inner chunk in a new RIFF header. Canvas JPEG is baseline (SOF0); the progressive test patches C0 to C2.
-- checkImage refuses cut-off files by checking each format's ending (JPEG FF D9, PNG IEND, WebP RIFF length). Only zero padding is allowed after a JPEG end marker. Fine while the browser re-encodes every picture (3.9); a raw camera file with trailing data would be refused.
-
-## Session 3.3 findings (picture store)
-- @netlify/blobs 11.1.1: the TypeScript overload for get/getWithMetadata with type arrayBuffer omits `| null`, but a missing key still returns null. Always null-check.
-- Blobs metadata comes back as JSON, so store numbers as numbers and still coerce with Number() on read (lib/offer-images-store.mjs cleanMeta).
-
-## Session 3.4 findings (picture routes)
-- Upload is offer-image-upload.mjs (POST /api/offers/image), view is offer-image.mjs (GET/HEAD /api/offers/image/:id). Both configs set `method`, so a wrong method never reaches them on Netlify.
-- Functions may import the test switch from netlify/edge-lib/offer-edge.js (wantsForcedFailure): one header name and one list of test contexts for edge and functions. Do not copy the list.
-- Testing "body not read": a ReadableStream pulls once as soon as it is built. Pass { highWaterMark: 0 } as the second argument or the test sees a read that the handler never made.
-- Node's Request accepts a content-length header in tests, so the declared-size refusal can be tested without sending the bytes.
-
-## Session 3.5 findings (image on an offer)
-- prepareOffer stays pure and synchronous: offers.mjs looks up the one wanted picture (headImage) BEFORE changeOffers and passes ctx.images. Do not move the lookup inside the changeOffers callback (it is sync and may retry).
-- `image` absent keeps the stored picture; `image: null` removes it. The editor (3.9, 3.10) must send null to remove, and may send the whole stored image object back unchanged (facts are ignored, the same id costs no lookup).
-- No Python on this PC (the `python` command is the Store stub). Use node or the edit tools for scripted edits.
-
-## Session 3.6 findings (picture cleanup)
-- Cleanup runs only after a successful POST /api/offers save (not delete, restore or upload). A picture is used if any current offer or any of the newest 20 saved versions refers to it; an unused one goes once it is over 24 hours old. Any read failure, or a saved version not in the expected shape, means nothing is deleted; problems only reach console.error ("picture cleanup skipped or partial").
-- Tests that upload a picture with an old uploadedAt must add it AFTER any earlier save in the test, or that save cleans it up as unused (cost a debugging round in 3.6).
-- An upload that sits unsaved for more than 24 hours is removed by the next save of any offer. The editor (3.9, 3.10) should upload close to saving; a "gone" message on save means add the picture again.
-
-## Session 3.7 findings (export with pictures)
-- Export plans its parts from headImage sizes (base64 = 4*ceil(n/3), plus 400 bytes per entry), then reads only the part asked for. Part 1 = /api/offers/export (offers + first pictures); part N = ?images=rest (N=2) or ?images=rest&part=N. Parts are recomputed per request: a save between downloads can shift them.
-- To lower the size limit after the TEST check, change EXPORT_MAX_BYTES in offers-export.mjs only; the tests read it from the module.
-- The 590 KB spill tests use fake bytes: the picture store does not check content, so no real images are needed for size tests.
-
-## Session 3.8 findings (popup picture; 3.9 matches this markup)
-- Markup: `.yavd-op-dialog.is-img-<top|left|right>` > `.yavd-op-scroll` > `div.yavd-op-media > img.yavd-op-img` (first child), then the usual text `div`. img has alt, width, height (from the offer) and decoding="async"; src = imageUrl(id), set with setAttribute only. No class and no media block when image is null or fails checks (id against IMAGE.idPattern, width and height positive integers; unknown placement becomes top).
-- CSS (assets/offer-panel.css, "picture" block): top = edge to edge (negative margins equal to the scroll padding), max-height min(320px, 38vh), 520 px dialog. left/right above 560 px: dialog 720 px, scroll becomes a grid 38% / 1fr (right: 1fr / 38%, media order 2, margin-top 30px to clear the close button), picture radius 8px. At 560 px and below every placement stacks edge to edge, max-height 34vh. object-fit contain everywhere (letterbox colour #F3F5F8), never cover. drawPreview in 3.9 can reuse these classes as they are.
-- img error removes the media block and the class (back to the 520 px text popup). The thank-you screen also drops the picture. A visitor who closed the offer in the last 7 days does not download the picture until they reopen.
-- Playwright on this PC: playwright-core 1.49.1 in %LOCALAPPDATA%yavd-test-tools (outside the repo, not a site dependency), driving the installed Edge. offer-panel-image.test.mjs finds it there (or $YAVD_PLAYWRIGHT) and skips with a reason if absent. The test has its own Node static server (no Python here) and answers /api/offers/stats with 204, or the console check fails. Screenshots land in ai/review/3.8/.
-- The 1.2.0-identical check compares against `git show 54ec5de:assets/offer-panel.js`; if that file changes again, keep the ref pointing at 1.2.0 or retire the test deliberately.
-
-## Session 3.9 findings (editor image block)
-- The admin harness now lives IN the repo: netlify/tests/offer-admin-image.test.mjs has a Node server that wraps the real handlers (offers, pages, stats, image view, upload, login, logout) with in-memory Blobs, serves the site folder and /offer-admin. Copy it for 3.10 tests (or extend that file). Sign-in: add the cookie with auth.makeToken(auth.authConfig()) via ctx.addCookies (path /api/offers, secure false on http://localhost); no login attempts, so no lockout.
-- blob: addresses render in the preview iframe (sandbox allow-same-origin, srcdoc): it shares the admin page's origin. No data: fallback needed.
-- Editor picture state: `pic` in the "Session 3.9" block of offer-admin.js. Saved = { id, src: imageUrl(id), width, height, bytes, type }; new = { blob, src: blob:, width, height, bytes, type, name, origBytes }. Alt and placement live in #f-img-alt and radios name="imgPlacement". fillImage(record.image) is called from fill(); setPic() revokes the old blob: address. 3.10 must add the picture to collect/snapshot/isDirty and the stash (pic is memory only).
-- grabInputs/putInputs skip type="file": a file input's value cannot be set to anything but "".
-- The Write tool turned × and … in JS source into real characters once. After writing public JS, grep for non-ASCII (grep -nP "[^ -]").
-- Edge's canvas WebP at quality 0.36 still leaves 1600x1600 pure noise over 600 KB: a handy "too large" test picture. A 4000x3000 grainy photo lands near 190 KB at the first quality step.
-- Our own fetch of a revoked blob: address logs a console "Failed to load resource" line; tests that check revocation must expect exactly that one line.
-
-## Session 3.10 findings (saving the picture)
-- Order in save(): local date and description checks, upload (only when pic.blob and no pic.id), then POST /api/offers. The uploaded id is written onto the held picture, so a refused offer save never uploads twice. Upload failure: delete payload.image (absent = keep the stored picture) and keep the new picture on screen as an unsaved change.
-- Anything that calls fill() or setPic() releases the current blob: address. To keep a picture across fill() (upload failure) or a sign-in (stash), detach it first (pic = null), then setPic() it back. makeStash() does this.
-- Playwright downloads (page.waitForEvent('download')) left an unhandledRejection "Target page, context or browser has been closed" when the context closed, failing the whole file even though every test passed. The export test now patches HTMLAnchorElement.click in an init script and records name and text in the page. Use that for any download test.
-- The harness answers POST /api/offers/image with 503 while failUploads is true, and the export test fakes 590 KB pictures straight into the in-memory store.
-- Re-running the 3.8 and 3.9 Playwright files rewrites their committed screenshots (pixel noise, new offer counts). Restore them with git checkout before committing.
-
-## Session 3.11 findings (TEST verify script)
-- A save body must be the whole offer: only `image` may be absent (absent keeps the stored picture). Every other missing field is checked as empty. netlify/tests/session-3.11-helper.mjs body builds it from a list or save response (minus status) and writes it as a UTF-8 file for curl, keeping updatedAt exact.
-- Verify scripts live in Claude outputs/ (git-ignored). session-3.11-verify.ps1 deploys, signs in from the clipboard, checks pictures, page data, export parts and tidy-up, and reruns checks only with -SkipDeploy. It refuses to deploy when GitHub main has commits this folder lacks.
-- With x-yavd-test-store-fail on a page request, the edge cannot read offers at all: a link answers 302 to /, an ordinary page passes through. To prove "the page survives a missing picture", fail only the picture route and fetch the page normally.
-- Export part 1 carries no "next" key (only parts 2+ do). Part 2 is always /api/offers/export?images=rest.
-- Rehearse a TEST script locally first: session-3.11-verify.ps1 -Target http://localhost:<port> against a small Node server wrapping the real handlers (copy the server in offer-admin-image.test.mjs, add /offer/<slug> with decideLink + injectOffer + x-yavd-offer). The clipboard password can be fed by a hidden STA powershell running Set-Clipboard after a delay. It caught a script bug before Michael ran anything.
-- Offers saved before contract 1.2.0 have no eyebrow key; their next save writes eyebrow "". Any before/after compare must treat a missing eyebrow as "" (and a missing image as null).
+- A save body must be the whole offer. Only `image` may be absent (absent keeps the stored picture; `image: null` removes it; the stored image object sent back unchanged costs no lookup). Every other missing field is checked as empty.
+- prepareOffer stays pure and synchronous: offers.mjs looks up the one wanted picture (headImage) BEFORE changeOffers and passes ctx.images. Never move the lookup inside the changeOffers callback (sync, may retry).
+- Offers saved before 1.2.0 have no eyebrow key, and before 1.3.0 no image key; their next save writes eyebrow "" and image null. Any before/after compare must treat missing eyebrow as "" and missing image as null.
+- checkImage refuses cut-off files by checking each format's ending (JPEG FF D9, PNG IEND, WebP RIFF length); only zero padding is allowed after a JPEG end. Fine while the browser re-encodes every picture; a raw camera file with trailing data would be refused.
+- @netlify/blobs 11.1.1: the TypeScript overload for get/getWithMetadata with type arrayBuffer omits `| null`, but a missing key returns null. Always null-check. Metadata comes back as JSON: store numbers as numbers and still coerce with Number() on read (cleanMeta).
+- Routes: offer-image-upload.mjs (POST /api/offers/image) and offer-image.mjs (GET/HEAD /api/offers/image/:id). Both configs set `method`, so a wrong method never reaches them. Functions import the test switch from netlify/edge-lib/offer-edge.js (wantsForcedFailure): one header name and one list of test contexts. Do not copy the list.
 - Netlify drops content-length on picture responses; do not check it.
-- Background helper agents survive /clear. Before running a session, ListAgents: a leftover agent on the same session writes the same files.
+- Cleanup runs only after a successful POST /api/offers save (not delete, restore or upload). Used = any current offer or any of the newest 20 saved versions refers to it; unused goes once over 24 hours old. Any read failure or odd version shape means nothing is deleted (console.error "picture cleanup skipped or partial"). So an upload left unsaved over 24 hours is removed by the next save of any offer: a "gone" message on save means add the picture again.
+- Export plans its parts from headImage sizes (base64 = 4*ceil(n/3), plus 400 bytes per entry), then reads only the part asked for. Part 1 = /api/offers/export (no "next" key); part 2 = ?images=rest; part N = ?images=rest&part=N. Parts are recomputed per request: a save between downloads can shift them. The limit is EXPORT_MAX_BYTES in offers-export.mjs only (tests read it from the module). Proven on TEST: part 1 4.2 MB in 1.3 s.
+
+## Offer pictures: popup and editor
+- Popup markup: `.yavd-op-dialog.is-img-<top|left|right>` > `.yavd-op-scroll` > `div.yavd-op-media > img.yavd-op-img` (first child), then the text `div`. img has alt, width, height and decoding="async"; src = imageUrl(id) via setAttribute only. No class and no media block when image is null or fails checks (idPattern, positive integer sizes; unknown placement becomes top). The editor's drawPreview uses the same classes.
+- CSS (assets/offer-panel.css, "picture" block): top = edge to edge, max-height min(320px, 38vh), 520 px dialog. left/right above 560 px: 720 px dialog, grid 38% / 1fr (right mirrored, margin-top 30px to clear the close button). At 560 px and below every placement stacks, max-height 34vh. object-fit contain everywhere (letterbox #F3F5F8), never cover.
+- A picture that fails to load removes the media block and the class (back to the text popup). The thank-you screen drops the picture. A visitor who closed the offer in the last 7 days does not download it until they reopen.
+- Editor picture state: `pic` in the "Session 3.9" block of offer-admin.js. Saved = { id, src: imageUrl(id), width, height, bytes, type }; new = { blob, src: blob:, ... name, origBytes }. Alt in #f-img-alt, placement radios name="imgPlacement". fillImage() is called from fill(); setPic() revokes the old blob: address.
+- Anything that calls fill() or setPic() releases the current blob: address. To keep a picture across fill() (upload failure) or a sign-in (stash), detach it (pic = null) then setPic() it back (makeStash does this).
+- Order in save(): local checks, upload (only when pic.blob and no pic.id), then POST /api/offers. The uploaded id is written onto the held picture, so a refused offer save never uploads twice. Upload failure: drop payload.image and keep the picture on screen as unsaved.
+- Every editor exit goes through leaveEditor() (Back, Cancel, Escape, Discard, delete, "no longer exists"). It releases a held new picture: a new exit path calls it, never show('dash') directly.
+- blob: addresses render in the preview iframe (sandbox allow-same-origin, srcdoc shares the admin origin). grabInputs/putInputs skip type="file" (its value can only be "").
+
+## Testing tools (Phase 3)
+- No Python or Pillow on this PC (`python` is the Store stub). Scripted edits: node or the edit tools.
+- Test pictures come from headless Edge: a local page draws on a canvas, writes toDataURL(type, quality) into a <pre>, and `msedge.exe --headless=new --disable-gpu --virtual-time-budget=5000 --dump-dom file:///...` prints it (C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe; add --allow-file-access-from-files to load images back). Edge always writes extended WebP (VP8X); quality 1.0 is lossless. Simple VP8/VP8L made by rewrapping the inner chunk. 1600x1600 noise at WebP 0.36 is still over 600 KB (a handy "too large" picture). The picture store does not check content, so size tests use fake bytes.
+- Playwright: playwright-core 1.49.1 in %LOCALAPPDATA%\yavd-test-tools (outside the repo, not a dependency), driving the installed Edge; tests find it there or via $YAVD_PLAYWRIGHT and skip with a reason if absent. Answer /api/offers/stats with 204 and fonts with empty CSS, or the console check fails.
+- The admin harness is netlify/tests/offer-admin-image.test.mjs: a Node server wrapping the real handlers with in-memory Blobs, serving the site and /offer-admin. Sign in with auth.makeToken(auth.authConfig()) via ctx.addCookies (path /api/offers, secure false on localhost): no login attempts, no lockout. POST /api/offers/image answers 503 while failUploads is true.
+- Downloads: page.waitForEvent('download') leaves an unhandledRejection on context close that fails the file. Patch HTMLAnchorElement.click in an init script and record name and text in the page instead.
+- A revoked blob: fetch logs one "Failed to load resource: net::ERR_FILE_NOT_FOUND" console line: assert the console is clean before it, then filter only that line.
+- Re-running the 3.8 and 3.9 Playwright files rewrites their committed screenshots (pixel noise). `git checkout -- ai/review/3.8 ai/review/3.9` before committing. fullPage screenshots draw the editor's sticky bar mid-page: use a viewport shot scrolled to it.
+- The 1.2.0-identical popup check compares against `git show 54ec5de:assets/offer-panel.js`; keep that ref or retire the test deliberately.
+- The Write tool once turned × and … in JS into real characters. After writing public JS, grep for non-ASCII.
+- offers-stats "twenty parallel views" fails on this PC (13 or 14 of 20), before and after Phase 3. Backlog; do not chase it inside another phase.
+
+## Verify and go-live scripts (Phase 3)
+- They live in Claude outputs/ (git-ignored): session-3.11-verify.ps1 (TEST, deploys unless -SkipDeploy) and session-3.12-golive.ps1 (live, read-only: guard, sign-in, export backup, tag, deploy.ps1, checks). Both refuse to publish when GitHub main has commits this folder lacks.
+- ALWAYS rehearse against a local stand-in first (-Target / -Rehearse http://localhost:<port>). It caught a bug before Michael's run in 3.11 and in 3.12. Skipping it in 3.12 cost Michael two extra password copies.
+- PowerShell variable names ignore case: `$listB = Send ...` overwrote the file path in `$ListB` (3.12). Never give a result and a path names that differ only by case; check with the parser (VariableExpressionAst, Sort-Object -Unique -CaseSensitive, then group by lower case).
+- Never wrap a script that runs the Netlify CLI in `*>&1 | Tee-Object` (or any 2>&1): under $ErrorActionPreference Stop the CLI's progress line on stderr kills it mid-deploy (3.12, first attempt: died at "Uploading blobs", nothing published). Run it plainly; the background tool captures output anyway.
+- With x-yavd-test-store-fail on a page request, the edge cannot read offers at all (link 302 to /, page passes through). To prove a page survives a missing picture, fail only the picture route.
+- Live had no running offers at go-live, so the page checks had nothing to compare. A link offer that is a draft still answers 302 with x-yavd-offer link-draft, which proves the storage-off switch is ignored on live.
+- Background helper agents survive /clear. Before a session, ListAgents: a leftover agent on the same session writes the same files.
 
 ## Just the Audio (added 2026-10-11)
 - A free tool that turns MP4, MOV and M4A recordings into MP3 in the visitor's own browser. Called "MP4 to MP3 Converter" during the build; the project folder and repo keep that name.
@@ -184,9 +159,3 @@ Only what a future session would waste time rediscovering.
 - Functions: netlify/functions/just-the-audio-count.mjs (POST /api/just-the-audio/count) and just-the-audio-stats.mjs (GET /api/just-the-audio/stats?key=). Stores: just-the-audio-usage (live) and just-the-audio-usage-test. Env var JUST_THE_AUDIO_STATS_KEY.
 - Releasing a change: bump VERSION in just-the-audio/sw.js or installed copies keep the old files.
 - offer-page.js still runs on /just-the-audio/* (pass-through unless an Everyone offer targets that page). An offer injected into /just-the-audio/app/ would be blocked by the content security policy, so do not target it.
-
-## Session 3.11b findings
-- Editor exits all go through leaveEditor() in assets/offer-admin.js (Back, Cancel, Escape, Discard, delete). It releases a held new picture; any new exit path should call it rather than show('dash').
-- A fullPage Playwright screenshot of the editor draws the sticky action bar in the middle of the page. Use a viewport screenshot scrolled to the bar.
-- Fetching a revoked blob: address in a test logs "Failed to load resource: net::ERR_FILE_NOT_FOUND" to the console, which the errors check catches. Assert the console is clean before that fetch, then filter only that line.
-- No python on this PC (the Store alias answers instead). Scripted edits: node.

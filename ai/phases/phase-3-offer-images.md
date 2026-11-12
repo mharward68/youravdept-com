@@ -1,5 +1,5 @@
 # Phase 3: Offer Images (one image per offer: upload, popup display, cleanup)
-Status: IN PROGRESS. Sessions 3.1 to 3.10 done 2026-11-11 (contract 1.3.0 frozen; picture checker; store; routes; image on an offer; cleanup; export; popup picture, approved by Michael; editor image block; saving the picture). Next: 3.11.
+Status: CLOSED 2026-11-12. Live since 2026-11-12 09:00 ET. Close record in ai/CONTEXT.md and ai/DECISIONS.md.
 
 ## What shapes this plan
 - Read: the scope, ai/CONTEXT.md, ai/BUILD_NOTES.md, ai/DECISIONS.md, the Phase 2 plan and run sheet (format and numbering), and the code this phase touches: shared/offer-contract.js (1.2.0), lib/offers-rules.mjs, lib/offers-store.mjs, lib/offers-auth.mjs, offers.mjs, offers-export.mjs, netlify/edge-lib/offer-edge.js, assets/offer-panel.js and .css, assets/offer-admin.js (drawPreview, save), netlify.toml, _headers.
@@ -313,11 +313,11 @@ Server messages the editor will show (set here so 3.5, 3.9 and 3.10 agree):
 - Objectives: stability (backup before and after; existing offers and pages unchanged); security (live admin image routes 401 signed out); all five reviewed at close.
 - Files: ai/CONTEXT.md, BUILD_NOTES.md, DECISIONS.md, session-3.12-golive.ps1. No app code.
 - Tasks:
-  - [ ] Backup first: Export the live offers (/offer-admin), then `git tag pre-images-live-<time>`.
-  - [ ] Deploy with deploy.ps1 after your go.
-  - [ ] Live check, read-only: contract 1.3.0 in GET /api/offers; live offers list identical to the pre-deploy export; image upload and remove routes 401 signed out; an unknown image id is 404 with the right headers; the popup page for an existing running offer is unchanged; storage-off switch ignored on live.
-  - [ ] You add your first real picture to a draft in /offer-admin (new private window), preview it on desktop and phone, then Export once more.
-  - [ ] Close: verify every scope success criterion (section 12) with pasted output; compare plan and actual from ai/archive; trim BUILD_NOTES and refresh its map; check DECLARATION-level claims against code; add the DECISIONS entries; one line each for security, stability, efficiency, user experience and scalability; write CONTEXT as a handoff.
+  - [x] Backup first: Export the live offers (/offer-admin), then `git tag pre-images-live-<time>`.
+  - [x] Deploy with deploy.ps1 after your go.
+  - [x] Live check, read-only: contract 1.3.0 in GET /api/offers; live offers list identical to the pre-deploy export; image upload and remove routes 401 signed out; an unknown image id is 404 with the right headers; the popup page for an existing running offer is unchanged; storage-off switch ignored on live.
+  - [x] You add your first real picture to a draft in /offer-admin (new private window), preview it on desktop and phone, then Export once more.
+  - [x] Close: verify every scope success criterion (section 12) with pasted output; compare plan and actual from ai/archive; trim BUILD_NOTES and refresh its map; check DECLARATION-level claims against code; add the DECISIONS entries; one line each for security, stability, efficiency, user experience and scalability; write CONTEXT as a handoff.
 - Inputs needed from Michael: your go to publish; one real picture; the README question (below).
 - DONE WHEN: the live verdict block shows PASS on every line; the closing Export file exists; scope criteria 1 to 9 each have output pasted.
 - Needs my eyes: your first real picture on live, on a phone.
