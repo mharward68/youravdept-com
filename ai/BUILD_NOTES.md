@@ -166,6 +166,14 @@ Only what a future session would waste time rediscovering.
 - The harness answers POST /api/offers/image with 503 while failUploads is true, and the export test fakes 590 KB pictures straight into the in-memory store.
 - Re-running the 3.8 and 3.9 Playwright files rewrites their committed screenshots (pixel noise, new offer counts). Restore them with git checkout before committing.
 
+## Session 3.11 findings (TEST verify script)
+- A save body must be the whole offer: only `image` may be absent (absent keeps the stored picture). Every other missing field is checked as empty. netlify/tests/session-3.11-helper.mjs body builds it from a list or save response (minus status) and writes it as a UTF-8 file for curl, keeping updatedAt exact.
+- Verify scripts live in Claude outputs/ (git-ignored). session-3.11-verify.ps1 deploys, signs in from the clipboard, checks pictures, page data, export parts and tidy-up, and reruns checks only with -SkipDeploy. It refuses to deploy when GitHub main has commits this folder lacks.
+- With x-yavd-test-store-fail on a page request, the edge cannot read offers at all: a link answers 302 to /, an ordinary page passes through. To prove "the page survives a missing picture", fail only the picture route and fetch the page normally.
+- Export part 1 carries no "next" key (only parts 2+ do). Part 2 is always /api/offers/export?images=rest.
+- Rehearse a TEST script locally first: session-3.11-verify.ps1 -Target http://localhost:<port> against a small Node server wrapping the real handlers (copy the server in offer-admin-image.test.mjs, add /offer/<slug> with decideLink + injectOffer + x-yavd-offer). The clipboard password can be fed by a hidden STA powershell running Set-Clipboard after a delay. It caught a script bug before Michael ran anything.
+- Background helper agents survive /clear. Before running a session, ListAgents: a leftover agent on the same session writes the same files.
+
 ## Just the Audio (added 2026-10-11)
 - A free tool that turns MP4, MOV and M4A recordings into MP3 in the visitor's own browser. Called "MP4 to MP3 Converter" during the build; the project folder and repo keep that name.
 - Lives in just-the-audio/ (landing page index.html, manifest, sw.js, icons) and just-the-audio/app/ (the tool). Source of truth is the separate project C:\01_AppDevelopment\19_mp4-mp3_converter (repo mharward68/mp4-mp3_converter): change it there, run its tests, then copy its mp3-mp4_app\public folder over just-the-audio here. Its ai/ folder has the full notes.

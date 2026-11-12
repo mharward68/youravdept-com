@@ -88,10 +88,27 @@ Tags: CONTINUE (green) next session extends what this one just wrote, same helpe
 - [x] 3.8  The popup shows the image · M · ~10 min · **APPROVE** (your look at three placements on desktop and phone)
 - [x] 3.9  Editor image block · L · ~5 min · **CONTINUE** (3.10 extends this editor state)
 - [x] 3.10 Save, replace, remove, rerun · M · ~5 min · **CLEAR** (next is deploy tooling)
-- [ ] 3.11 Test deploy and verification · M · ~25 min · **APPROVE** (you deploy to TEST, run the script, look, say go)
+- [ ] 3.11 Test deploy and verification · M · ~25 min · **APPROVE** (you deploy to TEST, run the script, look, say go) (script built; waiting for your TEST run)
 - [ ] 3.12 Go live and close the phase · M · ~25 min · phase done, stop and notify
 
 Reserve (only if a review creates follow-up work): 3.8b, 3.9b, 3.10b, 3.11b.
+
+## TEST checklist (after 3.11)
+One command deploys to TEST and runs every check (about 6 minutes; it waits up to 3 minutes for the edge):
+
+    cd C:\01_AppDevelopment\12.Your-AV-Dept_Website
+    & ".\Claude outputs\session-3.11-verify.ps1"
+
+- When it says so, copy your admin password (it clears the clipboard first and never prints it).
+- Already deployed this build and only want the checks again: add `-SkipDeploy`.
+- It stops before deploying if GitHub has commits this folder lacks.
+- The verdict block at the end must read every line PASS (29 checks). A FAIL: paste everything to Mark; a Netlify error page is retried once by itself.
+- Then the look, each in a NEW private window, on your computer AND your phone (links printed at the end, live for 48 hours):
+  - [ ] Picture on top: banner edge to edge above the text, nothing cut off.
+  - [ ] Picture on left and on right: side by side on the computer, stacked on the phone.
+  - [ ] The editor (/offer-admin, offer "TEST 3.11 TOP ..."): picture block shows the picture, alt text and placement; the preview matches.
+  - [ ] Optional: in the editor, add one of your own pictures to a TEST offer and save it.
+- Paste the verdict and say go (or say what looked wrong: that becomes 3.11b).
 
 ## What to have ready
 - Before 3.1: the backup tag (below).

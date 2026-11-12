@@ -1,42 +1,47 @@
 # CONTEXT: YAVD Offers Module
 
-Updated: 2026-11-11 19:05 ET, Session 3.10 (Save, replace, remove, rerun), Phase 3 Offer Images. Nothing deployed.
+Updated: 2026-11-12 04:20 ET, Session 3.11 (Test deploy and verification script), Phase 3 Offer Images. STOPPED FOR MICHAEL (APPROVE): nothing deployed yet.
 
 ## Where things stand
 - Phase 1 closed and live since 2026-10-10. Contract 1.2.0 shipped 2026-10-12. Phase 2 planned, not started; Phase 3 is independent of it.
-- Phase 3 plan: ai/phases/phase-3-offer-images.md. Run sheet: ai/phases/phase-3-RUNSHEET.md (3.1 to 3.10 ticked). Scope: ai/spec/offer-images-scope.md.
-- Contract shared/offer-contract.js is 1.3.0 and FROZEN. Not touched in 3.10.
-- The editor's picture work is complete: 3.11 is the first TEST deploy of all of Phase 3 (and Michael's stop).
+- Phase 3 plan: ai/phases/phase-3-offer-images.md. Run sheet: ai/phases/phase-3-RUNSHEET.md (3.1 to 3.10 ticked; 3.11 built, waiting for Michael's TEST run). Scope: ai/spec/offer-images-scope.md.
+- Contract shared/offer-contract.js is 1.3.0 and FROZEN. Not touched in 3.11.
 
-## Session 3.10: what was done (assets/offer-admin.js only, plus tests)
-- collect() sends `image: { id, alt, placement }` or null (Remove). snapshot() also holds the picture's address, so a new, replaced or removed picture, an alt or a placement change all count for the Leave guard.
-- save(): a description is required before anything is sent. A new picture uploads first (POST /api/offers/image, once: its id is kept on the picture, so a refused save does not upload again), then the offer is saved. Upload failure: the text saves with the old picture (image left out), banner and toast say "The picture did not upload. Your offer text was saved without a new picture.", and the picture stays on screen, unsaved, to try again.
-- Sign-in expiry (on the upload or the save): the stash keeps the picture in memory (never browser storage), detached so the reset does not release it; resumeStash puts it back. Sign-out releases it.
-- Rerun keeps the same picture id (the copy carries the image). Alt-only or placement-only changes upload nothing.
-- Export: when the file says pictures did not fit, the dashboard shows the server's sentence and a "Download the pictures file" button (part 2, then part N from `next`). Missing pictures show the sentence only.
-- Server field errors for image.alt, image.placement and image.id land in their slots (3.9 wiring, now tested).
-- Tests: netlify/tests/offer-admin-image.test.mjs grows from 11 to 21 (10 new 3.10 tests with request counts). New screenshot ai/review/3.9/7-export-note.png.
+## Waiting on Michael (the 3.11 stop)
+1. Run, from the website folder: `& ".\Claude outputs\session-3.11-verify.ps1"` (git check, 11 unit-test files, test pictures, deploy-preview, sign-in from the clipboard, all TEST checks, tidy-up, verdict of 29 checks).
+2. Look at the three printed /offer/test-311-<top|left|right>-<tag> links and the editor, in a NEW private window, on computer and phone (checklist: run sheet, "TEST checklist (after 3.11)").
+3. Paste the verdict and say go. Any FAIL or look problem becomes 3.11b; otherwise next is 3.12.
+
+## Session 3.11: what was done (QA, no app code changed)
+- Claude outputs/session-3.11-verify.ps1 (not in git, like every earlier verify script): signed-out 401s (upload, save, export); JPEG/WebP/PNG uploads with type from the bytes; SVG (also disguised as PNG), GIF 415, 700 KB 413, 10x10 422; storage-off upload 503; picture GET with no cookie (exact bytes, type, nosniff, noindex, immutable, sandbox CSP), HEAD, unknown and malformed ids 404 no-store, storage-off 404; three running link offers (top, left, right) polled until link-running, page data has exactly the 5 public image keys, saved placements, no preview key; storage-off page never errors; replace (old picture still served within the grace), remove (listed with no picture); one existing TEST offer saved unchanged and compared key by key; eight ~590 KB pictures on draft offers, export part 1 under 4.5 MB with imagesOmitted, part 2 is exactly what part 1 left out, every big picture byte-exact; nine drafts deleted, every earlier offer still listed; sign-out.
+- netlify/tests/session-3.11-helper.mjs (new, from an earlier interrupted attempt, finished here): makes the test pictures (checked with the server's checkImage), reads page data, summarises export files, writes full save bodies (body now sends the whole offer minus status, because only `image` may be absent from a save), compares before/after.
+- Run sheet: TEST checklist added.
+
+## Verified here
+- Full local rehearsal: the verify script run end to end with -Target http://localhost:8931 against a scratchpad server wrapping the real handlers (in-memory Blobs, branch-deploy, edge link logic). Second run: 29 of 29 PASS (export part 1 4,398,276 bytes with 3 pictures left for part 2; part 2 2,417,449 bytes, exactly those 3; every big picture byte-exact). The first run caught one script bug (part 1 has no "next" key; part 2 is always ?images=rest), fixed.
+- Unit tests through the script: 11 files, 192 pass, 0 fail.
+- NOT run: anything against the TEST address (needs Michael's password and his deploy). That is the stop.
+- A leftover helper agent from an earlier 3.11 attempt was found writing in parallel and stopped. Its root-level script was moved out of the repo (to the Claude scratchpad), its deploy-script edits reverted. Its test runs rewrote 3 screenshots in ai/review/3.9/ (pixel noise, left unstaged: restore with git checkout -- ai/review/3.9/).
 
 ## Files changed
-assets/offer-admin.js, netlify/tests/offer-admin-image.test.mjs, ai/review/3.9/7-export-note.png (new), ai docs.
+netlify/tests/session-3.11-helper.mjs (new), ai/phases/phase-3-RUNSHEET.md, ai docs. Claude outputs/session-3.11-verify.ps1 (new, untracked by design).
 
 ## Assumptions (reversible)
-- After an upload failure the offer is saved with its previous picture (left out of the request, so the server keeps it), as the plan says, and the new picture stays on screen as an unsaved change.
-- A refused save after a good upload keeps the uploaded id; if it sits unsaved for over 24 hours, a later save says "no longer available" (3.6 cleanup) and the picture must be added again.
-- The pictures-file toast does not mention preview keys (that file holds none).
+- The storage-off check on the page accepts 200 or 302: with the header the edge cannot read offers, so a link answers 302 to / (1.5 behaviour). "Popup data intact" is proven by the normal page fetch while the picture route alone fails.
+- The three look offers stay running for 48 hours on TEST (link offers, they clash with nothing). 3.12 or a later save can tidy them.
+- The verify script refuses any target except the TEST address or http://localhost:<port>. It deploys itself (like 1.4) instead of Michael running deploy-preview.ps1 separately; -SkipDeploy reruns checks only.
 
 ## Open items
-1. Still to prove on TEST (3.11): `:id` path params in a function config, edge-lib import bundles, ~4.5 MB export download, a real upload through Netlify.
-2. offers-stats "twenty parallel views" still fails on this PC (pre-existing, backlog). Every other suite passes.
-3. No CI in this repo: verified by the local test run only.
-4. Phase 1 backlog: 1.2b alert email, README, untrack .netlify/, test store tidy, later list.
-5. Screenshots use fallback fonts (fonts answered empty in tests).
+1. offers-stats "twenty parallel views" still fails on this PC (pre-existing, backlog). Not in the script's unit list.
+2. No CI in this repo: verified by the local test run only.
+3. Phase 1 backlog: 1.2b alert email, README, untrack .netlify/, test store tidy, later list.
+4. Screenshots use fallback fonts (fonts answered empty in tests).
 
 ## Estimate vs actual
-Estimated M, ~5 min of Michael's time. Actual M, about 25 min build (one test-harness snag: Playwright downloads left a rejection on close, fixed on the third try by recording downloads in the page); Michael's time 0.
+Estimated M, ~25 min of Michael's time (deploy, verify, look). Build actual L, about 60 min (an earlier attempt had left the helper half-done and a duplicate helper agent had to be stopped; the local rehearsal added ~15 min). Michael's time: still to come.
 
 ## Backup coverage
-No stored data created or changed (in-memory test stores only). Nothing to back up.
+No stored data created or changed by this session. The script writes only to the TEST stores (offers-test, offer-images-test), which are test data and not under backup.
 
 ## Next step
-Session 3.11 (Test deploy and verification script; Michael deploys to TEST, runs the script, looks, says go). Tag after 3.10: CLEAR (next is deploy tooling, a different area).
+Michael runs the 3.11 TEST checklist and pastes the verdict. All PASS and the look is fine: Session 3.12 (Go live and close the phase), on a fresh helper. A FAIL: 3.11b.
