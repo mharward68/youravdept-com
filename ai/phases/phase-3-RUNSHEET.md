@@ -88,7 +88,8 @@ Tags: CONTINUE (green) next session extends what this one just wrote, same helpe
 - [x] 3.8  The popup shows the image · M · ~10 min · **APPROVE** (your look at three placements on desktop and phone)
 - [x] 3.9  Editor image block · L · ~5 min · **CONTINUE** (3.10 extends this editor state)
 - [x] 3.10 Save, replace, remove, rerun · M · ~5 min · **CLEAR** (next is deploy tooling)
-- [ ] 3.11 Test deploy and verification · M · ~25 min · **APPROVE** (you deploy to TEST, run the script, look, say go) (script built; waiting for your TEST run)
+- [x] 3.11 Test deploy and verification · M · ~25 min · **APPROVE** (you deploy to TEST, run the script, look, say go) (TEST 28/29, the FAIL was the check; look done 2026-11-12)
+- [ ] 3.11b Editor Cancel button · S · ~2 min · **CONTINUE** (3.12 deploys it to TEST first and you click Cancel before go-live)
 - [ ] 3.12 Go live and close the phase · M · ~25 min · phase done, stop and notify
 
 Reserve (only if a review creates follow-up work): 3.8b, 3.9b, 3.10b, 3.11b.

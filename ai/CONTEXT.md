@@ -1,6 +1,6 @@
 # CONTEXT: YAVD Offers Module
 
-Updated: 2026-11-12 05:15 ET, Session 3.11 (Test deploy and verification script), Phase 3 Offer Images. STOPPED FOR MICHAEL (APPROVE): deployed to TEST, verify run 28 of 29 (the 1 FAIL was the check, fixed); his look on computer and phone still owed.
+Updated: 2026-11-12 05:15 ET, Session 3.11 (Test deploy and verification script), Phase 3 Offer Images. 3.11 DONE: TEST verify 28/29 (the FAIL was the check, fixed) and Michael's look passed (links, editor, 13 offers). He said go, with one request: a Cancel button in the editor (3.11b).
 
 ## TEST run 2026-11-12 05:07 ET (Michael, -SkipDeploy after a deploy the same night)
 - 28 of 29 PASS on https://offers--your-av-dept.netlify.app. Proven on the real Netlify: `:id` path params, edge-lib imports bundle in functions, uploads, every refusal, picture headers, storage-off, cleanup grace, export part 1 4,227,882 bytes (1.3 s) + part 2 2,417,449 bytes (1.0 s), all 8 big pictures byte-exact.
@@ -13,10 +13,10 @@ Updated: 2026-11-12 05:15 ET, Session 3.11 (Test deploy and verification script)
 - Phase 3 plan: ai/phases/phase-3-offer-images.md. Run sheet: ai/phases/phase-3-RUNSHEET.md (3.1 to 3.10 ticked; 3.11 built, waiting for Michael's TEST run). Scope: ai/spec/offer-images-scope.md.
 - Contract shared/offer-contract.js is 1.3.0 and FROZEN. Not touched in 3.11.
 
-## Waiting on Michael (the 3.11 stop)
+## The 3.11 stop (cleared 2026-11-12)
 1. DONE 2026-11-12 05:07: verify run on TEST (28 of 29; the FAIL was the compare, fixed).
-2. Look at the three printed /offer/test-311-<top|left|right>-<tag> links and the editor, in a NEW private window, on computer and phone (checklist: run sheet, "TEST checklist (after 3.11)").
-3. Say go (or what looked wrong: that becomes 3.11b). Then 3.12.
+2. DONE 2026-11-12: look on computer and phone (three links, editor, 13 offers) all fine.
+3. DONE: go given, plus a request for an editor Cancel button (3.11b).
 
 ## Session 3.11: what was done (QA, no app code changed)
 - Claude outputs/session-3.11-verify.ps1 (not in git, like every earlier verify script): signed-out 401s (upload, save, export); JPEG/WebP/PNG uploads with type from the bytes; SVG (also disguised as PNG), GIF 415, 700 KB 413, 10x10 422; storage-off upload 503; picture GET with no cookie (exact bytes, type, nosniff, noindex, immutable, sandbox CSP), HEAD, unknown and malformed ids 404 no-store, storage-off 404; three running link offers (top, left, right) polled until link-running, page data has exactly the 5 public image keys, saved placements, no preview key; storage-off page never errors; replace (old picture still served within the grace), remove (listed with no picture); one existing TEST offer saved unchanged and compared key by key; eight ~590 KB pictures on draft offers, export part 1 under 4.5 MB with imagesOmitted, part 2 is exactly what part 1 left out, every big picture byte-exact; nine drafts deleted, every earlier offer still listed; sign-out.
@@ -50,4 +50,4 @@ Estimated M, ~25 min of Michael's time (deploy, verify, look). Build actual L, a
 No stored data created or changed by this session. The script writes only to the TEST stores (offers-test, offer-images-test), which are test data and not under backup.
 
 ## Next step
-Michael runs the 3.11 TEST checklist and pastes the verdict. All PASS and the look is fine: Session 3.12 (Go live and close the phase), on a fresh helper. A FAIL: 3.11b.
+Session 3.11b (Editor Cancel button, S, UI), on a fresh helper; plan in ai/phases/phase-3-offer-images.md. Then 3.12 (Go live and close the phase), which starts with a TEST deploy where Michael clicks Cancel once, then goes live.

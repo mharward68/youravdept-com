@@ -290,6 +290,23 @@ Server messages the editor will show (set here so 3.5, 3.9 and 3.10 agree):
 - Backup point: no.
 - After this session: APPROVE. You deploy to TEST, run the script, look, paste the verdict, and say go. The next session starts on a fresh helper. Optional: /clear the foreman chat before saying go; the next step is read from ai/CONTEXT.md.
 
+### Session 3.11b: Editor Cancel button (added 2026-11-12 from Michael's TEST review)
+- Compartment: UI · Depends on: 3.11 · Goal: an obvious way to leave the editor without saving.
+- Size: S · My time: ~2 min (checked on TEST at the start of 3.12) · Confidence: High
+- Objectives: user experience (clear exit); stability (no unsaved change lost: the existing guard asks first).
+- Files modified: offer-admin.html, assets/offer-admin.js, assets/offer-admin.css (only if spacing needs it), netlify/tests/offer-admin-image.test.mjs.
+- Tasks:
+  - [ ] A Cancel button (id oa-cancel, plain oa-btn, never primary) beside Save as draft and Save and schedule. It calls leaveEditor(): clean form goes straight to the dashboard; unsaved changes show the existing guard.
+  - [ ] Escape in the editor does the same (not while the guard or the delete dialog is open, not while typing in a field that uses Escape).
+  - [ ] Keep the top Back to offers button. Disable Cancel while a save is running, like the save buttons.
+  - [ ] Playwright: clean editor Cancel returns to the dashboard with no API call; dirty editor Cancel shows the guard, Stay keeps the edits, Leave discards; a new picture held in memory is released on Leave.
+- Inputs needed from Michael: None (label Cancel, decided 2026-11-12).
+- DONE WHEN: node --test netlify/tests/offer-admin-image.test.mjs all pass (paste the summary); screenshot ai/review/3.11b/cancel.png; restore the 3.8/3.9 screenshots before committing.
+- Needs my eyes: Michael clicks Cancel on TEST at the start of 3.12.
+- Risk and fallback: none beyond the guard; if Escape clashes with a field, drop Escape and log it.
+- Backup point: no.
+- After this session: CONTINUE. 3.12 starts by deploying to TEST, where Michael clicks Cancel once before go-live.
+
 ### Session 3.12: Go live and close the phase
 - Compartment: INFRA · Depends on: 3.11 · Goal: the feature is live, nothing existing changed, Michael has used it once, and the phase is closed.
 - Size: M · My time: ~25 min · Confidence: High
