@@ -1,43 +1,42 @@
 # CONTEXT: YAVD Offers Module
 
-Updated: 2026-11-11 18:50 ET, Session 3.9 (Editor image block), Phase 3 Offer Images. Nothing deployed.
-
-## Stops
-The 3.8 stop ("waiting for Michael") is CLEARED: Michael approved the 3.8 review page as is (three placements, the 720 px side layout and the phone stack). No 3.8b.
+Updated: 2026-11-11 19:05 ET, Session 3.10 (Save, replace, remove, rerun), Phase 3 Offer Images. Nothing deployed.
 
 ## Where things stand
 - Phase 1 closed and live since 2026-10-10. Contract 1.2.0 shipped 2026-10-12. Phase 2 planned, not started; Phase 3 is independent of it.
-- Phase 3 plan: ai/phases/phase-3-offer-images.md. Run sheet: ai/phases/phase-3-RUNSHEET.md (3.1 to 3.9 ticked). Scope: ai/spec/offer-images-scope.md.
-- Contract shared/offer-contract.js is 1.3.0 and FROZEN. Not touched in 3.9.
+- Phase 3 plan: ai/phases/phase-3-offer-images.md. Run sheet: ai/phases/phase-3-RUNSHEET.md (3.1 to 3.10 ticked). Scope: ai/spec/offer-images-scope.md.
+- Contract shared/offer-contract.js is 1.3.0 and FROZEN. Not touched in 3.10.
+- The editor's picture work is complete: 3.11 is the first TEST deploy of all of Phase 3 (and Michael's stop).
 
-## Session 3.9: what was done
-- Spike first: a blob: address renders in the sandboxed preview iframe (allow-same-origin, no scripts). No data: fallback needed.
-- offer-admin.html: new "Image (optional)" fieldset under Popup copy: Add image, file name, size, thumbnail, Replace, Remove, description with an always-on n / 125 counter, placement radios (Top banner default, Left, Right). Error slots image.alt, image.placement, image.id.
-- assets/offer-admin.js ("Session 3.9" block before field messages): type checked from the first bytes (JPEG, PNG, WebP only; SVG, GIF, HEIC, renamed files refused), files over 40 MB not decoded, createImageBitmap, longest side 1600, WebP (JPEG if WebP cannot be written), quality steps down to under 400 KB, refused over 600 KB, too-small refused. Picture held in `pic` (blob: address, revoked on replace/remove). drawPreview draws the 3.8 popup markup. fill() and wipeEditor() load/clear the picture; inputFor() knows the image keys; grabInputs/putInputs skip the file input. Dashboard cards show a small thumbnail.
-- assets/offer-admin.css: image block and card thumbnail styles.
-- New netlify/tests/offer-admin-image.test.mjs (11 Playwright tests, real handlers, in-memory Blobs). Screenshots ai/review/3.9/ (editor with picture, preview top/left/right on desktop, phone stack, dashboard card).
+## Session 3.10: what was done (assets/offer-admin.js only, plus tests)
+- collect() sends `image: { id, alt, placement }` or null (Remove). snapshot() also holds the picture's address, so a new, replaced or removed picture, an alt or a placement change all count for the Leave guard.
+- save(): a description is required before anything is sent. A new picture uploads first (POST /api/offers/image, once: its id is kept on the picture, so a refused save does not upload again), then the offer is saved. Upload failure: the text saves with the old picture (image left out), banner and toast say "The picture did not upload. Your offer text was saved without a new picture.", and the picture stays on screen, unsaved, to try again.
+- Sign-in expiry (on the upload or the save): the stash keeps the picture in memory (never browser storage), detached so the reset does not release it; resumeStash puts it back. Sign-out releases it.
+- Rerun keeps the same picture id (the copy carries the image). Alt-only or placement-only changes upload nothing.
+- Export: when the file says pictures did not fit, the dashboard shows the server's sentence and a "Download the pictures file" button (part 2, then part N from `next`). Missing pictures show the sentence only.
+- Server field errors for image.alt, image.placement and image.id land in their slots (3.9 wiring, now tested).
+- Tests: netlify/tests/offer-admin-image.test.mjs grows from 11 to 21 (10 new 3.10 tests with request counts). New screenshot ai/review/3.9/7-export-note.png.
 
 ## Files changed
-offer-admin.html, assets/offer-admin.js, assets/offer-admin.css, netlify/tests/offer-admin-image.test.mjs (new), ai/review/3.9/*.png (new), ai docs.
+assets/offer-admin.js, netlify/tests/offer-admin-image.test.mjs, ai/review/3.9/7-export-note.png (new), ai docs.
 
 ## Assumptions (reversible)
-- Saving does not send the picture yet (3.10). collect(), snapshot() and isDirty() ignore it, so a save in 3.9 keeps the stored picture and an unsaved new one is dropped on save. Nothing is deployed before 3.10.
-- Card thumbnail is decorative (alt ""), lazy, removed if it fails to load.
-- Files over 40 MB are refused without decoding (new editor message, not a server message).
-- Remove also clears the description and resets placement to Top.
+- After an upload failure the offer is saved with its previous picture (left out of the request, so the server keeps it), as the plan says, and the new picture stays on screen as an unsaved change.
+- A refused save after a good upload keeps the uploaded id; if it sits unsaved for over 24 hours, a later save says "no longer available" (3.6 cleanup) and the picture must be added again.
+- The pictures-file toast does not mention preview keys (that file holds none).
 
 ## Open items
-1. Still to prove on TEST (3.11): `:id` path params in a function config, edge-lib import bundles, ~4.5 MB export download.
+1. Still to prove on TEST (3.11): `:id` path params in a function config, edge-lib import bundles, ~4.5 MB export download, a real upload through Netlify.
 2. offers-stats "twenty parallel views" still fails on this PC (pre-existing, backlog). Every other suite passes.
 3. No CI in this repo: verified by the local test run only.
 4. Phase 1 backlog: 1.2b alert email, README, untrack .netlify/, test store tidy, later list.
 5. Screenshots use fallback fonts (fonts answered empty in tests).
 
 ## Estimate vs actual
-Estimated L, ~5 min of Michael's time. Actual about 15 min build (well inside the 45-minute stop rule, no 3.9b needed); Michael's time 0.
+Estimated M, ~5 min of Michael's time. Actual M, about 25 min build (one test-harness snag: Playwright downloads left a rejection on close, fixed on the third try by recording downloads in the page); Michael's time 0.
 
 ## Backup coverage
 No stored data created or changed (in-memory test stores only). Nothing to back up.
 
 ## Next step
-Session 3.10 (Save, replace, remove, rerun; STATE, M). Tag after 3.9: CONTINUE (3.10 extends the `pic` state this session wrote).
+Session 3.11 (Test deploy and verification script; Michael deploys to TEST, runs the script, looks, says go). Tag after 3.10: CLEAR (next is deploy tooling, a different area).

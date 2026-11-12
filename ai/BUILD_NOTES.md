@@ -159,6 +159,13 @@ Only what a future session would waste time rediscovering.
 - Edge's canvas WebP at quality 0.36 still leaves 1600x1600 pure noise over 600 KB: a handy "too large" test picture. A 4000x3000 grainy photo lands near 190 KB at the first quality step.
 - Our own fetch of a revoked blob: address logs a console "Failed to load resource" line; tests that check revocation must expect exactly that one line.
 
+## Session 3.10 findings (saving the picture)
+- Order in save(): local date and description checks, upload (only when pic.blob and no pic.id), then POST /api/offers. The uploaded id is written onto the held picture, so a refused offer save never uploads twice. Upload failure: delete payload.image (absent = keep the stored picture) and keep the new picture on screen as an unsaved change.
+- Anything that calls fill() or setPic() releases the current blob: address. To keep a picture across fill() (upload failure) or a sign-in (stash), detach it first (pic = null), then setPic() it back. makeStash() does this.
+- Playwright downloads (page.waitForEvent('download')) left an unhandledRejection "Target page, context or browser has been closed" when the context closed, failing the whole file even though every test passed. The export test now patches HTMLAnchorElement.click in an init script and records name and text in the page. Use that for any download test.
+- The harness answers POST /api/offers/image with 503 while failUploads is true, and the export test fakes 590 KB pictures straight into the in-memory store.
+- Re-running the 3.8 and 3.9 Playwright files rewrites their committed screenshots (pixel noise, new offer counts). Restore them with git checkout before committing.
+
 ## Just the Audio (added 2026-10-11)
 - A free tool that turns MP4, MOV and M4A recordings into MP3 in the visitor's own browser. Called "MP4 to MP3 Converter" during the build; the project folder and repo keep that name.
 - Lives in just-the-audio/ (landing page index.html, manifest, sw.js, icons) and just-the-audio/app/ (the tool). Source of truth is the separate project C:\01_AppDevelopment\19_mp4-mp3_converter (repo mharward68/mp4-mp3_converter): change it there, run its tests, then copy its mp3-mp4_app\public folder over just-the-audio here. Its ai/ folder has the full notes.

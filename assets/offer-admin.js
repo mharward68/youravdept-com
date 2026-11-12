@@ -1,7 +1,8 @@
 // YAVD Offers Module: admin dashboard (Session 1.7) and offer editor,
 // rerun, live preview and saved versions (Session 1.8), views and leads
 // counts on each card (Session 1.9), the Image block, its preview and the
-// card thumbnail (Session 3.9)
+// card thumbnail (Session 3.9), saving the picture with the offer and the
+// export pictures note (Session 3.10)
 //
 // Sign-in state: the cookie is HttpOnly and scoped to /api/offers, so this
 // page cannot see it. It asks GET /api/offers: 200 = signed in, 401 = show
@@ -347,6 +348,7 @@ function clearData() {
   el.groups.replaceChildren();
   el.summary.textContent = '';
   el.store.textContent = '';
+  clearExportNote();
 }
 
 /* ---------- flows ---------- */
@@ -435,6 +437,7 @@ async function signOut() {
   el.signout.disabled = true;
   try { await api(ROUTES.apiLogout, { method: 'POST' }); } catch { /* the cookie expires on its own */ }
   el.signout.disabled = false;
+  if (stash && stash.pic && stash.pic.blob) URL.revokeObjectURL(stash.pic.src);
   stash = null;
   showSignIn('You are signed out.');
 }
@@ -442,10 +445,43 @@ async function signOut() {
 el.refresh.addEventListener('click', () => load({ quiet: true, signedOutNote: 'Your sign-in has expired. Sign in again.' }));
 el.retry.addEventListener('click', () => load());
 
-el.exportBtn.addEventListener('click', async () => {
-  el.exportBtn.disabled = true;
+/* Session 3.10: the export file says when pictures did not fit (a second
+   file) or could not be read. The sentence comes from the server. */
+let exportBox = null;
+function exportNote(info) {
+  if (!exportBox) {
+    exportBox = make('div', 'oa-banner is-warn');
+    exportBox.id = 'oa-export-note';
+    exportBox.setAttribute('role', 'status');
+    el.dash.querySelector('.oa-dash-head').after(exportBox);
+  }
+  exportBox.replaceChildren();
+  const text = info && typeof info.imagesNote === 'string' ? info.imagesNote.trim() : '';
+  if (!text) { exportBox.hidden = true; return; }
+  exportBox.append(document.createTextNode(text));
+  let next = null;
+  if (info.kind === 'yavd-offers-export') {
+    if (Array.isArray(info.imagesOmitted) && info.imagesOmitted.length) next = `${ROUTES.apiExport}?images=rest`;
+  } else if (typeof info.next === 'string') {
+    next = info.next;
+  }
+  if (next && next.startsWith(`${ROUTES.apiExport}?images=rest`)) {
+    const part = /[?&]part=(\d+)/.exec(next);
+    const b = make('button', 'oa-btn oa-btn-sm', `Download the pictures file${part ? ` (part ${part[1]})` : ''}`);
+    b.type = 'button';
+    b.id = 'oa-export-more';
+    b.addEventListener('click', () => downloadExport(next, b));
+    exportBox.append(b);
+  }
+  exportBox.hidden = false;
+}
+function clearExportNote() { if (exportBox) { exportBox.replaceChildren(); exportBox.hidden = true; } }
+
+el.exportBtn.addEventListener('click', () => downloadExport(ROUTES.apiExport, el.exportBtn));
+async function downloadExport(path, button) {
+  button.disabled = true;
   try {
-    const res = await fetch(ROUTES.apiExport, { credentials: 'same-origin', cache: 'no-store' });
+    const res = await fetch(path, { credentials: 'same-origin', cache: 'no-store' });
     if (res.status === 401) return showSignIn('Your sign-in has expired. Sign in again to export.');
     if (!res.ok) {
       let msg = `Export failed (${res.status}).`;
@@ -454,7 +490,10 @@ el.exportBtn.addEventListener('click', async () => {
     }
     const name = ((res.headers.get('content-disposition') || '').match(/filename="([^"]+)"/) || [])[1]
       || 'yavd-offers-export.json';
-    const url = URL.createObjectURL(await res.blob());
+    const blob = await res.blob();
+    let info = null;
+    try { info = JSON.parse(await blob.text()); } catch { info = null; }
+    const url = URL.createObjectURL(blob);
     const a = make('a');
     a.href = url;
     a.download = name;
@@ -462,13 +501,16 @@ el.exportBtn.addEventListener('click', async () => {
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 5000);
-    toast(`Downloaded ${name}. It holds preview keys, so keep it private.`);
+    toast(info && info.kind === 'yavd-offers-export-images'
+      ? `Downloaded ${name}. Keep it with the offers file.`
+      : `Downloaded ${name}. It holds preview keys, so keep it private.`);
+    exportNote(info);
   } catch {
     toast('Export failed. Check your connection.', true);
   } finally {
-    el.exportBtn.disabled = false;
+    button.disabled = false;
   }
-});
+}
 
 el.groups.addEventListener('click', async (e) => {
   const btn = e.target.closest('button[data-act]');
@@ -716,14 +758,18 @@ function collect() {
       optionChoices: choiceList(), extraLabels, thanks: ed.thanks.value.trim()
     },
     buttonUrl: enabled ? (cur.record ? cur.record.buttonUrl : null) : (ed.url.value.trim() || null),
-    startsAt: d.startsAt, endsAt: d.endsAt
+    startsAt: d.startsAt, endsAt: d.endsAt,
+    // Session 3.10: null removes the picture. A new picture has no id until
+    // save() uploads it.
+    image: pic ? { id: pic.id || '', alt: ed.imgAlt.value.trim(), placement: placementValue() } : null
   };
   return rec;
 }
 
 function snapshot() {
   // Raw inputs too, so a half-typed date still counts as a change.
-  return JSON.stringify([collect(), ed.startD.value, ed.startT.value, ed.endD.value, ed.endT.value]);
+  // pic.src tells a new, not yet uploaded picture apart from the saved one.
+  return JSON.stringify([collect(), ed.startD.value, ed.startT.value, ed.endD.value, ed.endT.value, pic ? pic.src : '']);
 }
 function isDirty() { return view === 'editor' && snapshot() !== cur.clean; }
 
@@ -992,8 +1038,26 @@ const IMG_MSG = {
   tooLarge: 'That picture is still over 600 KB after shrinking. Try a smaller or simpler one.',
   tooSmall: `That picture is too small. Use one at least ${IMAGE.minSideServer} pixels on each side.`,
   unreadable: 'That picture could not be opened. Try another JPG, PNG or WebP picture.',
-  hugeFile: 'That file is over 40 MB, too large to open here. Use a smaller picture.'
+  hugeFile: 'That file is over 40 MB, too large to open here. Use a smaller picture.',
+  noAlt: 'Describe the picture in a few words (up to 125 characters).',
+  uploadFailed: 'The picture did not upload. Your offer text was saved without a new picture.'
 };
+
+/** Session 3.10: POST the held picture. { status, id } on 201, else { status } (0 = no answer). */
+async function uploadPicture(p) {
+  try {
+    const res = await fetch(ROUTES.apiImage, {
+      method: 'POST', credentials: 'same-origin', cache: 'no-store',
+      headers: { 'content-type': p.type, accept: 'application/json' }, body: p.blob
+    });
+    let body = null;
+    try { body = await res.json(); } catch { body = null; }
+    if (res.status === 201 && body && typeof body.id === 'string' && IMAGE.idPattern.test(body.id)) return { status: 201, id: body.id };
+    return { status: res.status };
+  } catch {
+    return { status: 0 };
+  }
+}
 const IMG_MAX_FILE = 40 * 1024 * 1024;                       // never decode anything larger
 const IMG_QUALITIES = [0.86, 0.8, 0.74, 0.68, 0.6, 0.52, 0.44, 0.36];
 const TYPE_WORD = { 'image/jpeg': 'JPG', 'image/png': 'PNG', 'image/webp': 'WebP' };
@@ -1378,6 +1442,9 @@ async function save(asDraft) {
   if (d.endErr) local.endsAt = d.endErr;
   if (Object.keys(local).length) { showErrors('Check the dates.', local)?.focus(); return; }
 
+  // Session 3.10: a picture needs its description before anything is sent.
+  if (pic && !ed.imgAlt.value.trim()) { showErrors('Describe the picture before saving.', { 'image.alt': IMG_MSG.noAlt })?.focus(); return; }
+
   const payload = { ...collect(), draft: asDraft };
   if (cur.record) {
     payload.id = cur.record.id;
@@ -1388,6 +1455,31 @@ async function save(asDraft) {
 
   saving = true;
   ed.saveDraft.disabled = ed.saveSched.disabled = true;
+
+  // Session 3.10: a new picture goes up first, once. Its id is kept on the
+  // picture, so a save that is refused afterwards does not upload it again.
+  let uploadFailed = false;
+  const uploading = pic && pic.blob && !pic.id ? pic : null;
+  if (uploading) {
+    ed.saving.textContent = 'Uploading the picture\u2026';
+    const up = await uploadPicture(uploading);
+    if (up.status === 401) {
+      saving = false;
+      ed.saveDraft.disabled = ed.saveSched.disabled = false;
+      ed.saving.textContent = '';
+      stash = makeStash();
+      showSignIn('Your sign-in expired. Sign in again: your changes and the picture are kept, and nothing was saved yet.');
+      return;
+    }
+    if (up.id) {
+      uploading.id = up.id;
+      payload.image = { ...payload.image, id: up.id };
+    } else {
+      uploadFailed = true;
+      delete payload.image;   // absent keeps the picture the offer had before
+    }
+  }
+
   ed.saving.textContent = 'Saving\u2026';
   let out;
   try {
@@ -1402,7 +1494,7 @@ async function save(asDraft) {
   if (!out) { showErrors('Could not reach the server. Nothing was saved; your changes are still here. Try again.'); return; }
   const { res, body } = out;
   if (res.status === 401) {
-    stash = { record: cur.record, rerunOf: cur.rerunOf, values: grabInputs(), clean: cur.clean };
+    stash = makeStash();
     showSignIn('Your sign-in expired. Sign in again: your changes are kept and nothing was saved yet.');
     return;
   }
@@ -1412,16 +1504,27 @@ async function save(asDraft) {
     if (i >= 0) offers[i] = saved; else offers.push(saved);
     cur.record = saved;
     cur.rerunOf = null;
+    // The picture that did not upload stays on screen, still unsaved, to try again.
+    const keep = uploadFailed ? { pic, alt: ed.imgAlt.value, placement: placementValue() } : null;
+    if (keep) pic = null;   // detached, so fill() does not release it
     fill(saved);
     cur.clean = snapshot();
+    if (keep) {
+      setPic(keep.pic);
+      ed.imgAlt.value = keep.alt;
+      setPlacement(keep.placement);
+      counters();
+    }
     headerFor();
     render();
     const st = offerStatus(saved, now());
     // Only the matching message is built: a draft may have no dates (words() would throw). Fixed 2026-10-12.
     const what = { draft: () => 'Saved as a draft. Visitors do not see it.', upcoming: () => `Scheduled. It starts ${words(saved.startsAt)}.`,
       running: () => 'Saved. It is running now; visitors see it within about a minute.', expired: () => 'Saved. Its stop date has passed, so it is in Expired.' }[st]();
-    toast(what);
-    if (Array.isArray(body.notes) && body.notes.length) setBanner(body.notes.join(' '), true);
+    const notes = Array.isArray(body.notes) ? [...body.notes] : [];
+    if (uploadFailed) notes.unshift(IMG_MSG.uploadFailed);
+    toast(uploadFailed ? IMG_MSG.uploadFailed : what, uploadFailed);
+    if (notes.length) setBanner(notes.join(' '), true);
     ed.saving.textContent = body.created ? 'Created.' : 'Saved.';
     return;
   }
@@ -1483,6 +1586,7 @@ async function resumeStash() {
   const fresh = s.record ? offers.find((x) => x.id === s.record.id) : null;
   await openEditor(fresh ? { offer: fresh } : s.rerunOf ? { rerunFrom: offers.find((x) => x.id === s.rerunOf) || { id: s.rerunOf } } : {});
   putInputs(s.values);
+  setPic(s.pic || null);   // Session 3.10: the picture as it was, saved, new or removed
   ensurePageOption(s.values['f-page']);
   ed.page.value = s.values['f-page'] || '';
   syncAll();
@@ -1494,8 +1598,17 @@ async function resumeStash() {
   toast('Signed in again. Your changes are back. Save when ready.');
 }
 
+/* Session 3.10: the stash also keeps the picture, in memory only (never
+   localStorage). It is detached from the editor so the reset on sign-in
+   does not release a picture that is still waiting to be saved. */
+function makeStash() {
+  const s = { record: cur.record, rerunOf: cur.rerunOf, values: grabInputs(), clean: cur.clean, pic };
+  pic = null;
+  return s;
+}
+
 function kickToSignIn() {
-  stash = view === 'editor' ? { record: cur.record, rerunOf: cur.rerunOf, values: grabInputs(), clean: cur.clean } : null;
+  stash = view === 'editor' ? makeStash() : null;
   showSignIn('Your sign-in expired. Sign in again.');
 }
 

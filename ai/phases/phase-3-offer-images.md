@@ -1,5 +1,5 @@
 # Phase 3: Offer Images (one image per offer: upload, popup display, cleanup)
-Status: IN PROGRESS. Sessions 3.1 to 3.9 done 2026-11-11 (contract 1.3.0 frozen; picture checker; store; routes; image on an offer; cleanup; export; popup picture, approved by Michael; editor image block). Next: 3.10.
+Status: IN PROGRESS. Sessions 3.1 to 3.10 done 2026-11-11 (contract 1.3.0 frozen; picture checker; store; routes; image on an offer; cleanup; export; popup picture, approved by Michael; editor image block; saving the picture). Next: 3.11.
 
 ## What shapes this plan
 - Read: the scope, ai/CONTEXT.md, ai/BUILD_NOTES.md, ai/DECISIONS.md, the Phase 2 plan and run sheet (format and numbering), and the code this phase touches: shared/offer-contract.js (1.2.0), lib/offers-rules.mjs, lib/offers-store.mjs, lib/offers-auth.mjs, offers.mjs, offers-export.mjs, netlify/edge-lib/offer-edge.js, assets/offer-panel.js and .css, assets/offer-admin.js (drawPreview, save), netlify.toml, _headers.
@@ -255,14 +255,14 @@ Server messages the editor will show (set here so 3.5, 3.9 and 3.10 agree):
 - Objectives: stability (an upload failure never loses the offer text; a 401 mid-save keeps the picture in memory; Leave-with-unsaved-changes counts the picture); user experience (clear messages, no double upload); security (nothing is sent until you save).
 - Files modified: assets/offer-admin.js (collect, fill, snapshot, isDirty, save, resumeStash, rerun, openEditor, export button message). Tests extend netlify/tests/offer-admin-image.test.mjs.
 - Tasks:
-  - [ ] save(): if a new picture is pending, upload it first, then POST the offer with `image: { id, alt, placement }`; if the upload fails, save the offer text with its previous picture and show "The picture did not upload. Your offer text was saved without a new picture."
-  - [ ] collect(), fill(), snapshot() and isDirty() include the picture, alt and placement. Changing only the alt or placement does not upload anything.
-  - [ ] Remove sends `image: null`. Replace uploads the new picture and gets a new id.
-  - [ ] Sign-in expiry: the stash keeps the pending picture in memory (not localStorage) and resumeStash restores it.
-  - [ ] Rerun copies the image object to the new offer (same id).
-  - [ ] Export: if the response says images were omitted, show the plain sentence and a second button for the images file.
-  - [ ] Server field errors for image.alt, image.placement, image.id show in their slots.
-  - [ ] Tests (Playwright harness): add and save; replace; remove; alt-only change makes no upload request; upload failure still saves the text; 401 during save then sign in again keeps the picture; Delete draft with a picture then Restore from Saved versions; rerun; Leave-guard fires for an unsaved picture.
+  - [x] save(): if a new picture is pending, upload it first, then POST the offer with `image: { id, alt, placement }`; if the upload fails, save the offer text with its previous picture and show "The picture did not upload. Your offer text was saved without a new picture."
+  - [x] collect(), fill(), snapshot() and isDirty() include the picture, alt and placement. Changing only the alt or placement does not upload anything.
+  - [x] Remove sends `image: null`. Replace uploads the new picture and gets a new id.
+  - [x] Sign-in expiry: the stash keeps the pending picture in memory (not localStorage) and resumeStash restores it.
+  - [x] Rerun copies the image object to the new offer (same id).
+  - [x] Export: if the response says images were omitted, show the plain sentence and a second button for the images file.
+  - [x] Server field errors for image.alt, image.placement, image.id show in their slots.
+  - [x] Tests (Playwright harness): add and save; replace; remove; alt-only change makes no upload request; upload failure still saves the text; 401 during save then sign in again keeps the picture; Delete draft with a picture then Restore from Saved versions; rerun; Leave-guard fires for an unsaved picture.
 - Inputs needed from Michael: None.
 - DONE WHEN: `node --test netlify/tests/offer-admin-image.test.mjs` passes (output pasted), including the network-request counts; all other test files still pass.
 - Needs my eyes: nothing.

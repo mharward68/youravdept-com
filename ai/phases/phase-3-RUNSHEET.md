@@ -87,7 +87,7 @@ Tags: CONTINUE (green) next session extends what this one just wrote, same helpe
 - [x] 3.7  Export with pictures · M · ~5 min · **CLEAR** (next is the popup)
 - [x] 3.8  The popup shows the image · M · ~10 min · **APPROVE** (your look at three placements on desktop and phone)
 - [x] 3.9  Editor image block · L · ~5 min · **CONTINUE** (3.10 extends this editor state)
-- [ ] 3.10 Save, replace, remove, rerun · M · ~5 min · **CLEAR** (next is deploy tooling)
+- [x] 3.10 Save, replace, remove, rerun · M · ~5 min · **CLEAR** (next is deploy tooling)
 - [ ] 3.11 Test deploy and verification · M · ~25 min · **APPROVE** (you deploy to TEST, run the script, look, say go)
 - [ ] 3.12 Go live and close the phase · M · ~25 min · phase done, stop and notify
 

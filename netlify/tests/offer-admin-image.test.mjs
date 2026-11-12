@@ -1,4 +1,5 @@
-/* Session 3.9: the editor's Image block (Playwright, real browser).
+/* Sessions 3.9 and 3.10: the editor's Image block, and saving the picture
+ * with the offer (Playwright, real browser).
  *
  * Local harness: a small Node server wraps the REAL function handlers
  * (offers, pages, stats, picture view and upload, login) with in-memory
@@ -41,7 +42,10 @@ const HANDLERS = {
   image: (await import('../functions/offer-image.mjs')).default,
   upload: (await import('../functions/offer-image-upload.mjs')).default,
   login: (await import('../functions/offers-login.mjs')).default,
-  logout: (await import('../functions/offers-logout.mjs')).default
+  logout: (await import('../functions/offers-logout.mjs')).default,
+  del: (await import('../functions/offers-delete.mjs')).default,
+  restore: (await import('../functions/offers-restore.mjs')).default,
+  exportFn: (await import('../functions/offers-export.mjs')).default
 };
 
 /* ---------- find Playwright and a browser ---------- */
@@ -111,7 +115,8 @@ const TOKEN = auth.makeToken(auth.authConfig());
 
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css',
   '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.ico': 'image/x-icon', '.json': 'application/json' };
-const apiHits = [];   // "METHOD /path" for every /api request
+const apiHits = [];   // "METHOD /path?query" for every /api request
+let failUploads = false;
 let server, base, browser;
 const pw = await loadPlaywright();
 
@@ -122,6 +127,9 @@ function route(p) {
   if (p === '/api/offers/login') return [HANDLERS.login, {}];
   if (p === '/api/offers/logout') return [HANDLERS.logout, {}];
   if (p === '/api/offers/image') return [HANDLERS.upload, {}];
+  if (p === '/api/offers/delete') return [HANDLERS.del, {}];
+  if (p === '/api/offers/restore') return [HANDLERS.restore, {}];
+  if (p === '/api/offers/export') return [HANDLERS.exportFn, {}];
   const m = /^\/api\/offers\/image\/([^/]+)$/.exec(p);
   if (m) return [HANDLERS.image, { id: m[1] }];
   return null;
@@ -131,7 +139,10 @@ async function serve(req, res) {
   const url = new URL(req.url, base);
   const p = decodeURIComponent(url.pathname);
   if (p.startsWith('/api/')) {
-    apiHits.push(`${req.method} ${p}`);
+    apiHits.push(`${req.method} ${p}${url.search}`);
+    if (failUploads && req.method === 'POST' && p === '/api/offers/image') {   // Session 3.10: storage trouble on upload
+      res.writeHead(503, { 'content-type': 'application/json' }); res.end('{"error":"The picture did not upload. Try again in a minute."}'); return;
+    }
     const r = route(p);
     if (!r) { res.writeHead(404, { 'content-type': 'application/json' }); res.end('{"error":"no route"}'); return; }
     const chunks = [];
@@ -239,15 +250,16 @@ async function seedSavedOffer() {
 
 /* ---------- browser helpers ---------- */
 
-async function signedInPage(viewport = { width: 1280, height: 900 }) {
+async function signedInPage(viewport = { width: 1280, height: 900 }, { init } = {}) {
   const ctx = await browser.newContext({ viewport, deviceScaleFactor: 1, reducedMotion: 'reduce' });
+  if (init) await ctx.addInitScript(init);
   await ctx.addCookies([{ name: C.AUTH.cookie, value: TOKEN, domain: 'localhost', path: '/api/offers', httpOnly: true }]);
   await ctx.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
   page.on('console', (msg) => { if (msg.type() === 'error') errors.push('console: ' + msg.text() + ' @ ' + (msg.location()?.url || '')); });
-  page.on('dialog', (d) => d.dismiss());
+  page.on('dialog', (d) => d.dismiss().catch(() => {}));   // may race a closing context
   await page.goto(`${base}/offer-admin`);
   await page.waitForSelector('#oa-dash:not([hidden])', { timeout: 10000 });
   return { ctx, page, errors };
@@ -563,6 +575,361 @@ test('no picture: the preview has no media block and no placement class (as befo
     assert.doesNotMatch(pv.cls, /is-img-/);
     assert.notEqual(pv.firstChild, 'yavd-op-media');
     assert.equal(await page.isVisible('#f-img-add'), true);
+    assert.deepEqual(errors, []);
+  } finally { await ctx.close(); }
+});
+
+/* =====================================================================
+   Session 3.10: save, replace, remove, rerun
+   ===================================================================== */
+
+const stored = () => JSON.parse(offerStore.m.get('all')?.v ?? '[]');
+const storedOffer = (id) => stored().find((o) => o.id === id);
+const hitsSince = (i, exact) => apiHits.slice(i).filter((h) => h === exact).length;
+const UPLOAD = 'POST /api/offers/image';
+const POST_OFFER = 'POST /api/offers';
+
+async function apiSave(offer) {
+  const res = await HANDLERS.offers(new Request(`${base}/api/offers`, {
+    method: 'POST', headers: { 'content-type': 'application/json', cookie: `${C.AUTH.cookie}=${TOKEN}` },
+    body: JSON.stringify(offer) }), CTX);
+  const body = await res.json();
+  assert.ok(res.status === 200 || res.status === 201, JSON.stringify(body));
+  return body.offer;
+}
+function baseOffer(over = {}) {
+  const o = { ...C.emptyOffer(), page: '/booth-proof.html', audience: 'everyone', headline: 'Book 2027 now',
+    body: 'We run your stage.', draft: true, ...over };
+  delete o.id;
+  return o;
+}
+
+async function newSavableOffer(page, name) {
+  await newOffer(page);
+  await page.waitForSelector('#f-page option[value="/booth-proof.html"]', { state: 'attached' });
+  await page.selectOption('#f-page', '/booth-proof.html');
+  await page.fill('#f-name', name);
+}
+
+/** Click Save as draft; resolves with what happened. */
+async function saveDraft(page) {
+  await page.evaluate(() => { document.getElementById('oa-saving').textContent = ''; });
+  await page.click('#oa-save-draft');
+  await page.waitForFunction(() => {
+    const t = document.getElementById('oa-saving').textContent;
+    return t === 'Created.' || t === 'Saved.' || !document.getElementById('oa-ed-summary').hidden
+      || !document.getElementById('oa-signin').hidden;
+  }, null, { timeout: 15000 });
+  return page.evaluate(() => ({
+    saving: document.getElementById('oa-saving').textContent,
+    summary: document.getElementById('oa-ed-summary').hidden ? '' : document.getElementById('oa-ed-summary').textContent,
+    signin: !document.getElementById('oa-signin').hidden,
+    banner: document.getElementById('oa-ed-banner').hidden ? '' : document.getElementById('oa-ed-banner').textContent
+  }));
+}
+async function openCard(page, id) {
+  await page.waitForSelector('#oa-dash:not([hidden])');
+  await page.click(`.oa-card[data-id="${id}"] [data-act="edit"]`);
+  await page.waitForSelector('#oa-editor:not([hidden])');
+}
+const expectedOnly = (errors, re) => errors.filter((e) => !re.test(e));
+
+let FLOW_ID = '';     // the offer the add, alt-only, replace and remove tests work on
+let FLOW_PIC = '';
+
+test('3.10 add and save: one upload, then one offer save with { id, alt, placement }', { skip: skip() }, async () => {
+  const { ctx, page, errors } = await signedInPage();
+  try {
+    await newSavableOffer(page, 'Flow offer');
+    assert.equal(await pick(page, 'jpeg'), '');
+    // no description: refused here, nothing sent
+    let i = apiHits.length;
+    let r = await saveDraft(page);
+    assert.match(r.summary, /Describe the picture/);
+    assert.equal(hitsSince(i, UPLOAD), 0, 'no upload without a description');
+    await page.fill('#f-img-alt', 'A teal stage');
+    await page.check('input[name="imgPlacement"][value="left"]');
+    i = apiHits.length;
+    r = await saveDraft(page);
+    const hits = apiHits.slice(i).filter((h) => h.startsWith('POST'));
+    console.log(`  requests: ${JSON.stringify(hits)}; ${r.saving}`);
+    assert.equal(r.saving, 'Created.');
+    assert.deepEqual(hits, [UPLOAD, POST_OFFER], 'one upload, then one offer save');
+    const saved = stored().find((o) => o.name === 'Flow offer');
+    FLOW_ID = saved.id; FLOW_PIC = saved.image.id;
+    console.log(`  stored image: ${JSON.stringify(saved.image)}`);
+    assert.match(FLOW_PIC, C.IMAGE.idPattern);
+    assert.ok(picStore.m.has(FLOW_PIC), 'picture is in the store');
+    assert.equal(saved.image.alt, 'A teal stage');
+    assert.equal(saved.image.placement, 'left');
+    assert.equal(saved.image.type, 'image/webp');
+    assert.equal(await page.textContent('#f-img-name'), 'Saved picture');
+    assert.equal(await page.getAttribute('#f-img-thumb', 'src'), C.imageUrl(FLOW_PIC));
+    await page.click('#oa-ed-back');
+    assert.equal(await page.isVisible('#oa-ed-guard'), false, 'clean after save');
+    assert.deepEqual(errors, []);
+  } finally { await ctx.close(); }
+});
+
+test('3.10 Leave guard fires for an unsaved picture and for a removed one', { skip: skip() }, async () => {
+  const { ctx, page, errors } = await signedInPage();
+  try {
+    await newSavableOffer(page, 'Guard');
+    await page.click('#oa-ed-back');
+    assert.equal(await page.isVisible('#oa-ed-guard'), true);   // the name is a change too; reset
+    await page.click('#oa-ed-discard');
+    await page.click('#oa-new');
+    await page.waitForSelector('#oa-editor:not([hidden])');
+    await page.click('#oa-ed-back');
+    assert.equal(await page.isVisible('#oa-ed-guard'), false, 'untouched new offer leaves freely');
+    await page.click('#oa-new');
+    await page.waitForSelector('#oa-editor:not([hidden])');
+    assert.equal(await pick(page, 'jpeg'), '');
+    await page.click('#oa-ed-back');
+    assert.equal(await page.isVisible('#oa-ed-guard'), true, 'only a picture added: guard shows');
+    await page.click('#oa-ed-discard');
+    await openCard(page, FLOW_ID);
+    await page.click('#f-img-remove');
+    await page.click('#oa-ed-back');
+    assert.equal(await page.isVisible('#oa-ed-guard'), true, 'only a picture removed: guard shows');
+    await page.click('#oa-ed-discard');
+    await openCard(page, FLOW_ID);
+    await page.check('input[name="imgPlacement"][value="top"]');
+    await page.click('#oa-ed-back');
+    assert.equal(await page.isVisible('#oa-ed-guard'), true, 'only the placement changed: guard shows');
+    assert.deepEqual(errors, []);
+  } finally { await ctx.close(); }
+});
+
+test('3.10 alt-only and placement-only changes save with no upload', { skip: skip() }, async () => {
+  const { ctx, page, errors } = await signedInPage();
+  try {
+    await openCard(page, FLOW_ID);
+    await page.fill('#f-img-alt', 'A teal stage with two screens');
+    let i = apiHits.length;
+    assert.equal((await saveDraft(page)).saving, 'Saved.');
+    assert.equal(hitsSince(i, UPLOAD), 0);
+    assert.equal(storedOffer(FLOW_ID).image.alt, 'A teal stage with two screens');
+    await page.check('input[name="imgPlacement"][value="right"]');
+    i = apiHits.length;
+    assert.equal((await saveDraft(page)).saving, 'Saved.');
+    console.log(`  uploads for alt + placement saves: ${hitsSince(i, UPLOAD)}; stored ${JSON.stringify(storedOffer(FLOW_ID).image)}`);
+    assert.equal(hitsSince(i, UPLOAD), 0);
+    assert.equal(storedOffer(FLOW_ID).image.placement, 'right');
+    assert.equal(storedOffer(FLOW_ID).image.id, FLOW_PIC);
+    assert.deepEqual(errors, []);
+  } finally { await ctx.close(); }
+});
+
+test('3.10 replace uploads once and gets a new id; remove sends null with no upload', { skip: skip() }, async () => {
+  const { ctx, page, errors } = await signedInPage();
+  try {
+    await openCard(page, FLOW_ID);
+    assert.equal(await pick(page, 'png'), '');
+    let i = apiHits.length;
+    assert.equal((await saveDraft(page)).saving, 'Saved.');
+    const after = storedOffer(FLOW_ID).image;
+    console.log(`  replace: ${hitsSince(i, UPLOAD)} upload, id ${FLOW_PIC.slice(0, 8)}.. -> ${after.id.slice(0, 8)}.., alt kept "${after.alt}"`);
+    assert.equal(hitsSince(i, UPLOAD), 1);
+    assert.notEqual(after.id, FLOW_PIC);
+    assert.equal(after.width, 900);
+    assert.equal(after.alt, 'A teal stage with two screens');
+    await page.click('#f-img-remove');
+    i = apiHits.length;
+    assert.equal((await saveDraft(page)).saving, 'Saved.');
+    console.log(`  remove: ${hitsSince(i, UPLOAD)} uploads, stored image ${JSON.stringify(storedOffer(FLOW_ID).image)}`);
+    assert.equal(hitsSince(i, UPLOAD), 0);
+    assert.equal(storedOffer(FLOW_ID).image, null);
+    assert.equal(await page.isVisible('#f-img-add'), true);
+    assert.deepEqual(errors, []);
+  } finally { await ctx.close(); }
+});
+
+test('3.10 upload failure still saves the text; the picture stays to try again', { skip: skip() }, async () => {
+  const { ctx, page, errors } = await signedInPage();
+  try {
+    await newSavableOffer(page, 'Upload fails');
+    assert.equal(await pick(page, 'webp'), '');
+    await page.fill('#f-img-alt', 'Tall picture');
+    failUploads = true;
+    let i = apiHits.length;
+    const r = await saveDraft(page);
+    failUploads = false;
+    const o = stored().find((x) => x.name === 'Upload fails');
+    console.log(`  ${r.saving} banner "${r.banner}"; stored image ${JSON.stringify(o && o.image)}; uploads ${hitsSince(i, UPLOAD)}`);
+    assert.equal(r.saving, 'Created.');
+    assert.ok(o, 'offer text saved');
+    assert.equal(o.image, null);
+    assert.ok(r.banner.includes(IMAGE_MESSAGES.uploadFailed), r.banner);
+    assert.match(await page.textContent('#f-img-size'), /Not saved yet\./);
+    assert.equal(await page.inputValue('#f-img-alt'), 'Tall picture');
+    await page.click('#oa-ed-back');
+    assert.equal(await page.isVisible('#oa-ed-guard'), true, 'the picture is still an unsaved change');
+    await page.click('#oa-ed-keep');
+    assert.deepEqual(expectedOnly(errors, /status of 503/), [], 'only the expected 503 line');
+    errors.length = 0;
+    i = apiHits.length;
+    assert.equal((await saveDraft(page)).saving, 'Saved.');
+    assert.equal(hitsSince(i, UPLOAD), 1);
+    assert.match(storedOffer(o.id).image.id, C.IMAGE.idPattern);
+    assert.deepEqual(errors, []);
+  } finally { failUploads = false; await ctx.close(); }
+});
+
+test('3.10 sign-in expires during save: sign in again, the picture is kept and saves', { skip: skip() }, async () => {
+  const { ctx, page, errors } = await signedInPage();
+  try {
+    await newSavableOffer(page, 'Expired sign-in');
+    assert.equal(await pick(page, 'jpeg'), '');
+    await page.fill('#f-img-alt', 'Kept across sign-in');
+    await page.check('input[name="imgPlacement"][value="right"]');
+    const src = await page.getAttribute('#f-img-thumb', 'src');
+    await ctx.clearCookies();
+    let i = apiHits.length;
+    const r = await saveDraft(page);
+    assert.equal(r.signin, true);
+    assert.equal(hitsSince(i, UPLOAD), 1, 'the upload met the 401');
+    assert.equal(stored().some((x) => x.name === 'Expired sign-in'), false, 'nothing saved');
+    const ls = await page.evaluate(() => JSON.stringify(localStorage) + JSON.stringify(sessionStorage));
+    assert.equal(ls, '{}{}', 'nothing kept in browser storage');
+    await page.fill('#oa-password', 'correct-horse-battery-1');
+    await page.click('#oa-signin-btn');
+    await page.waitForSelector('#oa-editor:not([hidden])');
+    await page.waitForSelector('#f-img-yes:not([hidden])');
+    assert.equal(await page.getAttribute('#f-img-thumb', 'src'), src, 'the same held picture');
+    assert.match(await page.textContent('#f-img-size'), /Not saved yet\./);
+    assert.equal(await page.inputValue('#f-img-alt'), 'Kept across sign-in');
+    assert.equal(await page.$eval('input[name="imgPlacement"]:checked', (x) => x.value), 'right');
+    await preview(page, { placement: 'right', alt: 'Kept across sign-in' });
+    i = apiHits.length;
+    assert.equal((await saveDraft(page)).saving, 'Created.');
+    const o = stored().find((x) => x.name === 'Expired sign-in');
+    console.log(`  after sign-in: ${hitsSince(i, UPLOAD)} upload, stored ${JSON.stringify(o.image)}`);
+    assert.equal(hitsSince(i, UPLOAD), 1);
+    assert.equal(o.image.placement, 'right');
+    assert.equal(o.image.alt, 'Kept across sign-in');
+    assert.deepEqual(expectedOnly(errors, /status of 401/), [], 'only the expected 401 line');
+  } finally { await ctx.close(); }
+});
+
+test('3.10 delete a draft with a picture, then put it back from Saved versions', { skip: skip() }, async () => {
+  const seeded = await apiSave(baseOffer({ name: 'Delete me', image: { id: SAVED_PIC, alt: 'Stage', placement: 'top' } }));
+  const { ctx, page, errors } = await signedInPage();
+  try {
+    await openCard(page, seeded.id);
+    await page.click('#oa-del');
+    await page.click('#oa-del-yes');
+    await page.waitForSelector('#oa-dash:not([hidden])');
+    assert.equal(storedOffer(seeded.id), undefined);
+    await page.click('#oa-versions-btn');
+    await page.waitForSelector('#oa-v-list .oa-v > button');
+    const what = await page.textContent('#oa-v-list .oa-v:first-child .oa-v-what');
+    assert.match(what, /delete of "Delete me"/);
+    await page.click('#oa-v-list .oa-v:first-child > button');
+    await page.click('#oa-v-list .oa-v:first-child .oa-btn-danger');
+    await page.waitForSelector('#oa-dash:not([hidden])');
+    await page.waitForFunction((id) => {
+      const i = document.querySelector(`.oa-card[data-id="${id}"] .oa-card-thumb`);
+      return i && i.complete && i.naturalWidth > 0;
+    }, seeded.id, { timeout: 5000 });
+    console.log(`  restored image ${JSON.stringify(storedOffer(seeded.id).image)}; picture in store: ${picStore.m.has(SAVED_PIC)}`);
+    assert.equal(storedOffer(seeded.id).image.id, SAVED_PIC);
+    assert.equal(picStore.m.has(SAVED_PIC), true);
+    assert.deepEqual(errors, []);
+  } finally { await ctx.close(); }
+});
+
+test('3.10 rerun copies the picture (same id, no upload)', { skip: skip() }, async () => {
+  const old = await apiSave(baseOffer({ name: 'Ran last month', draft: false,
+    startsAt: '2026-10-01T00:00:00-04:00', endsAt: '2026-10-05T23:59:59-04:00',
+    image: { id: SAVED_PIC, alt: 'Last month stage', placement: 'left' } }));
+  const { ctx, page, errors } = await signedInPage();
+  try {
+    await page.click(`.oa-card[data-id="${old.id}"] [data-act="rerun"]`);
+    await page.waitForSelector('#f-img-yes:not([hidden])');
+    assert.equal(await page.inputValue('#f-img-alt'), 'Last month stage');
+    assert.equal(await page.$eval('input[name="imgPlacement"]:checked', (x) => x.value), 'left');
+    await page.fill('#f-name', 'Ran last month (again)');
+    const i = apiHits.length;
+    assert.equal((await saveDraft(page)).saving, 'Created.');
+    const copy = stored().find((x) => x.name === 'Ran last month (again)');
+    console.log(`  rerun: uploads ${hitsSince(i, UPLOAD)}, image ${JSON.stringify(copy.image)}, rerunOf ok ${copy.rerunOf === old.id}`);
+    assert.equal(hitsSince(i, UPLOAD), 0);
+    assert.equal(copy.image.id, SAVED_PIC);
+    assert.equal(copy.image.placement, 'left');
+    assert.equal(copy.rerunOf, old.id);
+    assert.equal(storedOffer(old.id).image.id, SAVED_PIC, 'the original keeps it too');
+    assert.deepEqual(errors, []);
+  } finally { await ctx.close(); }
+});
+
+test('3.10 server field errors for the picture show in their slot', { skip: skip() }, async () => {
+  const { ctx, page, errors } = await signedInPage();
+  try {
+    await openCard(page, SAVED_ID);
+    await page.fill('#f-img-alt', '<b></b>');   // passes the local check, empty once the server strips tags
+    const r = await saveDraft(page);
+    const slot = await page.textContent('[data-err="image.alt"]');
+    console.log(`  summary "${r.summary.slice(0, 70)}"; slot "${slot}"`);
+    assert.equal(slot, IMAGE_MESSAGES.noAlt);
+    assert.equal(await page.getAttribute('#f-img-alt', 'aria-invalid'), 'true');
+    assert.deepEqual(expectedOnly(errors, /status of 400/), []);
+  } finally { await ctx.close(); }
+});
+
+test('3.10 export: pictures that do not fit get the server sentence and a second download button', { skip: skip() }, async () => {
+  // seven 590 KB pictures (fake bytes: the store does not check content) on seven drafts
+  const BIG = 590 * 1024;
+  for (let n = 0; n < 7; n++) {
+    const id = (n + 16).toString(16).padStart(2, '0').repeat(16);
+    await picStore.set(id, Buffer.alloc(BIG, n), { metadata: { type: 'image/jpeg', bytes: BIG, width: 800, height: 600, uploadedAt: new Date().toISOString() } });
+    await apiSave(baseOffer({ name: `Export ${n}`, image: { id, alt: 'Fake', placement: 'top' } }));
+  }
+  // Downloads are recorded in the page (name and text) instead of saved:
+  // Playwright's own download handling left a rejection behind on close.
+  const init = () => {
+    window.__downloads = [];
+    const real = HTMLAnchorElement.prototype.click;
+    HTMLAnchorElement.prototype.click = function () {
+      if (this.hasAttribute('download') && this.href.startsWith('blob:')) {
+        const entry = { name: this.download, text: null };
+        window.__downloads.push(entry);
+        fetch(this.href).then((r) => r.text()).then((t) => { entry.text = t; });
+        return;
+      }
+      return real.call(this);
+    };
+  };
+  const { ctx, page, errors } = await signedInPage(undefined, { init });
+  const downloaded = async (n) => {
+    await page.waitForFunction((k) => window.__downloads.length >= k && window.__downloads[k - 1].text !== null, n, { timeout: 15000 });
+    return page.evaluate((k) => window.__downloads[k - 1], n);
+  };
+  try {
+    const i = apiHits.length;
+    await page.click('#oa-export');
+    const d1 = await downloaded(1);
+    await page.waitForSelector('#oa-export-note:not([hidden])');
+    const note = await page.textContent('#oa-export-note');
+    console.log(`  file 1 ${d1.name}; note "${note}"`);
+    assert.match(note, /Download part 2 as well/);
+    assert.ok(JSON.parse(d1.text).imagesOmitted.length >= 1);
+    await page.waitForTimeout(100);
+    await page.screenshot({ path: path.join(SHOTS, '7-export-note.png'), clip: { x: 0, y: 0, width: 1280, height: 260 } });
+    await page.click('#oa-export-more');
+    const d2 = await downloaded(2);
+    const exportsHit = apiHits.slice(i).filter((h) => h.includes('export'));
+    console.log(`  file 2 ${d2.name}; requests ${JSON.stringify(exportsHit)}`);
+    assert.match(d2.name, /-images-/);
+    const part2 = JSON.parse(d2.text);
+    assert.equal(part2.kind, 'yavd-offers-export-images');
+    assert.ok(part2.images.length >= 1);
+    assert.deepEqual(exportsHit, ['GET /api/offers/export', 'GET /api/offers/export?images=rest']);
+    await page.waitForTimeout(200);
+    const after = await page.evaluate(() => { const b = document.getElementById('oa-export-note'); return b.hidden ? '' : b.textContent; });
+    console.log(`  note after part ${part2.part} of ${part2.parts}: "${after}"`);
+    if (part2.part === part2.parts) assert.equal(after, '', 'nothing more to say after the last part');
+    // the fake pictures do not decode as thumbnails; that is quiet (no console line)
     assert.deepEqual(errors, []);
   } finally { await ctx.close(); }
 });
