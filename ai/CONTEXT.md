@@ -1,53 +1,46 @@
 # CONTEXT: YAVD Offers Module
 
-Updated: 2026-11-12 05:15 ET, Session 3.11 (Test deploy and verification script), Phase 3 Offer Images. 3.11 DONE: TEST verify 28/29 (the FAIL was the check, fixed) and Michael's look passed (links, editor, 13 offers). He said go, with one request: a Cancel button in the editor (3.11b).
-
-## TEST run 2026-11-12 05:07 ET (Michael, -SkipDeploy after a deploy the same night)
-- 28 of 29 PASS on https://offers--your-av-dept.netlify.app. Proven on the real Netlify: `:id` path params, edge-lib imports bundle in functions, uploads, every refusal, picture headers, storage-off, cleanup grace, export part 1 4,227,882 bytes (1.3 s) + part 2 2,417,449 bytes (1.0 s), all 8 big pictures byte-exact.
-- The FAIL, J (existing offer saves unchanged): "TEST 1.6 PREVIEW 6027" predates contract 1.2.0 and had no eyebrow key; the save wrote eyebrow "" (the only diff). Not a regression: readers treat missing and "" the same. The helper's compare now treats a missing eyebrow as "" (and a missing image as null); proven on that exact case, and a real change is still caught. No rerun needed for it.
-- Picture responses on Netlify carry no content-length header (the len= column was empty); not checked, no effect.
-- 10 offers on TEST before the run, 13 after (the three look offers, test-311-<top|left|right>-1944, end about 2026-11-14 05:06 ET).
+Updated: 2026-11-12 05:35 ET, Session 3.11b (Editor Cancel button), Phase 3 Offer Images. DONE: Cancel button and Escape in the editor, 25 of 25 editor tests pass (twice). Not deployed yet: 3.12 deploys it to TEST first.
 
 ## Where things stand
 - Phase 1 closed and live since 2026-10-10. Contract 1.2.0 shipped 2026-10-12. Phase 2 planned, not started; Phase 3 is independent of it.
-- Phase 3 plan: ai/phases/phase-3-offer-images.md. Run sheet: ai/phases/phase-3-RUNSHEET.md (3.1 to 3.10 ticked; 3.11 built, waiting for Michael's TEST run). Scope: ai/spec/offer-images-scope.md.
-- Contract shared/offer-contract.js is 1.3.0 and FROZEN. Not touched in 3.11.
+- Phase 3 plan: ai/phases/phase-3-offer-images.md. Run sheet: ai/phases/phase-3-RUNSHEET.md (3.1 to 3.11b ticked). Scope: ai/spec/offer-images-scope.md.
+- Contract shared/offer-contract.js is 1.3.0 and FROZEN. Not touched in 3.11b.
+- TEST (https://offers--your-av-dept.netlify.app) still runs the 3.11 build, without Cancel. Three look offers (test-311-<top|left|right>-1944) end about 2026-11-14 05:06 ET.
 
-## The 3.11 stop (cleared 2026-11-12)
-1. DONE 2026-11-12 05:07: verify run on TEST (28 of 29; the FAIL was the compare, fixed).
-2. DONE 2026-11-12: look on computer and phone (three links, editor, 13 offers) all fine.
-3. DONE: go given, plus a request for an editor Cancel button (3.11b).
-
-## Session 3.11: what was done (QA, no app code changed)
-- Claude outputs/session-3.11-verify.ps1 (not in git, like every earlier verify script): signed-out 401s (upload, save, export); JPEG/WebP/PNG uploads with type from the bytes; SVG (also disguised as PNG), GIF 415, 700 KB 413, 10x10 422; storage-off upload 503; picture GET with no cookie (exact bytes, type, nosniff, noindex, immutable, sandbox CSP), HEAD, unknown and malformed ids 404 no-store, storage-off 404; three running link offers (top, left, right) polled until link-running, page data has exactly the 5 public image keys, saved placements, no preview key; storage-off page never errors; replace (old picture still served within the grace), remove (listed with no picture); one existing TEST offer saved unchanged and compared key by key; eight ~590 KB pictures on draft offers, export part 1 under 4.5 MB with imagesOmitted, part 2 is exactly what part 1 left out, every big picture byte-exact; nine drafts deleted, every earlier offer still listed; sign-out.
-- netlify/tests/session-3.11-helper.mjs (new, from an earlier interrupted attempt, finished here): makes the test pictures (checked with the server's checkImage), reads page data, summarises export files, writes full save bodies (body now sends the whole offer minus status, because only `image` may be absent from a save), compares before/after.
-- Run sheet: TEST checklist added.
+## Session 3.11b: what was done (UI)
+- offer-admin.html: Cancel button (id oa-cancel, plain oa-btn) after Save and schedule, in the sticky action bar. Back to offers kept at the top.
+- assets/offer-admin.js:
+  - Cancel calls leaveEditor(): clean form goes straight to the dashboard with no request; unsaved changes show the existing guard (Keep editing / Discard changes).
+  - Escape does the same, except while a save runs, while the unsaved guard or the delete dialog is open, during IME typing, or when something else already handled the key. Nothing in the editor used Escape before (checked offer-rich.js).
+  - Cancel is disabled with the save buttons while a save runs.
+  - leaveEditor() now releases a new picture held only in the page (blob: address revoked, pending shrink made stale). Before, it stayed in memory until the next offer was opened. Affects Back, Cancel, Escape, Discard, delete and the "no longer exists" path alike.
+- netlify/tests/offer-admin-image.test.mjs: 4 new Playwright tests (clean Cancel and Escape, no API call; dirty Cancel guard, Stay keeps edits, Escape ignored over the guard, Leave discards and saves nothing; picture kept on Stay and released on Leave; Cancel disabled and Escape ignored during a slow save, Escape ignored over the delete dialog). Screenshot ai/review/3.11b/cancel.png.
 
 ## Verified here
-- Full local rehearsal: the verify script run end to end with -Target http://localhost:8931 against a scratchpad server wrapping the real handlers (in-memory Blobs, branch-deploy, edge link logic). Second run: 29 of 29 PASS (export part 1 4,398,276 bytes with 3 pictures left for part 2; part 2 2,417,449 bytes, exactly those 3; every big picture byte-exact). The first run caught one script bug (part 1 has no "next" key; part 2 is always ?images=rest), fixed.
-- Unit tests through the script: 11 files, 192 pass, 0 fail.
-- NOT run: anything against the TEST address (needs Michael's password and his deploy). That is the stop.
-- A leftover helper agent from an earlier 3.11 attempt was found writing in parallel and stopped. Its root-level script was moved out of the repo (to the Claude scratchpad), its deploy-script edits reverted. Its test runs rewrote 3 screenshots in ai/review/3.9/ (pixel noise, left unstaged: restore with git checkout -- ai/review/3.9/).
+- `node --test netlify/tests/offer-admin-image.test.mjs`: tests 25, pass 25, fail 0 (three clean runs; the last after the final change, which only moved the screenshot).
+- The release check was proven: with the release line removed, "released on Leave" fails ("the blob: address is released"); restored, it passes.
+- The 3.9 screenshots the run rewrites were restored with git checkout before committing.
+- NOT run: TEST or live. 3.12 deploys.
 
 ## Files changed
-netlify/tests/session-3.11-helper.mjs (new), ai/phases/phase-3-RUNSHEET.md, ai docs. Claude outputs/session-3.11-verify.ps1 (new, untracked by design).
+offer-admin.html, assets/offer-admin.js, netlify/tests/offer-admin-image.test.mjs, ai/review/3.11b/cancel.png (new), ai/phases/phase-3-offer-images.md and phase-3-RUNSHEET.md (ticked), ai docs.
 
 ## Assumptions (reversible)
-- The storage-off check on the page accepts 200 or 302: with the header the edge cannot read offers, so a link answers 302 to / (1.5 behaviour). "Popup data intact" is proven by the normal page fetch while the picture route alone fails.
-- The three look offers stay running for 48 hours on TEST (link offers, they clash with nothing). 3.12 or a later save can tidy them.
-- The verify script refuses any target except the TEST address or http://localhost:<port>. It deploys itself (like 1.4) instead of Michael running deploy-preview.ps1 separately; -SkipDeploy reruns checks only.
+- Cancel sits after Save and schedule (last in the row), plain style. assets/offer-admin.css not changed: spacing was already right (screenshot).
+- Escape over the open guard does nothing (it does not mean Keep editing), as the plan said.
 
 ## Open items
-1. offers-stats "twenty parallel views" still fails on this PC (pre-existing, backlog). Not in the script's unit list.
-2. No CI in this repo: verified by the local test run only.
-3. Phase 1 backlog: 1.2b alert email, README, untrack .netlify/, test store tidy, later list.
+1. offers-stats "twenty parallel views" still fails on this PC (pre-existing, backlog).
+2. No CI in this repo: verified by the local test run only, so no green check to confirm.
+3. Phase 1 backlog: 1.2b alert email, README, untrack .netlify/ (it shows as modified again in git status), test store tidy, later list.
 4. Screenshots use fallback fonts (fonts answered empty in tests).
 
 ## Estimate vs actual
-Estimated M, ~25 min of Michael's time (deploy, verify, look). Build actual L, about 60 min (an earlier attempt had left the helper half-done and a duplicate helper agent had to be stopped; the local rehearsal added ~15 min). Michael's time: still to come.
+Estimated S, ~2 min of Michael's time (his Cancel click is at the start of 3.12). Actual S, about 25 min build; Michael's time: none in this session.
 
 ## Backup coverage
-No stored data created or changed by this session. The script writes only to the TEST stores (offers-test, offer-images-test), which are test data and not under backup.
+No store of user data created or changed. The release change only frees browser memory.
 
 ## Next step
-Session 3.11b (Editor Cancel button, S, UI), on a fresh helper; plan in ai/phases/phase-3-offer-images.md. Then 3.12 (Go live and close the phase), which starts with a TEST deploy where Michael clicks Cancel once, then goes live.
+Session 3.12 (Go live and close the phase, INFRA, M). Tagged CONTINUE from 3.11b. It starts with a TEST deploy (deploy-preview.ps1) where Michael opens /offer-admin in a NEW private window and clicks Cancel once (clean, then with a change), then the backup, live deploy and phase close.

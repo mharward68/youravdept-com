@@ -555,7 +555,7 @@ const ed = {
   btn2: $('f-btn2'), url: $('f-url'),
   startD: $('f-start-d'), startT: $('f-start-t'), endD: $('f-end-d'), endT: $('f-end-t'),
   startW: $('f-start-w'), endW: $('f-end-w'),
-  saveDraft: $('oa-save-draft'), saveSched: $('oa-save-sched'), saving: $('oa-saving'),
+  saveDraft: $('oa-save-draft'), saveSched: $('oa-save-sched'), cancel: $('oa-cancel'), saving: $('oa-saving'),
   del: $('oa-del'), delGuard: $('oa-del-guard'), delNo: $('oa-del-no'), delYes: $('oa-del-yes'),
   pvFrame: $('oa-pv-frame'), pv: $('oa-pv'), pvNone: $('oa-pv-link-none'), pvYes: $('oa-pv-link-yes'),
   pvUrl: $('oa-pv-url'), pvOpen: $('oa-pv-open'), pvCopy: $('oa-pv-copy'),
@@ -1454,7 +1454,7 @@ async function save(asDraft) {
   }
 
   saving = true;
-  ed.saveDraft.disabled = ed.saveSched.disabled = true;
+  ed.saveDraft.disabled = ed.saveSched.disabled = ed.cancel.disabled = true;
 
   // Session 3.10: a new picture goes up first, once. Its id is kept on the
   // picture, so a save that is refused afterwards does not upload it again.
@@ -1465,7 +1465,7 @@ async function save(asDraft) {
     const up = await uploadPicture(uploading);
     if (up.status === 401) {
       saving = false;
-      ed.saveDraft.disabled = ed.saveSched.disabled = false;
+      ed.saveDraft.disabled = ed.saveSched.disabled = ed.cancel.disabled = false;
       ed.saving.textContent = '';
       stash = makeStash();
       showSignIn('Your sign-in expired. Sign in again: your changes and the picture are kept, and nothing was saved yet.');
@@ -1488,7 +1488,7 @@ async function save(asDraft) {
     });
   } catch { out = null; }
   saving = false;
-  ed.saveDraft.disabled = ed.saveSched.disabled = false;
+  ed.saveDraft.disabled = ed.saveSched.disabled = ed.cancel.disabled = false;
   ed.saving.textContent = '';
 
   if (!out) { showErrors('Could not reach the server. Nothing was saved; your changes are still here. Try again.'); return; }
@@ -1627,6 +1627,8 @@ function askGuard(next) {
 
 function leaveEditor(force = false, note = '') {
   if (!force && isDirty()) return askGuard('back');
+  // Session 3.11b: a new picture held only in this page is let go on leaving.
+  if (pic && pic.blob) { picToken++; setImgBusy(''); setPic(null); }
   resetEditor();
   show('dash');
   render();
@@ -1642,6 +1644,15 @@ ed.discard.addEventListener('click', () => {
   if (next === 'signout') { resetEditor(); signOut(); } else leaveEditor(true);
 });
 ed.back.addEventListener('click', () => leaveEditor());
+// Session 3.11b: Cancel (and Escape) leave the editor the same way Back does:
+// straight out when nothing changed, the unsaved-changes guard otherwise.
+ed.cancel.addEventListener('click', () => { if (!saving) leaveEditor(); });
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape' || e.defaultPrevented || e.isComposing) return;
+  if (view !== 'editor' || saving || !ed.guard.hidden || !ed.delGuard.hidden) return;
+  e.preventDefault();
+  leaveEditor();
+});
 
 window.addEventListener('beforeunload', (e) => {
   if (isDirty()) { e.preventDefault(); e.returnValue = ''; }

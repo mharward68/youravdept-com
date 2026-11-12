@@ -933,3 +933,137 @@ test('3.10 export: pictures that do not fit get the server sentence and a second
     assert.deepEqual(errors, []);
   } finally { await ctx.close(); }
 });
+
+/* ---------- Session 3.11b: the editor's Cancel button (and Escape) ---------- */
+
+const SHOTS_311B = process.env.YAVD_SHOTS_311B || path.join(ROOT, 'ai', 'review', '3.11b');
+const onDash = (page) => page.isVisible('#oa-dash');
+const guardUp = (page) => page.isVisible('#oa-ed-guard');
+// Records every blob: address the page lets go of.
+const TRACK_REVOKE = () => {
+  window.__revoked = [];
+  const orig = URL.revokeObjectURL.bind(URL);
+  URL.revokeObjectURL = (u) => { window.__revoked.push(u); return orig(u); };
+};
+
+test('3.11b clean editor: Cancel and Escape go straight to the dashboard with no API call', { skip: skip() }, async () => {
+  const { ctx, page, errors } = await signedInPage();
+  try {
+    await page.click('#oa-new');
+    await page.waitForSelector('#oa-editor:not([hidden])');
+    assert.equal(await page.textContent('#oa-cancel'), 'Cancel');
+    assert.equal(await page.getAttribute('#oa-cancel', 'class'), 'oa-btn', 'plain button, never primary');
+    assert.equal(await page.isVisible('#oa-ed-back'), true, 'Back to offers is still there');
+    await page.waitForTimeout(300);   // let the page list load finish
+    let i = apiHits.length;
+    await page.click('#oa-cancel');
+    assert.equal(await onDash(page), true);
+    assert.equal(await guardUp(page), false);
+    assert.deepEqual(apiHits.slice(i), [], 'Cancel sends nothing');
+    // Escape on a saved offer, untouched
+    await openCard(page, SAVED_ID);
+    await page.waitForTimeout(300);
+    i = apiHits.length;
+    await page.keyboard.press('Escape');
+    assert.equal(await onDash(page), true, 'Escape leaves a clean editor');
+    assert.deepEqual(apiHits.slice(i).filter((h) => !h.startsWith('GET /api/offers/image/')), [], 'Escape sends nothing');
+    // Escape on the dashboard does nothing
+    await page.keyboard.press('Escape');
+    assert.equal(await onDash(page), true);
+    assert.deepEqual(errors, []);
+  } finally { await ctx.close(); }
+});
+
+test('3.11b dirty editor: Cancel shows the guard, Stay keeps the edits, Leave discards; screenshot', { skip: skip() }, async () => {
+  const { ctx, page, errors } = await signedInPage();
+  try {
+    await newSavableOffer(page, 'Cancel test');
+    fs.mkdirSync(SHOTS_311B, { recursive: true });
+    await page.locator('#oa-save-sched').scrollIntoViewIfNeeded();
+    await page.screenshot({ path: path.join(SHOTS_311B, 'cancel.png') });   // viewport: the action bar is sticky
+    const i = apiHits.length;
+    await page.click('#oa-cancel');
+    assert.equal(await guardUp(page), true, 'guard shows');
+    assert.match(await page.textContent('#oa-ed-guard-text'), /Leave without saving/);
+    assert.equal(await page.isVisible('#oa-editor'), true);
+    // Escape while the guard is open does nothing
+    await page.keyboard.press('Escape');
+    assert.equal(await guardUp(page), true, 'Escape ignored while the guard is open');
+    await page.click('#oa-ed-keep');
+    assert.equal(await guardUp(page), false);
+    assert.equal(await page.inputValue('#f-name'), 'Cancel test', 'Stay keeps the edits');
+    // Escape in a text field, dirty: same guard
+    await page.focus('#f-name');
+    await page.keyboard.press('Escape');
+    assert.equal(await guardUp(page), true, 'Escape on a dirty editor shows the guard');
+    await page.click('#oa-ed-discard');
+    assert.equal(await onDash(page), true, 'Leave discards');
+    assert.equal(hitsSince(i, POST_OFFER), 0, 'nothing saved');
+    assert.equal(stored().some((o) => o.name === 'Cancel test'), false);
+    await page.click('#oa-new');
+    await page.waitForSelector('#oa-editor:not([hidden])');
+    assert.equal(await page.inputValue('#f-name'), '', 'the discarded edits are gone');
+    assert.deepEqual(errors, []);
+  } finally { await ctx.close(); }
+});
+
+test('3.11b a new picture is kept on Stay and released on Leave', { skip: skip() }, async () => {
+  const { ctx, page, errors } = await signedInPage(undefined, { init: TRACK_REVOKE });
+  try {
+    await page.click('#oa-new');
+    await page.waitForSelector('#oa-editor:not([hidden])');
+    assert.equal(await pick(page, 'jpeg'), '');
+    const src = await page.getAttribute('#f-img-thumb', 'src');
+    assert.match(src, /^blob:/);
+    await page.click('#oa-cancel');
+    assert.equal(await guardUp(page), true, 'a picture alone is a change');
+    await page.click('#oa-ed-keep');
+    assert.equal(await page.getAttribute('#f-img-thumb', 'src'), src, 'Stay keeps the picture');
+    assert.equal((await heldPicture(page)).src, src, 'still readable');
+    await page.click('#oa-cancel');
+    await page.click('#oa-ed-discard');
+    assert.equal(await onDash(page), true);
+    const revoked = await page.evaluate(() => window.__revoked);
+    console.log(`  revoked on Leave: ${revoked.includes(src)}`);
+    assert.ok(revoked.includes(src), 'the blob: address is released');
+    assert.deepEqual(errors, [], 'leaving makes no console errors');
+    const readable = await page.evaluate(async (u) => { try { await fetch(u); return true; } catch { return false; } }, src);
+    assert.equal(readable, false, 'the released picture can no longer be read');
+    assert.equal(await page.getAttribute('#f-img-thumb', 'src'), null, 'no picture left in the editor');
+    // the only console line is the one our own read of the released address made
+    assert.deepEqual(expectedOnly(errors, /ERR_FILE_NOT_FOUND @ blob:/), []);
+  } finally { await ctx.close(); }
+});
+
+test('3.11b Cancel is disabled and Escape ignored while a save runs; Escape ignored over the delete dialog', { skip: skip() }, async () => {
+  const { ctx, page, errors } = await signedInPage();
+  try {
+    let release;
+    const gate = new Promise((r) => { release = r; });
+    await page.route('**/api/offers', async (r) => {
+      if (r.request().method() === 'POST') await gate;
+      await r.continue();
+    });
+    await newSavableOffer(page, 'Slow save');
+    await page.click('#oa-save-draft');
+    await page.waitForFunction(() => document.getElementById('oa-saving').textContent === 'Saving…');
+    assert.equal(await page.isDisabled('#oa-cancel'), true, 'Cancel disabled during the save');
+    await page.keyboard.press('Escape');
+    assert.equal(await page.isVisible('#oa-editor'), true, 'Escape ignored during the save');
+    assert.equal(await guardUp(page), false);
+    release();
+    await page.waitForFunction(() => document.getElementById('oa-saving').textContent === 'Created.');
+    assert.equal(await page.isDisabled('#oa-cancel'), false, 'enabled again after the save');
+    await page.unroute('**/api/offers');
+    // the new draft is saved, so Delete draft shows; Escape over its dialog does nothing
+    await page.click('#oa-del');
+    assert.equal(await page.isVisible('#oa-del-guard'), true);
+    await page.keyboard.press('Escape');
+    assert.equal(await page.isVisible('#oa-editor'), true, 'Escape ignored while the delete dialog is open');
+    assert.equal(await page.isVisible('#oa-del-guard'), true);
+    await page.click('#oa-del-no');
+    await page.click('#oa-cancel');
+    assert.equal(await onDash(page), true, 'saved and clean: Cancel leaves');
+    assert.deepEqual(errors, []);
+  } finally { await ctx.close(); }
+});

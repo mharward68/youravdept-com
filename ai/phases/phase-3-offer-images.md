@@ -296,10 +296,10 @@ Server messages the editor will show (set here so 3.5, 3.9 and 3.10 agree):
 - Objectives: user experience (clear exit); stability (no unsaved change lost: the existing guard asks first).
 - Files modified: offer-admin.html, assets/offer-admin.js, assets/offer-admin.css (only if spacing needs it), netlify/tests/offer-admin-image.test.mjs.
 - Tasks:
-  - [ ] A Cancel button (id oa-cancel, plain oa-btn, never primary) beside Save as draft and Save and schedule. It calls leaveEditor(): clean form goes straight to the dashboard; unsaved changes show the existing guard.
-  - [ ] Escape in the editor does the same (not while the guard or the delete dialog is open, not while typing in a field that uses Escape).
-  - [ ] Keep the top Back to offers button. Disable Cancel while a save is running, like the save buttons.
-  - [ ] Playwright: clean editor Cancel returns to the dashboard with no API call; dirty editor Cancel shows the guard, Stay keeps the edits, Leave discards; a new picture held in memory is released on Leave.
+  - [x] A Cancel button (id oa-cancel, plain oa-btn, never primary) beside Save as draft and Save and schedule. It calls leaveEditor(): clean form goes straight to the dashboard; unsaved changes show the existing guard.
+  - [x] Escape in the editor does the same (not while the guard or the delete dialog is open, not while typing in a field that uses Escape).
+  - [x] Keep the top Back to offers button. Disable Cancel while a save is running, like the save buttons.
+  - [x] Playwright: clean editor Cancel returns to the dashboard with no API call; dirty editor Cancel shows the guard, Stay keeps the edits, Leave discards; a new picture held in memory is released on Leave.
 - Inputs needed from Michael: None (label Cancel, decided 2026-11-12).
 - DONE WHEN: node --test netlify/tests/offer-admin-image.test.mjs all pass (paste the summary); screenshot ai/review/3.11b/cancel.png; restore the 3.8/3.9 screenshots before committing.
 - Needs my eyes: Michael clicks Cancel on TEST at the start of 3.12.

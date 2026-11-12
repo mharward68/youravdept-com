@@ -184,3 +184,9 @@ Only what a future session would waste time rediscovering.
 - Functions: netlify/functions/just-the-audio-count.mjs (POST /api/just-the-audio/count) and just-the-audio-stats.mjs (GET /api/just-the-audio/stats?key=). Stores: just-the-audio-usage (live) and just-the-audio-usage-test. Env var JUST_THE_AUDIO_STATS_KEY.
 - Releasing a change: bump VERSION in just-the-audio/sw.js or installed copies keep the old files.
 - offer-page.js still runs on /just-the-audio/* (pass-through unless an Everyone offer targets that page). An offer injected into /just-the-audio/app/ would be blocked by the content security policy, so do not target it.
+
+## Session 3.11b findings
+- Editor exits all go through leaveEditor() in assets/offer-admin.js (Back, Cancel, Escape, Discard, delete). It releases a held new picture; any new exit path should call it rather than show('dash').
+- A fullPage Playwright screenshot of the editor draws the sticky action bar in the middle of the page. Use a viewport screenshot scrolled to the bar.
+- Fetching a revoked blob: address in a test logs "Failed to load resource: net::ERR_FILE_NOT_FOUND" to the console, which the errors check catches. Assert the console is clean before that fetch, then filter only that line.
+- No python on this PC (the Store alias answers instead). Scripted edits: node.
