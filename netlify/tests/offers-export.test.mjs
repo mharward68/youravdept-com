@@ -98,7 +98,7 @@ test('no pictures: same file as before plus empty picture fields; picture store 
   assert.match(r.name, /^yavd-offers-test-\d{4}-\d\d-\d\d-\d{4}\.json$/);
   assert.equal(r.headers.get('cache-control'), 'no-store');
   assert.equal(r.body.kind, 'yavd-offers-export');
-  assert.equal(r.body.contract, '1.3.0');
+  assert.equal(r.body.contract, '1.4.0');   // 1.3.0 until Session 4.1
   assert.equal(r.body.count, 2);
   assert.deepEqual(r.body.images, []);
   assert.deepEqual(r.body.imagesOmitted, []);

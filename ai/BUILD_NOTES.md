@@ -151,6 +151,12 @@ Only what a future session would waste time rediscovering.
 - Live had no running offers at go-live, so the page checks had nothing to compare. A link offer that is a draft still answers 302 with x-yavd-offer link-draft, which proves the storage-off switch is ignored on live.
 - Background helper agents survive /clear. Before a session, ListAgents: a leftover agent on the same session writes the same files.
 
+## Offer landing pages: contract (Phase 4, contract 1.4.0)
+- A contract version bump breaks these existing tests, all by design (fix the test, never the contract): offer-contract-images (version and key lists), offer-format (version list), offer-edge (sorted payload keys), offers-export (contract string), offers-rules (JSON save keys), offers-image-save ("saved before 1.3.0" builds its old offer from emptyOffer(), so delete each new key there). The full suite run finds any others.
+- Until Session 4.6, a saved offer has no "landing" key (prepareOffer leaves it undefined, JSON drops it). offers-rules.test.mjs filters it out with a note; 4.6 removes that filter.
+- landingSlugFromPath never URL-decodes: %2f, %2e%2e and backslashes fail the slug pattern. A caller must pass the raw pathname (url.pathname), not a decoded one.
+- landingState: a missing landing reads as archived and an unknown status as draft (never public). Offers with unparseable dates are linked but do not set the window.
+
 ## Just the Audio (added 2026-10-11)
 - A free tool that turns MP4, MOV and M4A recordings into MP3 in the visitor's own browser. Called "MP4 to MP3 Converter" during the build; the project folder and repo keep that name.
 - Lives in just-the-audio/ (landing page index.html, manifest, sw.js, icons) and just-the-audio/app/ (the tool). Source of truth is the separate project C:\01_AppDevelopment\19_mp4-mp3_converter (repo mharward68/mp4-mp3_converter): change it there, run its tests, then copy its mp3-mp4_app\public folder over just-the-audio here. Its ai/ folder has the full notes.

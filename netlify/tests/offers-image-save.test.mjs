@@ -232,6 +232,7 @@ test('an offer saved before 1.3.0 (no image key) saves exactly as before, with i
   const old = { ...C.emptyOffer(), id: '11111111-2222-4333-8444-555555555555', name: 'Old offer', previewKey: 'k'.repeat(C.PREVIEW_KEY_LENGTH),
     page: '/booth-proof.html', headline: 'Old', createdAt: '2026-10-10T12:00:00.000Z', updatedAt: '2026-10-10T12:00:00.000Z' };
   delete old.image;
+  delete old.landing;   // Session 4.1: emptyOffer() gains landing in 1.4.0; an offer saved before 1.3.0 has neither key
   await blobs.setJSON('all', [old], { metadata: { seq: 1 } });
   const r = await save({ ...old, headline: 'Old, edited' });
   show('edit an old offer', r);

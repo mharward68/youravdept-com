@@ -16,6 +16,14 @@
  * STORES.images, IMAGE, IMAGE_KEYS, PUBLIC_IMAGE_KEYS and imageUrl().
  * Additive: an offer saved before 1.3.0 has no image key and publicPayload()
  * gives it image: null, so it shows exactly as before.
+ * 1.4.0 (2026-11-23, Phase 4 Offer Landing Pages, approved scope
+ * ai/spec/landing-pages-scope.md, frozen in Session 4.1): added the
+ * "landing" field (after "buttonUrl") to OFFER_KEYS and PUBLIC_OFFER_KEYS,
+ * ROUTES.apiLandings, ROUTES.apiLandingArchive and ROUTES.landingPage,
+ * STORES.landings, LANDING, LANDING_KEYS, LANDING_EXPIRED, LANDING_MESSAGES,
+ * landingPath(), landingSlugFromPath() and landingState(). Additive: an offer
+ * saved before 1.4.0 has no landing key and publicPayload() gives it
+ * landing: null, so it shows exactly as before.
  *
  * Pure ES module, no imports, no secrets. It is loaded by:
  *   - Netlify Functions   (netlify/functions/*.mjs, Node)
@@ -25,7 +33,7 @@
  * nothing in it is private.
  */
 
-export const CONTRACT_VERSION = '1.3.0';
+export const CONTRACT_VERSION = '1.4.0';
 
 /* ---------- ADDRESSES ---------- */
 
@@ -41,7 +49,10 @@ export const ROUTES = Object.freeze({
   apiPages:    '/api/offers/pages',       // GET list of site pages for the dropdown
   apiRestore:  '/api/offers/restore',     // GET saved versions, newest first; POST {key} puts one back
   apiImage:    '/api/offers/image',       // POST raw image bytes, signed in -> 201 { id, width, height, type, bytes }  (1.3.0)
-  image:       '/api/offers/image/:id'    // GET, public, the picture itself  (1.3.0)
+  image:       '/api/offers/image/:id',   // GET, public, the picture itself  (1.3.0)
+  apiLandings:       '/api/offers/landings',          // GET list (signed in), POST create or update one  (1.4.0)
+  apiLandingArchive: '/api/offers/landings/archive',  // POST { id, archived: boolean }  (1.4.0)
+  landingPage:       '/offers/landing-:slug.html'     // GET, public (also served without ".html")  (1.4.0)
 });
 
 export const OFFER_LINK_PREFIX = '/offer/';
@@ -83,6 +94,7 @@ export const DEFAULT_END_TIME   = '23:59';   // 11:59 PM Eastern
  * @property {null|OfferImage} image  one optional picture (1.3.0); absent on older offers, read as null
  * @property {OfferForm} form
  * @property {string|null} buttonUrl  used only when form.enabled is false
+ * @property {string|null} landing  slug of its landing page (1.4.0); absent on older offers, read as null
  * @property {string}  startsAt    ISO time with offset, entered as Eastern
  * @property {string}  endsAt      ISO time with offset, entered as Eastern
  * @property {boolean} draft
@@ -103,7 +115,7 @@ export const DEFAULT_END_TIME   = '23:59';   // 11:59 PM Eastern
 
 export const OFFER_KEYS = Object.freeze([
   'id', 'name', 'slug', 'page', 'audience', 'eyebrow', 'headline', 'body', 'image', 'form',
-  'buttonUrl', 'startsAt', 'endsAt', 'draft', 'previewKey', 'rerunOf',
+  'buttonUrl', 'landing', 'startsAt', 'endsAt', 'draft', 'previewKey', 'rerunOf',
   'createdAt', 'updatedAt'
 ]);
 export const FORM_KEYS = Object.freeze([
@@ -121,7 +133,7 @@ export function emptyOffer() {
       buttonLabel: 'Send', optionChoices: [], extraLabels: {},
       thanks: 'Thank you. Michael will be in touch shortly.'
     },
-    buttonUrl: null, startsAt: '', endsAt: '', draft: true,
+    buttonUrl: null, landing: null, startsAt: '', endsAt: '', draft: true,
     previewKey: '', rerunOf: null, createdAt: '', updatedAt: ''
   };
 }
@@ -228,7 +240,7 @@ export function alertSubject(offerName, isTest) {
 
 /* ---------- STORAGE (Netlify Blobs) ---------- */
 
-export const STORES = Object.freeze({ offers: 'offers', stats: 'offer-stats', images: 'offer-images' });   // images: 1.3.0
+export const STORES = Object.freeze({ offers: 'offers', stats: 'offer-stats', images: 'offer-images', landings: 'offer-landings' });   // images: 1.3.0, landings: 1.4.0
 export const KEYS = Object.freeze({
   all: 'all',                                  // every offer, one JSON array
   history: (isoTime) => `history/${isoTime}`,  // previous versions
@@ -309,7 +321,7 @@ export const INJECT = Object.freeze({
   js: '/assets/offer-panel.js'
 });
 export const PUBLIC_OFFER_KEYS = Object.freeze([
-  'id', 'name', 'slug', 'eyebrow', 'headline', 'body', 'image', 'form', 'buttonUrl'
+  'id', 'name', 'slug', 'eyebrow', 'headline', 'body', 'image', 'form', 'buttonUrl', 'landing'
 ]);
 
 /**
@@ -321,6 +333,7 @@ export function publicPayload(offer, isTest) {
   const pub = {};
   for (const k of PUBLIC_OFFER_KEYS) {
     if (k === 'image') { pub.image = publicImage(offer.image); continue; }   // 1.3.0: null, never ""
+    if (k === 'landing') { pub.landing = typeof offer.landing === 'string' && offer.landing ? offer.landing : null; continue; }   // 1.4.0: null, never ""
     pub[k] = offer[k] === undefined ? '' : offer[k];   // offers saved before 1.2.0 have no eyebrow
   }
   return { v: CONTRACT_VERSION, isTest: !!isTest, offer: pub };
@@ -335,3 +348,93 @@ function publicImage(image) {
 export function payloadToScriptJson(payload) {
   return JSON.stringify(payload).replace(/</g, '\\u003c');
 }
+
+/* ---------- OFFER LANDING PAGES (1.4.0) ---------- */
+
+/**
+ * One branded page per offer, served by one function from one template at
+ * /offers/landing-<slug>.html. Slug rules are the offer link rules:
+ * SLUG_PATTERN, SLUG_MIN (3), SLUG_MAX (60). Text limits equal the offer
+ * popup limits in netlify/functions/lib/offers-rules.mjs LIMITS (copied
+ * 2026-11-23): name 120, eyebrow 60, headline 150, body 3000 (eyebrow,
+ * headline and body count the words, not the formatting tags);
+ * ctaLabel 40; ctaUrl 500.
+ */
+export const LANDING = Object.freeze({
+  statuses: Object.freeze(['draft', 'live', 'archived']),
+  pathPrefix: '/offers/',
+  filePrefix: 'landing-',
+  fileSuffix: '.html',
+  ctaLabelMax: 40,
+  ctaUrlMax: 500,
+  historyKeep: HISTORY_KEEP
+});
+export const LANDING_KEYS = Object.freeze([
+  'id', 'name', 'slug', 'eyebrow', 'headline', 'body', 'image', 'ctaLabel', 'ctaUrl',
+  'status', 'previewKey', 'createdAt', 'updatedAt', 'archivedAt'
+]);
+// image has the 1.3.0 OfferImage shape (id, alt, placement, width, height, type, bytes);
+// landing pages use placement 'top' only.
+
+/** The site standard expiration popup. Exact wording: change only on Michael's word. */
+export const LANDING_EXPIRED = Object.freeze({
+  text: 'This offer is no longer available. However you can contact Your AV Department to find out what current offers are available.',
+  buttonLabel: 'Contact Your AV Department',
+  buttonUrl: 'https://calendar.app.google/Do7aNUGLhraagUKV6',
+  email: 'michaelh@youravdept.com'
+});
+
+export const landingPath = (slug) => `/offers/landing-${slug}.html`;
+
+const LANDING_PATH_RE = /^\/offers\/landing-([^/]+?)(?:\.html)?\/?$/;
+
+/**
+ * The slug in "/offers/landing-<slug>.html" or "/offers/landing-<slug>",
+ * else null (case-insensitive, trailing slash ok). Nothing is decoded, so
+ * "..", "//" and encoded slashes never become a valid slug.
+ */
+export function landingSlugFromPath(path) {
+  if (typeof path !== 'string') return null;
+  const p = path.split('?')[0].split('#')[0].toLowerCase();
+  const m = LANDING_PATH_RE.exec(p);
+  if (!m) return null;
+  return isValidSlug(m[1]) ? m[1] : null;
+}
+
+/**
+ * Worked out, never stored. Offers are the landing's linked offers (offer.landing === slug).
+ *   archived                        -> 'archived'
+ *   status draft                    -> 'draft'
+ *   live, no linked non-draft offer -> 'running'
+ *   live, linked non-draft offers   -> now < earliest startsAt  -> 'before'
+ *                                      now > latest endsAt      -> 'expired'
+ *                                      otherwise                -> 'running'   (a gap between two offers stays public)
+ * A missing landing reads as archived; an unknown status reads as draft (never public).
+ * @returns {'archived'|'draft'|'before'|'expired'|'running'}
+ */
+export function landingState(landing, offers, now = new Date()) {
+  if (!landing || landing.status === 'archived') return 'archived';
+  if (landing.status !== 'live') return 'draft';
+  const linked = (Array.isArray(offers) ? offers : [])
+    .filter((o) => o && !o.draft && typeof o.landing === 'string' && o.landing === landing.slug);
+  if (!linked.length) return 'running';
+  const t = now.getTime();
+  const starts = linked.map((o) => Date.parse(o.startsAt)).filter(Number.isFinite);
+  const ends = linked.map((o) => Date.parse(o.endsAt)).filter(Number.isFinite);
+  if (starts.length && t < Math.min(...starts)) return 'before';
+  if (ends.length && t > Math.max(...ends)) return 'expired';
+  return 'running';
+}
+
+export const LANDING_MESSAGES = Object.freeze({
+  slugTaken: 'That address is already used by another landing page.',
+  gone: 'That landing page no longer exists.',
+  formOn: 'Turn the form off to link a landing page, or remove the landing page from this offer.',
+  archivedLink: 'That landing page is archived. Restore it or pick another.',
+  ctaUrl: 'Use a web address (https://...) or a page on this site (/page).',
+  alt: 'Describe the picture in a few words (up to 125 characters).'
+});
+
+// Blob record, store "offer-landings": key "all" = JSON array of landing records (LANDING_KEYS);
+// key "history/<time>-<9-digit change number>" = the array as it was before each change (newest 20 kept),
+// the same layout and safe-write steps as the offers store.

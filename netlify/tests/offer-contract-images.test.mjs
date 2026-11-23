@@ -9,16 +9,18 @@ const PIC = {
   width: 1600, height: 900, type: 'image/webp', bytes: 312000
 };
 
-test('version is 1.3.0', () => {
-  assert.equal(C.CONTRACT_VERSION, '1.3.0');
+// Session 4.1: the contract is 1.4.0 now (additive: "landing" after buttonUrl). The exact version
+// and full key lists are checked in offer-contract-landings.test.mjs; this file keeps the 1.3.0 facts.
+test('version is 1.3.0 or a later additive version', () => {
+  assert.ok(['1.3.0', '1.4.0'].includes(C.CONTRACT_VERSION));
 });
 
 test('image sits right after body in OFFER_KEYS and PUBLIC_OFFER_KEYS', () => {
   assert.deepEqual([...C.OFFER_KEYS], [
     'id', 'name', 'slug', 'page', 'audience', 'eyebrow', 'headline', 'body', 'image', 'form',
-    'buttonUrl', 'startsAt', 'endsAt', 'draft', 'previewKey', 'rerunOf', 'createdAt', 'updatedAt'
+    'buttonUrl', 'landing', 'startsAt', 'endsAt', 'draft', 'previewKey', 'rerunOf', 'createdAt', 'updatedAt'
   ]);
-  assert.deepEqual([...C.PUBLIC_OFFER_KEYS], ['id', 'name', 'slug', 'eyebrow', 'headline', 'body', 'image', 'form', 'buttonUrl']);
+  assert.deepEqual([...C.PUBLIC_OFFER_KEYS], ['id', 'name', 'slug', 'eyebrow', 'headline', 'body', 'image', 'form', 'buttonUrl', 'landing']);
   assert.ok(!C.PUBLIC_OFFER_KEYS.includes('previewKey'));
 });
 
@@ -86,7 +88,7 @@ test('idPattern: 32 lowercase hex only', () => {
 
 test('publicPayload: an offer saved before 1.3.0 gets image null, never ""', () => {
   const p = C.publicPayload(OLD, false);
-  assert.equal(p.v, '1.3.0');
+  assert.equal(p.v, C.CONTRACT_VERSION);
   assert.strictEqual(p.offer.image, null);
   assert.deepEqual(Object.keys(p.offer), [...C.PUBLIC_OFFER_KEYS]);
   assert.strictEqual(C.publicPayload({ ...OLD, image: null }, true).offer.image, null);
