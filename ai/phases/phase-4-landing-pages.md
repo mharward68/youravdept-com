@@ -280,10 +280,10 @@ Rules written once here so sessions agree:
 - Objectives: accessibility (focus trapped while open, Escape and close button, announced by screen readers, returns focus on close); user experience (readable on a phone, never covers the page for good); security (text from the contract constant, set with textContent).
 - Files created: assets/landing-expired.js and assets/landing-expired.css (separate from the offer popup, no shared code), netlify/tests/landing-expired.test.mjs (Playwright), ai/review/4.10/ (screenshots and the review page).
 - Tasks:
-  - [ ] The script reads the expiration data block, builds the dialog (the exact LANDING_EXPIRED.text, the Contact button to buttonUrl, the email beneath), opens on load after about 600 ms, closes on button, Escape and backdrop, returns focus.
-  - [ ] No popup on running, before or draft pages; no offer popup on any landing page.
-  - [ ] Playwright (served as in Sessions 1.6 and 3.8): running page, expired page, archived page, phone and computer widths, long headline, no picture, keyboard only, reduced motion.
-  - [ ] Build the review page as one self-contained HTML page: one screen at a time, Back and Next buttons, arrow keys, a row of dots, scaled to the window (running desktop, running phone, expired desktop, expired phone, no-picture, long-headline). Publish it as an artifact and also keep ai/review/4.10/index.html.
+  - [x] The script reads the expiration data block, builds the dialog (the exact LANDING_EXPIRED.text, the Contact button to buttonUrl, the email beneath), opens on load after about 600 ms, closes on button, Escape and backdrop, returns focus.
+  - [x] No popup on running, before or draft pages; no offer popup on any landing page.
+  - [x] Playwright (served as in Sessions 1.6 and 3.8): running page, expired page, archived page, phone and computer widths, long headline, no picture, keyboard only, reduced motion.
+  - [x] Build the review page as one self-contained HTML page: one screen at a time, Back and Next buttons, arrow keys, a row of dots, scaled to the window (running desktop, running phone, expired desktop, expired phone, no-picture, long-headline). Publish it as an artifact and also keep ai/review/4.10/index.html.
 - Inputs needed from Michael: None.
 - DONE WHEN: `node --test netlify/tests/landing-expired.test.mjs` passes (output pasted); the review page exists and opens.
 - Needs my eyes: the review page, 6 screens. Look at the headline size, the picture crop, the button, the popup wording. Ask Andy to brand-check the first sample page too (colors, fonts, logo, contact details).

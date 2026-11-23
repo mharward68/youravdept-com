@@ -1,0 +1,85 @@
+/* YAVD Offers Module: expiration popup on landing pages (Session 4.10).
+   Loaded only on expired and archived landing pages, next to the page's own
+   style. Every rule is scoped to .yle-*. Brand: AV Navy #152B4A,
+   Signal Teal #2AA4A2, white. Montserrat headings, Inter body. */
+
+.yle-lock, .yle-lock body { overflow: hidden; }
+
+.yle-backdrop, .yle-backdrop * { box-sizing: border-box; }
+
+.yle-backdrop {
+  position: fixed; inset: 0; z-index: 2147483000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  background: rgba(10, 22, 40, .62);
+  opacity: 0; transition: opacity .22s ease;
+}
+.yle-backdrop[hidden] { display: none; }
+.yle-backdrop.is-open { opacity: 1; }
+
+.yle-dialog {
+  position: relative;
+  width: 100%; max-width: 480px;
+  max-height: calc(100vh - 40px);
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto; overscroll-behavior: contain;
+  padding: 34px 30px 26px;
+  background: #fff;
+  border-radius: 12px;
+  border-top: 6px solid #2AA4A2;
+  box-shadow: 0 24px 60px rgba(10, 22, 40, .35), 0 2px 8px rgba(10, 22, 40, .18);
+  color: #152B4A;
+  font-family: Inter, "Open Sans", Arial, sans-serif;
+  font-size: 17px; line-height: 1.55;
+  text-align: center;
+  transform: translateY(14px) scale(.985);
+  transition: transform .26s cubic-bezier(.2, .8, .2, 1);
+}
+.yle-backdrop.is-open .yle-dialog { transform: none; }
+.yle-dialog:focus { outline: none; }
+
+.yle-close {
+  position: absolute; top: 6px; right: 6px;
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0; padding: 0;
+  background: transparent; border: 0; border-radius: 50%;
+  color: #152B4A; cursor: pointer;
+  font: 400 28px/1 Inter, Arial, sans-serif;
+}
+.yle-close:hover { background: #EAF6F6; }
+.yle-close:focus-visible { outline: 3px solid #2AA4A2; outline-offset: 1px; }
+
+.yle-text {
+  margin: 6px 0 22px;
+  font-family: Montserrat, "Proxima Nova", Arial, sans-serif;
+  font-weight: 700; font-size: 19px; line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.yle-btn {
+  display: inline-block; max-width: 100%;
+  background: #2AA4A2; color: #152B4A;
+  font-family: Montserrat, Arial, sans-serif; font-weight: 700; font-size: 17px; line-height: 1.3;
+  text-decoration: none;
+  padding: 15px 26px; border-radius: 6px;
+  overflow-wrap: anywhere;
+  transition: background .15s ease;
+}
+.yle-btn:hover { background: #45BDBB; }
+.yle-btn:focus-visible { outline: 3px solid #152B4A; outline-offset: 3px; }
+
+.yle-mail { margin: 16px 0 0; font-size: 15px; }
+.yle-mail a { color: #1F7F7D; overflow-wrap: anywhere; }
+.yle-mail a:focus-visible { outline: 3px solid #2AA4A2; outline-offset: 2px; border-radius: 2px; }
+
+@media (max-width: 600px) {
+  .yle-dialog { padding: 32px 20px 22px; font-size: 16px; }
+  .yle-text { font-size: 17px; }
+  .yle-btn { display: block; padding: 15px 18px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .yle-backdrop, .yle-dialog, .yle-btn { transition: none; }
+  .yle-dialog { transform: none; }
+}
