@@ -14,7 +14,9 @@
 //      problems -> 400 field messages | 404 gone | 409 stale or slug clash | 503 storage
 //      body.image = null removes the picture, absent keeps it, or
 //      { id, alt }: the picture's facts come from the picture store.
-// Picture cleanup after a landing save is added in Session 4.5.
+// After a successful save, unused pictures past the grace period are removed
+// (lib/offer-images-cleanup.mjs, Session 4.5), checking offers AND landings.
+// Best effort: never fails a save.
 import {
   CONTRACT_VERSION, PREVIEW_PARAM, landingPath, landingState
 } from '../../shared/offer-contract.js';
@@ -26,6 +28,7 @@ import {
 } from './lib/landings-store.mjs';
 import { loadOffers, offersStore } from './lib/offers-store.mjs';
 import { ImageStoreError, headImage, imagesStore, isImageId } from './lib/offer-images-store.mjs';
+import { cleanupImages } from './lib/offer-images-cleanup.mjs';
 
 export const IMAGE_UNAVAILABLE = 'Picture storage is unavailable right now, so nothing was saved. Try again in a minute.';
 export const OFFERS_UNREADABLE = 'The offers could not be read, so linked offers are not shown and states ignore offer dates. Reload in a minute.';
@@ -73,6 +76,7 @@ export default async (req, context) => {
       return json({ error: p.error, ...(p.fields ? { fields: p.fields } : {}) }, p.status);
     }
     const p = outcome.result;
+    await cleanUpAfterSave(store, deployContext);
     return json({ ok: true, created: p.created, landing: p.landing, previewPath: previewPath(p.landing), notes: p.notes },
       p.created ? 201 : 200);
   } catch (err) {
@@ -82,6 +86,21 @@ export default async (req, context) => {
     return json({ error: 'Something went wrong. Nothing was saved.' }, 500);
   }
 };
+
+/**
+ * Session 4.5: removes unused pictures past the grace period, counting every
+ * offer, every landing and the last 20 saved versions of each as "used".
+ * Same wrapper as offers.mjs: any failure is logged and ignored, the save has
+ * already happened, and cleanup itself deletes nothing on any doubt.
+ */
+export async function cleanUpAfterSave(store, deployContext) {
+  try {
+    const r = await cleanupImages(imagesStore(deployContext), offersStore(deployContext), new Date(), store);
+    if (r.errors.length) console.error('landings: picture cleanup skipped or partial (harmless, retried on next save)', r.errors.join('; '));
+  } catch (err) {
+    console.error('landings: picture cleanup failed (harmless, retried on next save)', err?.message);
+  }
+}
 
 /** A landing as the admin list shows it: the record plus its worked-out state and linked offers. */
 export function decorate(landing, offers, now = new Date()) {

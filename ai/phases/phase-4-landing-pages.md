@@ -212,6 +212,7 @@ Rules written once here so sessions agree:
   - [ ] prepareOffer: `landing` accepted (null or an existing, non-archived slug); form must be off when set (LANDING_MESSAGES.formOn); `buttonUrl` is set from landingPath(slug) when linked. offers.mjs looks the landing up before changeOffers (same pattern as pictures) and passes it in ctx.
   - [ ] The popup button goes to landingPath(offer.landing) when present; no landing means today's behaviour exactly.
   - [ ] cleanupImages call in offers.mjs passes the landings store (4.5).
+  - [ ] Signature (code wins, set in 4.5): `cleanupImages(imagesStore, offersStore, now, landingsStore)`, so offers.mjs calls `cleanupImages(imagesStore(deployContext), store, new Date(), landingsStore(deployContext))`. Then remove the `todo` option from the two Session 4.6 tests at the end of netlify/tests/landings-cleanup.test.mjs; both must pass. Until then an offer save still deletes a landing-only picture over 24 hours old (proved by the first of those two tests).
   - [ ] Tests: old offers come back as stored (landing null); link to missing, archived, or with form on is refused with the exact messages; popup markup for a linked offer shows the link; popup markup for an unlinked offer is byte-identical to before.
 - Inputs needed from Michael: None.
 - DONE WHEN: `node --test netlify/tests/offers-landing-link.test.mjs` passes, plus offers-rules, offers-image-save, offer-panel-image and offer-edge test files by path (output pasted).
