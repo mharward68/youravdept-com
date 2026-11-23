@@ -11,12 +11,16 @@
 //      { id, alt, placement }: the picture's facts come from the picture store.
 // Session 3.6: after a successful save, unused pictures older than 24 hours are
 //      removed (lib/offer-images-cleanup.mjs). Best effort: never fails a save.
-import { CONTRACT_VERSION } from '../../shared/offer-contract.js';
+// Session 4.6 (contract 1.4.0): body.landing = a landing slug links the offer to
+//      that landing page (looked up here, checked in prepareOffer), null removes
+//      the link, absent keeps it. Cleanup also counts landing pictures as used.
+import { CONTRACT_VERSION, isValidSlug } from '../../shared/offer-contract.js';
 import { requireAdmin, json } from './lib/offers-auth.mjs';
 import { prepareOffer, readJson, withStatus } from './lib/offers-rules.mjs';
 import { StoreError, changeOffers, loadOffers, offersStore, offersStoreName } from './lib/offers-store.mjs';
 import { ImageStoreError, headImage, imagesStore, isImageId } from './lib/offer-images-store.mjs';
 import { cleanupImages } from './lib/offer-images-cleanup.mjs';
+import { LandingStoreError, landingsStore, loadLandings } from './lib/landings-store.mjs';
 
 export default async (req, context) => {
   const refused = requireAdmin(req, { methods: ['GET', 'POST'] });
@@ -39,9 +43,10 @@ export default async (req, context) => {
     const input = read.body?.offer && typeof read.body.offer === 'object' ? read.body.offer : read.body;
 
     const images = await lookUpWantedImage(store, input, deployContext);
+    const landings = await lookUpWantedLanding(store, input, deployContext);
 
     const outcome = await changeOffers(store, (offers) => {
-      const p = prepareOffer(input, { offers, now: new Date(), images });
+      const p = prepareOffer(input, { offers, now: new Date(), images, landings });
       if (!p.ok) return { stop: p };
       const i = offers.findIndex((o) => o.id === p.offer.id);
       if (i >= 0) offers[i] = p.offer; else offers.push(p.offer);
@@ -59,12 +64,14 @@ export default async (req, context) => {
   } catch (err) {
     if (err instanceof StoreError) return json({ error: err.message }, err.status);
     if (err instanceof ImageStoreError) return json({ error: IMAGE_UNAVAILABLE }, 503);
+    if (err instanceof LandingStoreError) return json({ error: LANDING_UNAVAILABLE }, 503);
     console.error('offers: unexpected error', err?.stack || err);
     return json({ error: 'Something went wrong. Nothing was saved.' }, 500);
   }
 };
 
 const IMAGE_UNAVAILABLE = 'Picture storage is unavailable right now, so nothing was saved. Try again in a minute.';
+const LANDING_UNAVAILABLE = 'Landing page storage is unavailable right now, so nothing was saved. Try again in a minute.';
 
 /**
  * Session 3.6: removes unused pictures past the grace period. Same pattern as
@@ -72,7 +79,7 @@ const IMAGE_UNAVAILABLE = 'Picture storage is unavailable right now, so nothing 
  */
 async function cleanUpAfterSave(store, deployContext) {
   try {
-    const r = await cleanupImages(imagesStore(deployContext), store, new Date());
+    const r = await cleanupImages(imagesStore(deployContext), store, new Date(), landingsStore(deployContext));
     if (r.errors.length) console.error('offers: picture cleanup skipped or partial (harmless, retried on next save)', r.errors.join('; '));
   } catch (err) {
     console.error('offers: picture cleanup failed (harmless, retried on next save)', err?.message);
@@ -98,6 +105,28 @@ async function lookUpWantedImage(store, input, deployContext) {
   const meta = await headImage(imagesStore(deployContext), id);
   if (meta) images.set(id, meta);
   return images;
+}
+
+/**
+ * Session 4.6: the stored landing record this save links to, as a Map
+ * (slug -> record) for prepareOffer. Nothing is looked up when the save
+ * carries no link, an unusable one (prepareOffer refuses it), or the link the
+ * offer already has (so an edit still saves while landing storage is down).
+ * A slug storage does not have is simply absent: prepareOffer answers "gone".
+ * Storage trouble throws LandingStoreError: 503, nothing written.
+ */
+async function lookUpWantedLanding(store, input, deployContext) {
+  const landings = new Map();
+  const slug = input && typeof input.landing === 'string' ? input.landing.trim().toLowerCase() : '';
+  if (!slug || !isValidSlug(slug)) return landings;
+  if (typeof input.id === 'string' && input.id) {
+    const { offers } = await loadOffers(store);
+    if (offers.find((o) => o.id === input.id)?.landing === slug) return landings;
+  }
+  const { landings: all } = await loadLandings(landingsStore(deployContext));
+  const found = all.find((l) => l && typeof l === 'object' && l.slug === slug);
+  if (found) landings.set(slug, found);
+  return landings;
 }
 
 export const config = { path: '/api/offers' };

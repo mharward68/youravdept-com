@@ -307,14 +307,17 @@ test('proof: with the landing check removed, the landing-only picture is deleted
   assert.equal(has(id), false);
 });
 
-test('an offer save through offers.mjs keeps a landing-only picture (Session 4.6)', { todo: 'offers.mjs passes the landings store in Session 4.6' }, async () => {
+test('an offer save through offers.mjs keeps a landing-only picture (Session 4.6)', async () => {
   const { id } = await landingWithOldPicture();
   const o = await saveOffer(offerDraft());
   assert.equal(o.status, 201);
-  assert.ok(has(id), 'offers.mjs cleanup does not check landings yet');
+  assert.ok(has(id), 'offers.mjs cleanup deleted a landing-only picture');
 });
 
-test('offers.mjs passes the landings store to cleanup (Session 4.6)', { todo: 'offers.mjs is edited in Session 4.6' }, async () => {
+test('offers.mjs passes the landings store to cleanup (Session 4.6)', async () => {
   const src = await readFile(new URL('../functions/offers.mjs', import.meta.url), 'utf8');
-  assert.ok(/cleanupImages\([^)]*landingsStore\(/.test(src), 'offers.mjs does not pass the landings store yet');
+  // Session 4.6: the 4.5 pattern ([^)]*) could not step over "imagesStore(deployContext)", so it
+  // could never match the planned call. Checked as the literal call instead.
+  assert.ok(src.includes('cleanupImages(imagesStore(deployContext), store, new Date(), landingsStore(deployContext))'),
+    'offers.mjs does not pass the landings store');
 });

@@ -17,8 +17,8 @@
 
 import { randomBytes, randomUUID } from 'node:crypto';
 import {
-  AUDIENCES, FIELD_NAMES, FORM_KEYS, IMAGE, IMAGE_KEYS, OFFER_KEYS, PREVIEW_KEY_LENGTH,
-  RESERVED_FIELD_NAMES, TIME_ZONE, emptyOffer, isValidSlug, normalizePagePath,
+  AUDIENCES, FIELD_NAMES, FORM_KEYS, IMAGE, IMAGE_KEYS, LANDING_MESSAGES, OFFER_KEYS, PREVIEW_KEY_LENGTH,
+  RESERVED_FIELD_NAMES, TIME_ZONE, emptyOffer, isValidSlug, landingPath, normalizePagePath,
   offerStatus, rangesOverlap, SLUG_MIN, SLUG_MAX
 } from '../../../shared/offer-contract.js';
 import { normalizeMarkup, plainFromMarkup } from '../../../shared/offer-format.js';
@@ -146,10 +146,13 @@ export function cleanButtonUrl(input) {
  * @param {Map<string,object>|object} [ctx.images]  picture id -> stored metadata
  *        ({ type, bytes, width, height }) for the picture this save asks for,
  *        looked up by offers.mjs. Not needed when the picture is unchanged.
+ * @param {Map<string,object>|object} [ctx.landings]  landing slug -> stored landing
+ *        record ({ slug, status, ... }) for the landing page this save links to,
+ *        looked up by offers.mjs (Session 4.6). Not needed when the link is unchanged.
  * @returns {{ok:true, offer:object, created:boolean, notes:string[]}
  *          | {ok:false, status:number, error:string, fields?:object}}
  */
-export function prepareOffer(input, { offers, now = new Date(), images = new Map() }) {
+export function prepareOffer(input, { offers, now = new Date(), images = new Map(), landings = new Map() }) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) {
     return { ok: false, status: 400, error: 'Send the offer as a JSON object.' };
   }
@@ -250,10 +253,22 @@ export function prepareOffer(input, { offers, now = new Date(), images = new Map
   // Form
   out.form = prepareForm(input.form === undefined ? base.form : input.form, fail, notes);
 
-  // Button link (used when the form is off)
-  const btn = cleanButtonUrl(input.buttonUrl === undefined ? base.buttonUrl : input.buttonUrl);
-  if (btn.error) fail('buttonUrl', btn.error);
-  out.buttonUrl = btn.value;
+  // Landing page (contract 1.4.0, Session 4.6). Absent keeps the stored link,
+  // null or "" removes it. A linked offer has its form off, and its button is
+  // the landing link, built here from the checked slug (Decision 1).
+  out.landing = prepareLanding(input.landing === undefined ? (base.landing ?? null) : input.landing,
+    stored?.landing ?? null, landings, fail);
+  if (out.landing && out.form.enabled) fail('landing', LANDING_MESSAGES.formOn);
+
+  // Button link (used when the form is off). Ignored for a linked offer: the
+  // server sets it to the landing link.
+  if (out.landing) {
+    out.buttonUrl = landingPath(out.landing);
+  } else {
+    const btn = cleanButtonUrl(input.buttonUrl === undefined ? base.buttonUrl : input.buttonUrl);
+    if (btn.error) fail('buttonUrl', btn.error);
+    out.buttonUrl = btn.value;
+  }
 
   // Required before scheduling
   if (scheduling) {
@@ -334,6 +349,25 @@ function prepareImage(raw, storedImage, images, fail, notes) {
   const out = {};
   for (const k of IMAGE_KEYS) out[k] = all[k];
   return out;
+}
+
+/**
+ * The landing page an offer links to: a slug or null. An unchanged link is
+ * kept without a lookup (so an edit still saves if the page was archived
+ * since, or landing storage is down). A new link must name a landing page
+ * that exists (`landings`, looked up by offers.mjs) and is not archived.
+ */
+function prepareLanding(raw, storedSlug, landings, fail) {
+  if (raw === null || raw === '') return null;
+  if (typeof raw !== 'string') { fail('landing', LANDING_MESSAGES.gone); return null; }
+  const slug = raw.trim().toLowerCase();
+  if (!slug) return null;
+  if (!isValidSlug(slug)) { fail('landing', LANDING_MESSAGES.gone); return null; }
+  if (slug === storedSlug) return slug;
+  const page = landings instanceof Map ? landings.get(slug) : landings?.[slug];
+  if (!page || typeof page !== 'object' || page.slug !== slug) { fail('landing', LANDING_MESSAGES.gone); return null; }
+  if (page.status === 'archived') { fail('landing', LANDING_MESSAGES.archivedLink); return null; }
+  return slug;
 }
 
 function prepareForm(raw, fail, notes) {

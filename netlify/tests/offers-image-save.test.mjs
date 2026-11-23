@@ -238,7 +238,8 @@ test('an offer saved before 1.3.0 (no image key) saves exactly as before, with i
   show('edit an old offer', r);
   assert.equal(r.status, 200);
   assert.equal(r.body.offer.image, null);
-  const { image, status, updatedAt, headline, ...rest } = r.body.offer;
+  assert.strictEqual(r.body.offer.landing, null);   // Session 4.6: every save now carries landing (null when not linked)
+  const { image, landing, status, updatedAt, headline, ...rest } = r.body.offer;
   const { updatedAt: u0, headline: h0, ...oldRest } = old;
   assert.deepEqual(rest, oldRest, 'every other field unchanged');
   assert.deepEqual(pics.calls, []);

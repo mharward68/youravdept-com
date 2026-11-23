@@ -157,10 +157,9 @@ test('offer text is stored as plain text: HTML removed, line breaks kept, extra 
   assert.notEqual(b.offer.previewKey, 'attacker-chosen');
   assert.equal(b.offer.previewKey.length, C.PREVIEW_KEY_LENGTH);
   // Session 3.5: image is a contract key on every save (null when there is no picture).
-  // Session 4.1: contract 1.4.0 adds "landing". Until Session 4.6 teaches prepareOffer about it,
-  // the saved offer leaves it undefined, which JSON drops (read as null). 4.6 removes this filter.
-  assert.deepEqual(Object.keys(b.offer).filter((k) => k !== 'status'), C.OFFER_KEYS.filter((k) => k !== 'landing'));
-  assert.ok(!('landing' in b.offer) || b.offer.landing === null);
+  // Session 4.6: "landing" (contract 1.4.0) is a contract key on every save (null when not linked).
+  assert.deepEqual(Object.keys(b.offer).filter((k) => k !== 'status'), C.OFFER_KEYS);
+  assert.strictEqual(b.offer.landing, null);
   assert.equal(b.offer.image, null);
 });
 

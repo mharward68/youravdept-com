@@ -12,6 +12,7 @@ const C = await import('../../shared/offer-contract.js');
 const auth = await import('../functions/lib/offers-auth.mjs');
 const st = await import('../functions/lib/offers-store.mjs');
 const imgStore = await import('../functions/lib/offer-images-store.mjs');
+const landSt = await import('../functions/lib/landings-store.mjs');   // Session 4.6: offers.mjs passes the landings store to cleanup
 const { cleanupImages, usedImageIds } = await import('../functions/lib/offer-images-cleanup.mjs');
 const offersFn = (await import('../functions/offers.mjs')).default;
 const deleteFn = (await import('../functions/offers-delete.mjs')).default;
@@ -82,6 +83,8 @@ beforeEach(() => {
   console.error = (...a) => { errors.push(a.join(' ')); };
   st._setOffersStoreFactoryForTests(() => blobs);
   imgStore._setImagesStoreFactoryForTests((c) => picsFactory(c));
+  const lands = offerBlobs();   // Session 4.6: an empty landing store, so offer saves clean up as in 3.6
+  landSt._setLandingsStoreFactoryForTests(() => lands);
   auth._setStoreFactoryForTests(() => ({ set: authBlobs.setJSON, list: authBlobs.list, delete: authBlobs.delete }));
 });
 process.on('exit', () => { console.error = origError; });

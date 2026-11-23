@@ -29,6 +29,11 @@
  * If the picture fails to load, the block and the class are removed and the
  * popup is the plain text popup. A visitor who closed the offer recently
  * only downloads the picture if they reopen it.
+ *
+ * Landing page (Session 4.6, contract 1.4.0): offer.landing is a slug or null.
+ * When it is a valid slug and the form is off, the button goes to the
+ * contract's landingPath(slug), never to typed text. No landing (or an old
+ * cached contract without landingPath) means the button link as before.
  */
 (function () {
   'use strict';
@@ -69,6 +74,13 @@
     if (/^https?:\/\/[^\s]+$/i.test(u)) return u;
     if (/^\/(?!\/)[^\s\\]*$/.test(u)) return u;
     return null;
+  }
+
+  /** The landing page address for a valid slug, else null. */
+  function landingUrl(C, slug) {
+    if (typeof C.landingPath !== 'function' || typeof C.isValidSlug !== 'function') return null;   // old cached contract
+    slug = str(slug);
+    return slug && C.isValidSlug(slug) ? C.landingPath(slug) : null;
   }
 
   /** null, or { src, alt, placement, width, height } safe to render. */
@@ -197,7 +209,7 @@
     if (form.enabled) {
       content.appendChild(buildForm());
     } else {
-      var url = safeUrl(offer.buttonUrl);
+      var url = landingUrl(C, offer.landing) || safeUrl(offer.buttonUrl);
       var label = str(form.buttonLabel);
       if (url && label) {
         var a = el('a', 'yavd-op-btn', label);
