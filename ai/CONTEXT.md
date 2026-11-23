@@ -1,39 +1,41 @@
 # CONTEXT: YAVD Offers Module
 
-Updated: 2026-11-23 15:30 ET, Session 4.1 (Freeze the contract), Phase 4 Offer Landing Pages. Contract shared/offer-contract.js is now 1.4.0 and FROZEN for the rest of the phase. Nothing deployed; live and TEST still run 1.3.0.
+Updated: 2026-11-23 15:28 ET (PC clock), Session 4.2 (Landing rules, pure; LOGIC), Phase 4 Offer Landing Pages. Contract shared/offer-contract.js stays 1.4.0, FROZEN, untouched this session. Nothing deployed; live and TEST still run 1.3.0.
 
 ## What exists now
-- Offers Module live since 2026-10-10, pictures since 2026-11-12 (1.3.0). Phase 3 closed (archived context 2026-11-23_1523_CONTEXT.md has the close report and calibration).
-- Phase 4 plan: ai/phases/phase-4-landing-pages.md, run sheet ai/phases/phase-4-RUNSHEET.md, scope ai/spec/landing-pages-scope.md (first committed this session). Backup tag pre-landings-20261123 (= a8e0262) pushed.
+- Offers Module live since 2026-10-10, pictures since 2026-11-12 (1.3.0). Phase 3 closed (archive 2026-11-23_1523_CONTEXT.md has the close report).
+- Phase 4 plan: ai/phases/phase-4-landing-pages.md, run sheet ai/phases/phase-4-RUNSHEET.md, scope ai/spec/landing-pages-scope.md. Backup tag pre-landings-20261123. Sessions done: 4.1 (contract), 4.2 (rules).
 
-## Session 4.1: what was done (API)
-- shared/offer-contract.js 1.4.0, exactly the plan's contract: ROUTES apiLandings, apiLandingArchive, landingPage; STORES.landings 'offer-landings'; Offer typedef and OFFER_KEYS gain 'landing' after 'buttonUrl'; PUBLIC_OFFER_KEYS gains 'landing' (last); emptyOffer() landing null; publicPayload() landing null unless a non-empty string; LANDING, LANDING_KEYS, LANDING_EXPIRED, LANDING_MESSAGES, landingPath, landingSlugFromPath, landingState; 1.4.0 header line; text limits copied into a comment (name 120, eyebrow 60, headline 150, body 3000).
-- New netlify/tests/offer-contract-landings.test.mjs (15 tests), including a check that the copied limits still equal offers-rules LIMITS.
-- Existing tests fixed (key lists and version pins only): offer-edge, offer-format, offer-contract-images, offers-rules, offers-export, offers-image-save.
-
-## Found items checked against the code
-- Confirmed: SKIP_PREFIXES (offer-edge.js line 47) and both excludedPath lists lack /offers/ (4.9 adds it); publicPayload special-cases only image before this session; usedImageIds(offersStore) counts offers only (4.5); /api/offers/landings and /offers/* are free (no function, redirect or netlify.toml rule).
-- Correction: the plan named four tests to fix; two more pinned the old shape (offers-export contract string, offers-image-save old-offer fixture). Fixed.
+## Session 4.2: what was done (LOGIC)
+- New netlify/functions/lib/landings-rules.mjs: prepareLanding(input, { landings, now, images }) with the same return shape as prepareOffer ({ ok, landing, created, notes } or { ok:false, status, error, fields }). Also exports cleanCtaUrl, LANDING_LIMITS, STATUS_MOVES, LANDING_RULE_MESSAGES.
+- Reuses from offers-rules.mjs (not edited): plainText, cleanButtonUrl, MARKUP_FACTOR, LIMITS, formatEastern, newId, newPreviewKey. Eyebrow, headline, body keep the offer formatting tags; name and ctaLabel are plain text.
+- ctaUrl: cleanButtonUrl's rules, then http:// also refused (Hard limit: https:// or same-site path only). Message is LANDING_MESSAGES.ctaUrl.
+- Picture: facts from the images map or the stored picture with the same id only; placement forced to 'top'; alt required (LANDING_MESSAGES.alt); unknown id gives IMAGE_MESSAGES.gone.
+- Status: same status always allowed; draft to live, live to archived, archived to live. New records start draft (default) or live. archivedAt set on entering archived, kept while archived, null otherwise.
+- Slug: required always, offer link rules, folded to lowercase; unique among ALL landings including archived (case-insensitive), clash is 409 with fields.slug; locked once stored status is not draft.
+- Stale edit 409 (id plus updatedAt), unknown id 404 with LANDING_MESSAGES.gone, updatedAt always moves forward. Output in LANDING_KEYS order, nothing extra.
+- New netlify/tests/landings-rules.test.mjs (28 tests).
 
 ## Assumptions (reversible, logged)
-- PUBLIC_OFFER_KEYS: 'landing' placed last (plan gave no position).
-- landingState: missing landing = 'archived', unknown status = 'draft' (never public); unparseable offer dates do not set the window. landingSlugFromPath ignores ?query and #hash and never decodes.
+- Draft to archived is refused on save ("A draft cannot be archived. Make it Live first, or leave it as a draft."), because the plan lists only three moves. Session 4.4's archive route must not call prepareLanding to archive a draft, or must decide this differently (see open item 1).
+- Slug clash is checked only after every field check passes (as offers checkRules does), so a request with field errors and a clash shows the field errors first.
+- A missing ctaUrl on a Live page says "Add the button link." (rule message); a bad one says the contract ctaUrl message.
 
 ## Verified (real output, 2026-11-23)
-- offer-contract-landings 15/15, offer-edge 21/21, offer-format 10/10, offer-contract-images 12/12, offers-auth 13/13, offers-rules 22/22, site-admin 12/12.
-- Full suite: tests 268, pass 267, fail 1 (offers-stats "twenty parallel views", pre-existing, open item 1).
+- landings-rules 28/28, three runs in a row. offers-rules 22/22 and offer-contract-landings 15/15 still pass.
 
-## Estimate vs actual (4.1)
-Estimated S, ~5 min of Michael's time. Actual S, about 20 min build; Michael 0 min.
+## Estimate vs actual (4.2)
+Estimated M, ~5 min of Michael's time. Actual M (about 25 min build); Michael 0 min.
 
 ## Backup coverage
-No stored data created or changed. Code only; backed up by git (tag session-4.1, pushed).
+No stored data created or changed. Code only; backed up by git (tag session-4.2, pushed).
 
 ## Open items (backlog, none block)
-1. offers-stats "twenty parallel views" fails on this PC (14 of 20). Session 4.3's parallel test may hit the same pattern (plan says stop and report if so).
-2. No CI in this repo: verified by local test runs only.
-3. Until 4.6: saved offers carry no landing key; offers-rules.test.mjs filters it (remove in 4.6). The admin's new-offer blank now sends landing: null, which prepareOffer ignores until 4.6.
-4. Phase 1 backlog: 1.2b alert email, untrack .netlify/, test store tidy. Phase 2 (Key Actions Dashboard) still planned, not run.
+1. For 4.4: archiving a Draft from the list. Either refuse it in the UI, or have the archive route allow it. Decide in 4.4; prepareLanding refuses it today.
+2. offers-stats "twenty parallel views" fails on this PC (14 of 20). Session 4.3's parallel test may hit the same pattern (plan says stop and report if so).
+3. No CI in this repo: verified by local test runs only.
+4. Until 4.6: saved offers carry no landing key; offers-rules.test.mjs filters it (remove in 4.6).
+5. Phase 1 backlog: 1.2b alert email, untrack .netlify/, test store tidy. Phase 2 (Key Actions Dashboard) still planned, not run.
 
 ## Next step
-Session 4.2 (Landing rules, pure; LOGIC), tag session-4.2. After 4.1: CLEAR, so a fresh helper runs it.
+Session 4.3 (The landing store; DATA), tag session-4.3. After 4.2: CLEAR, so a fresh helper runs it.

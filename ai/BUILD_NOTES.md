@@ -156,6 +156,8 @@ Only what a future session would waste time rediscovering.
 - Until Session 4.6, a saved offer has no "landing" key (prepareOffer leaves it undefined, JSON drops it). offers-rules.test.mjs filters it out with a note; 4.6 removes that filter.
 - landingSlugFromPath never URL-decodes: %2f, %2e%2e and backslashes fail the slug pattern. A caller must pass the raw pathname (url.pathname), not a decoded one.
 - landingState: a missing landing reads as archived and an unknown status as draft (never public). Offers with unparseable dates are linked but do not set the window.
+- Landing rules: netlify/functions/lib/landings-rules.mjs (prepareLanding, cleanCtaUrl; Session 4.2). It imports plainText, cleanButtonUrl and the limits from offers-rules.mjs, so offers-rules must keep exporting them. cleanButtonUrl allows http://; cleanCtaUrl refuses it on top. prepareLanding refuses Draft to Archived on save (plan's three moves only): the 4.4 archive route must handle a draft deliberately.
+- Testing "Too much formatting": normalizeMarkup merges adjacent runs with the same style, so a repeated identical tag run collapses. Alternate styled and plain characters, and use only listed values (hl=yellow is not one; it stays text and counts as words).
 
 ## Just the Audio (added 2026-10-11)
 - A free tool that turns MP4, MOV and M4A recordings into MP3 in the visitor's own browser. Called "MP4 to MP3 Converter" during the build; the project folder and repo keep that name.
