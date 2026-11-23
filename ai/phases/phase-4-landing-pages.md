@@ -227,9 +227,9 @@ Rules written once here so sessions agree:
 - Objectives: stability (a disaster restore keeps landing pages); efficiency (pictures counted once, parts stay under 4.5 MB).
 - Files modified: netlify/functions/offers-export.mjs; existing offers-export test updated for the new key. Created: netlify/tests/landings-export.test.mjs.
 - Tasks:
-  - [ ] Add `landings: [...]` to part 1 (records, preview keys included, same privacy note). Pictures used by landings join the same ordered, packed list (offers first, then landings), each picture once.
-  - [ ] An unreadable landing store never fails the export: the file says `landingsMissing: true` and carries a plain note.
-  - [ ] Tests: export holds both kinds, a shared picture appears once, parts still split correctly when landing pictures push past the limit, unreadable landing store still exports the offers.
+  - [x] Add `landings: [...]` to part 1 (records, preview keys included, same privacy note). Pictures used by landings join the same ordered, packed list (offers first, then landings), each picture once.
+  - [x] An unreadable landing store never fails the export: the file says `landingsMissing: true` and carries a plain note.
+  - [x] Tests: export holds both kinds, a shared picture appears once, parts still split correctly when landing pictures push past the limit, unreadable landing store still exports the offers.
 - Inputs needed from Michael: None.
 - DONE WHEN: `node --test netlify/tests/landings-export.test.mjs netlify/tests/offers-export.test.mjs` passes (run each by path; output pasted).
 - Needs my eyes: nothing.

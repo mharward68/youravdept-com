@@ -34,6 +34,7 @@ const auth = await import('../functions/lib/offers-auth.mjs');
 const st = await import('../functions/lib/offers-store.mjs');
 const imgStore = await import('../functions/lib/offer-images-store.mjs');
 const statsLib = await import('../functions/lib/offers-stats.mjs');
+const landStore = await import('../functions/lib/landings-store.mjs');
 const { checkImage, IMAGE_MESSAGES } = await import('../functions/lib/offer-image.mjs');
 const HANDLERS = {
   offers: (await import('../functions/offers.mjs')).default,
@@ -107,6 +108,10 @@ st._setOffersStoreFactoryForTests(() => offerStore);
 imgStore._setImagesStoreFactoryForTests(() => picStore);
 auth._setStoreFactoryForTests(() => authStore);
 statsLib._setStatsStoreFactoryForTests(() => statStore);
+// Session 4.7: the export (and since 4.6 the save cleanup) reads the landing
+// store. Empty and in memory; without it the export says landings are missing.
+const landingStore = memoryBlobs();
+landStore._setLandingsStoreFactoryForTests(() => landingStore);
 
 const CTX = { deploy: { context: 'branch-deploy' } };
 const TOKEN = auth.makeToken(auth.authConfig());

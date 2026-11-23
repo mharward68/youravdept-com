@@ -19,10 +19,25 @@
 //
 // A picture that cannot be read never fails the export: the offers matter
 // most, and the file says which pictures are missing.
+//
+// Session 4.7 (contract 1.4.0): part 1 also holds every landing page record
+// (preview keys included, so the same rule applies: keep the file private):
+//   landingsStore:   store name the landings came from
+//   landingsCount:   number of landing records
+//   landings:        the records exactly as stored (archived ones too)
+//   landingsMissing: true when the landing store could not be read
+//   landingsNote:    plain sentence ("" when nothing to say)
+// Pictures used by landing pages join the same packed list, after the
+// offers' pictures, each picture once. An unreadable landing store never
+// fails the export: the offers still download, landingsMissing is true, and
+// the sentence is added to imagesNote as well so the admin page shows it.
+// Picture files (part 2 on) carry landingsMissing too, because their parts
+// are worked out from the landing pages they could read.
 import { CONTRACT_VERSION, ROUTES, TIME_ZONE } from '../../shared/offer-contract.js';
 import { requireAdmin, json, NO_STORE } from './lib/offers-auth.mjs';
 import { StoreError, loadOffers, offersStore, offersStoreName } from './lib/offers-store.mjs';
 import { getImage, headImage, imagesStore, imagesStoreName, isImageId } from './lib/offer-images-store.mjs';
+import { landingsStore, landingsStoreName, loadLandings } from './lib/landings-store.mjs';
 
 /** Largest file this route sends. A Netlify function response tops out near 6 MB. */
 export const EXPORT_MAX_BYTES = Math.floor(4.5 * 1024 * 1024);
@@ -45,14 +60,28 @@ const toText = (file) => JSON.stringify(file, null, 2) + '\n';
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 const partUrl = (n) => `${ROUTES.apiExport}?images=rest${n > 2 ? `&part=${n}` : ''}`;
 
-/** Picture ids the current offers refer to, first use first, each once. */
-function referencedIds(offers) {
+/** Picture ids the current offers, then the landing pages, refer to: first use first, each once. */
+function referencedIds(offers, landings = []) {
   const seen = new Set();
-  for (const o of offers) {
+  for (const o of [...offers, ...landings]) {
     const id = o?.image?.id;
     if (isImageId(id)) seen.add(id);
   }
   return [...seen];
+}
+
+export const LANDINGS_MISSING_NOTE =
+  'The landing pages could not be read, so they are not in this file. Download the export again in a few minutes.';
+
+/** Every landing record, or { missing: true } when the store cannot be opened or read. Never throws. */
+async function readLandings(deployContext) {
+  try {
+    const { landings } = await loadLandings(landingsStore(deployContext));
+    return { landings, missing: false };
+  } catch (err) {
+    console.error('offers-export: landing pages not readable', err?.message);
+    return { landings: [], missing: true };
+  }
 }
 
 /**
@@ -145,7 +174,10 @@ export default async (req, context) => {
   try {
     const { offers } = await loadOffers(offersStore(deployContext));
     const now = new Date();
-    const ids = referencedIds(offers);
+    const lands = await readLandings(deployContext);
+    const ids = referencedIds(offers, lands.landings);
+    const landingsNote = lands.missing ? LANDINGS_MISSING_NOTE : '';
+    const withLandingsNote = (text) => [text, landingsNote].filter(Boolean).join(' ');
 
     const offersFile = {
       kind: 'yavd-offers-export',
@@ -155,6 +187,11 @@ export default async (req, context) => {
       store: offersStoreName(deployContext),
       count: offers.length,
       offers,
+      landingsStore: landingsStoreName(deployContext),
+      landingsCount: lands.landings.length,
+      landings: lands.landings,
+      landingsMissing: lands.missing,
+      landingsNote,
       images: [],
       imagesOmitted: [],
       imagesMissing: [],
@@ -172,6 +209,7 @@ export default async (req, context) => {
       imagesOmitted: [],
       imagesMissing: [],
       imagesNote: '',
+      landingsMissing: lands.missing,
       next: null
     });
 
@@ -183,7 +221,7 @@ export default async (req, context) => {
       // Room the file needs without any picture: measured on the empty
       // shell, with every id listed as omitted or missing (an upper bound).
       const worst = (f) => byteLength(toText({ ...f, imagesOmitted: ids, imagesMissing: ids,
-        imagesNote: note(1, 2, ids), next: f.next === undefined ? undefined : partUrl(MAX_PART) }));
+        imagesNote: withLandingsNote(note(1, 2, ids)), next: f.next === undefined ? undefined : partUrl(MAX_PART) }));
       plan = store
         ? await planParts(store, ids, worst(offersFile), worst(restFile(MAX_PART)))
         : { parts: [[]], missing: [...ids] };
@@ -196,7 +234,7 @@ export default async (req, context) => {
       offersFile.images = store ? await readPart(store, plan.parts[0], missing) : [];
       offersFile.imagesOmitted = later(1);
       offersFile.imagesMissing = missing;
-      offersFile.imagesNote = note(1, parts, missing);
+      offersFile.imagesNote = withLandingsNote(note(1, parts, missing));
       return respond(offersFile, `yavd-offers-${where}-${stamp(now)}.json`);
     }
 
@@ -208,9 +246,9 @@ export default async (req, context) => {
       file.next = part < parts ? partUrl(part + 1) : null;
     }
     file.imagesMissing = missing;
-    file.imagesNote = part > parts
+    file.imagesNote = withLandingsNote(part > parts
       ? 'Nothing more to download: every picture fits in the earlier files.'
-      : note(part, parts, missing);
+      : note(part, parts, missing));
     const suffix = part > 2 ? `-part${part}` : '';
     return respond(file, `yavd-offers-${where}-images${suffix}-${stamp(now)}.json`);
   } catch (err) {

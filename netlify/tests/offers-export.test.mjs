@@ -11,6 +11,7 @@ process.env.OFFER_SESSION_SECRET = 'test-secret-0123456789abcdef';
 const auth = await import('../functions/lib/offers-auth.mjs');
 const st = await import('../functions/lib/offers-store.mjs');
 const imgStore = await import('../functions/lib/offer-images-store.mjs');
+const landStore = await import('../functions/lib/landings-store.mjs');
 const exportMod = await import('../functions/offers-export.mjs');
 const exportFn = exportMod.default;
 const LIMIT = exportMod.EXPORT_MAX_BYTES;
@@ -56,6 +57,9 @@ beforeEach(() => {
   pics = pictureBlobs();
   openedPictures = 0;
   st._setOffersStoreFactoryForTests(() => blobs);
+  // Session 4.7: export reads the landing store too. Empty here; landing
+  // cases live in landings-export.test.mjs.
+  landStore._setLandingsStoreFactoryForTests(() => offerBlobs());
   imgStore._setImagesStoreFactoryForTests(() => {
     openedPictures++;
     if (!pics.opens) throw new Error('cannot open');
@@ -104,6 +108,12 @@ test('no pictures: same file as before plus empty picture fields; picture store 
   assert.deepEqual(r.body.imagesOmitted, []);
   assert.deepEqual(r.body.imagesMissing, []);
   assert.equal(r.body.imagesNote, '');
+  // 1.4.0 (Session 4.7): landing keys, empty when there are no landing pages
+  assert.equal(r.body.landingsStore, 'offer-landings-test');
+  assert.equal(r.body.landingsCount, 0);
+  assert.deepEqual(r.body.landings, []);
+  assert.equal(r.body.landingsMissing, false);
+  assert.equal(r.body.landingsNote, '');
   assert.equal(openedPictures, 0);
 });
 
@@ -179,6 +189,8 @@ test('eight 590 KB pictures: part 1 stays under 4.5 MB, the rest spill to part 2
   assert.deepEqual(p2.body.images.map((i) => i.id), p1.body.imagesOmitted);
   assert.deepEqual(p2.body.imagesOmitted, []);
   assert.equal(p2.body.imagesNote, '');
+  assert.equal(p2.body.landingsMissing, false);
+  assert.equal('landings' in p2.body, false);
 
   const all = [...p1.body.images, ...p2.body.images];
   assert.deepEqual(all.map((i) => i.id), ids);
