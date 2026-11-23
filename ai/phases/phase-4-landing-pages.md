@@ -261,12 +261,12 @@ Rules written once here so sessions agree:
 - Objectives: stability (storage trouble sends visitors to the normal site, never an error page); security (preview key compared safely, drafts invisible); efficiency (one cached read per store, 60 s, like the edge functions).
 - Files created: netlify/functions/offer-landing.mjs, netlify/tests/landing-serve.test.mjs. Modified: netlify/edge-lib/offer-edge.js (`/offers/` into SKIP_PREFIXES), netlify/edge-functions/offer-page.js and page-takedown.js (`/offers/*` into excludedPath), netlify.toml (header rule for `/offers/*`: X-Robots-Tag noindex; and, if 4.9 shows it is needed, the forced rewrite named under Fallback).
 - Tasks:
-  - [ ] Route: `config.path` for `/offers/*`, GET and HEAD only. Path through landingSlugFromPath; anything else under /offers/ is a 404 (no-store, noindex).
-  - [ ] Read landings and offers (cached 60 s per instance, strong reads, the offer-edge createOfferSource pattern); decide with landingState: running gives the page; expired and archived give the page with the expiration data; before gives 302 to `/` with no-store; draft gives the page only with a valid `?preview=<key>`, otherwise 302 to `/`; unknown slug gives 302 to `/`.
-  - [ ] Landing store unreadable and nothing cached: 302 to `/` (quiet). Offers store unreadable: show the page as running without the expiration popup.
-  - [ ] Test switch: `x-yavd-test-store-fail: 1` on non-production deploys forces the storage failure (same helper as the edge).
-  - [ ] Diagnostic header `x-yavd-landing`: running, expired, archived, before, draft, preview, unknown, store-failed (same idea as x-yavd-offer).
-  - [ ] Tests: each state, with and without the `.html`, uppercase and trailing slash, preview key right and wrong, store failure, the popup edge function and takedown function skip /offers/ paths (test the skip list directly), HEAD works.
+  - [x] Route: `config.path` for `/offers/*`, GET and HEAD only. Path through landingSlugFromPath; anything else under /offers/ is a 404 (no-store, noindex).
+  - [x] Read landings and offers (cached 60 s per instance, strong reads, the offer-edge createOfferSource pattern); decide with landingState: running gives the page; expired and archived give the page with the expiration data; before gives 302 to `/` with no-store; draft gives the page only with a valid `?preview=<key>`, otherwise 302 to `/`; unknown slug gives 302 to `/`.
+  - [x] Landing store unreadable and nothing cached: 302 to `/` (quiet). Offers store unreadable: show the page as running without the expiration popup.
+  - [x] Test switch: `x-yavd-test-store-fail: 1` on non-production deploys forces the storage failure (same helper as the edge).
+  - [x] Diagnostic header `x-yavd-landing`: running, expired, archived, before, draft, preview, unknown, store-failed (same idea as x-yavd-offer).
+  - [x] Tests: each state, with and without the `.html`, uppercase and trailing slash, preview key right and wrong, store failure, the popup edge function and takedown function skip /offers/ paths (test the skip list directly), HEAD works.
 - Inputs needed from Michael: None.
 - DONE WHEN: `node --test netlify/tests/landing-serve.test.mjs` passes (output pasted), plus offer-edge.test.mjs by path.
 - Needs my eyes: nothing.

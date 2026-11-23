@@ -22,6 +22,14 @@
     X-Robots-Tag = "noindex, nofollow"
     Cache-Control = "no-store"
 
+# Session 4.9: landing pages (/offers/landing-<slug>.html) are served by the
+# offer-landing function, which sets X-Robots-Tag itself. This rule is the
+# second lock for anything static that ever lands under /offers/.
+[[headers]]
+  for = "/offers/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
 [[headers]]
   for = "/offers-form*"
   [headers.values]

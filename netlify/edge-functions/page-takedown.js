@@ -32,7 +32,7 @@ export default async (req, context) => {
 
 export const config = {
   path: '/*',
-  excludedPath: ['/api/*', '/assets/*', '/shared/*', '/.netlify/*', '/library/pdf/*', '/offer/*',
+  excludedPath: ['/api/*', '/assets/*', '/shared/*', '/.netlify/*', '/library/pdf/*', '/offer/*', '/offers/*',
                  '/offer-admin*', '/offers-form*', '/admin*', '/site-map*'],
   onError: 'bypass'
 };

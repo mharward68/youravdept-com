@@ -44,7 +44,7 @@ export function parseSlug(pathname) {
 }
 
 /** Only real site pages: no extension, or .html. Assets, APIs and module paths never. */
-const SKIP_PREFIXES = ['/api/', '/offer/', '/offer-admin', '/offers-form', '/.netlify/', '/assets/', '/shared/', '/ai/', '/netlify/'];
+const SKIP_PREFIXES = ['/api/', '/offer/', '/offers/', '/offer-admin', '/offers-form', '/.netlify/', '/assets/', '/shared/', '/ai/', '/netlify/'];
 export function looksLikePage(pathname) {
   const p = String(pathname || '/').toLowerCase();
   if (SKIP_PREFIXES.some((s) => p.startsWith(s))) return false;
