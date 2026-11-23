@@ -124,6 +124,30 @@ Michael may want to reverse this. To remove it, either `git revert` the commit
 restore the hero line noted in the HTML START comment:
 `<img class="hero-logo reveal is-visible" src=... alt="Your AV Department logo">`.
 
+## Offers Module and offer pictures
+
+The Offers Module runs timed popup offers on any page. Michael manages them at
+`/offer-admin` (same sign-in as `/admin`). Each offer has its copy, a schedule,
+a live preview and, since 2026-11-12, one optional picture. Offers and pictures
+are stored in Netlify Blobs, so changing them needs no deploy.
+
+- Pictures: one per offer, JPG, PNG or WebP only (SVG and GIF are refused). The
+  browser shrinks it to 1600 px on the long side, aiming under 400 KB (hard cap
+  600 KB), and the server re-checks the type from the file's own bytes. Alt text
+  is required, up to 125 characters. Placement is Top banner, Left of text or
+  Right of text; left and right stack above the text on phones.
+- Storage: Blobs stores `offers` and `offer-images` (`-test` on draft deploys).
+  A picture that nothing refers to is deleted after a save, but never within 24
+  hours of upload and never while one of the newest 20 saved versions uses it.
+- Export from `/offer-admin` includes the pictures; a large set downloads in
+  parts under 4.5 MB.
+- Frozen contract: `shared/offer-contract.js` (1.3.0). Changing it is a new scope.
+- Code: `shared/offer-contract.js`, `netlify/functions/lib/offers-*.mjs`,
+  `assets/offer-panel.js` (the popup) and `assets/offer-admin.js` (the editor).
+  Run tests by file path, for example `node --test netlify/tests/offer-panel-image.test.mjs`.
+- Where things stand and why: `ai/CONTEXT.md`, `ai/BUILD_NOTES.md` and
+  `ai/DECISIONS.md`.
+
 ## Updating a guide
 
 The guide PDFs are hosted on this site, not Google Drive. To publish a new
